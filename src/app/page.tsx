@@ -114,67 +114,51 @@ const PUBLICATIONS = [
     date: "22 Jun 2026",
     tag: "energy",
     title: "Power Supply Redundancy in Switzerland: Critical Infrastructure for Data Centers",
-    desc: "Swiss data centers require robust redundant power supply systems to ensure continuous availability of critical services and minimize failure risks.",
+    desc: "An analysis of Switzerland's power supply architecture and its vulnerabilities in the context of growing data centre demand.",
     author: "SRC Expert Panel",
   },
   {
-    type: "Report",
-    date: "10 Mar 2025",
-    tag: "energy",
-    title: "Energy independence of the D-A-CH region — strategic options",
-    desc: "A fact-based analysis of security of supply, storage technologies and geopolitical dependencies.",
-    author: "Circle II — Energy",
-  },
-  {
-    type: "Statement",
-    date: "5 Feb 2025",
-    tag: null,
-    title: "Science not Scientism — For an open scientific debate",
-    desc: "Ideologies and the refusal to consider other opinions have repeatedly culminated in catastrophe in the past.",
+    type: "Strategy Paper",
+    date: "15 Jun 2026",
+    tag: "ict",
+    title: "Zero-Trust Architecture for D-A-CH Government Networks",
+    desc: "A strategic framework for implementing zero-trust security models across government ICT infrastructure in the D-A-CH region.",
     author: "SRC Board",
   },
   {
-    type: "Brief",
-    date: "20 Jan 2025",
-    tag: "ict",
-    title: "Brownout and blackout prevention in data centres",
-    desc: "Even a single day of standstill of central ICT systems leads to chaos that is difficult to control.",
-    author: "Circle I — ICT & Cloud",
-  },
-  {
-    type: "Analysis",
-    date: "15 Nov 2024",
-    tag: "energy",
-    title: "The 360° view on critical infrastructures",
-    desc: "Why networked, systemic thinking has become a matter of war and peace in the current geopolitical situation.",
+    type: "Statement",
+    date: "08 Jun 2026",
+    tag: "agriculture",
+    title: "Food Supply Chain Resilience: Lessons from Recent Disruptions",
+    desc: "An examination of vulnerabilities in the D-A-CH food supply chain and policy recommendations for increasing resilience.",
     author: "SRC Expert Panel",
   },
 ];
 
 const EXPERTS = [
   {
-    initials: "MB",
-    name: "Dr. rer. nat. M. Breu",
-    role: "Chairman & Co-Founder",
-    desc: "Long-standing expert in ICT security and resilient critical infrastructures. Over 25 years of experience in international technology and consulting companies.",
+    initials: "BR",
+    name: "Dr. Bernd R.",
+    role: "President",
+    desc: "Expert in strategic security policy and geopolitical risk assessment with 25+ years of experience.",
   },
   {
-    initials: "AS",
-    name: "Dr. phil. A. Steiner",
-    role: "Co-Founder & Strategy Advisor",
-    desc: "Strategy consultant with a focus on social resilience, demographics and migration policy concepts.",
+    initials: "MK",
+    name: "Prof. Dr. Maria K.",
+    role: "VP Research",
+    desc: "Professor of energy systems engineering, focusing on grid resilience and storage technologies.",
   },
   {
     initials: "TH",
-    name: "Prof. Dr.-Ing. T. Hofer",
-    role: "Lead Energy Circle",
-    desc: "Professor of energy systems and security of supply. Research focus: resilient grids and storage technologies.",
+    name: "Thomas H.",
+    role: "VP Operations",
+    desc: "Former CISO with deep expertise in critical infrastructure protection and cyber defence.",
   },
   {
-    initials: "CA",
-    name: "Dipl.-Inf. C. Aebi",
-    role: "Lead ICT & Cloud Circle",
-    desc: "Expert in cloud architectures, zero-trust and supply-chain security in large ICT infrastructures.",
+    initials: "AW",
+    name: "Dr. Anna W.",
+    role: "Head of Analysis",
+    desc: "Political scientist specialising in migration, demographics and social cohesion in Europe.",
   },
 ];
 
@@ -197,18 +181,12 @@ const FAQ_ITEMS = [
   },
 ];
 
-function SectionLabel({
-  num,
-  label,
-}: {
-  num: string;
-  label: string;
-}) {
+/* ── Section header with red number badge ── */
+function SectionLabel({ num, label }: { num: string; label: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="font-mono text-xs text-accent">{num}</span>
-      <span className="h-px w-8 bg-accent/40" />
-      <span className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="flex items-center gap-4">
+      <span className="section-num">{num}</span>
+      <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold">
         {label}
       </span>
     </div>
@@ -228,38 +206,41 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-40 transition-all duration-300 bg-transparent">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+      {/* Swiss Red Stripe — top of page */}
+      <div className="swiss-stripe" />
+
+      {/* ──────────────── HEADER ──────────────── */}
+      <header className="fixed top-[3px] inset-x-0 z-40 bg-white/95 backdrop-blur-sm border-b border-border/60">
+        <div className="mx-auto max-w-7xl px-6 lg:px-10">
+          <div className="flex h-[72px] items-center justify-between">
             {/* Logo */}
             <button
-              className="flex items-center gap-2.5 group"
+              className="flex items-center gap-3 group"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
               <Image
                 src="/logo.png"
                 alt="SRC Logo"
-                width={36}
-                height={36}
-                className="rounded-md object-contain"
+                width={38}
+                height={38}
+                className="object-contain"
               />
               <div className="text-left leading-tight">
-                <div className="font-semibold tracking-tight text-sm">
+                <div className="font-bold tracking-tight text-[15px] text-foreground">
                   SRC
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Security &amp; Resilience
+                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                  Security &amp; Resilience Counsel
                 </div>
               </div>
             </button>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center">
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item}
-                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/10 rounded-md transition-colors"
+                  className="px-4 py-2 text-[13px] text-muted-foreground hover:text-primary font-medium transition-colors"
                   onClick={() => scrollToSection(item)}
                 >
                   {item}
@@ -267,33 +248,25 @@ export default function Home() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="hidden md:inline-flex gap-1.5"
+                className="hidden lg:inline-flex gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary"
                 aria-label="Toggle language"
               >
-                <Languages className="h-4 w-4" />
-                <span className="text-xs font-semibold uppercase">en</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden md:inline-flex gap-1.5"
-              >
-                <Star className="h-3.5 w-3.5" />
-                <span className="text-xs">GLM Studio</span>
+                <Languages className="h-3.5 w-3.5" />
+                <span className="uppercase">en</span>
               </Button>
               <Button
                 size="sm"
-                className="hidden md:inline-flex"
+                className="hidden lg:inline-flex bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs uppercase tracking-wider"
                 onClick={() => scrollToSection("Contact")}
               >
                 Contact
               </Button>
               <button
-                className="md:hidden p-2 rounded-md hover:bg-accent/10"
+                className="lg:hidden p-2 hover:text-primary transition-colors"
                 aria-label="Menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
@@ -308,11 +281,11 @@ export default function Home() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-border/40 py-4 space-y-1">
+            <div className="lg:hidden border-t border-border py-4 space-y-1">
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item}
-                  className="block w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/10 rounded-md transition-colors"
+                  className="block w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors font-medium"
                   onClick={() => scrollToSection(item)}
                 >
                   {item}
@@ -324,87 +297,71 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
-          <div className="absolute inset-0 -z-10 bg-grid opacity-60" />
-          <div className="absolute inset-0 -z-10 bg-radial-fade" />
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent -z-10" />
-
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* ===================== HERO ===================== */}
+        <section className="pt-32 pb-20 sm:pt-40 sm:pb-28">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent/30 bg-accent/5 text-xs text-accent-foreground mb-6">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 animate-ping" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
-                </span>
-                <span className="font-mono uppercase tracking-[0.16em] text-[10px]">
+              {/* Eyebrow */}
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-8 w-[3px] bg-[#E8272C]" />
+                <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold">
                   Security &amp; Resilience Counsel — D-A-CH
                 </span>
               </div>
 
-              <h1 className="text-balance text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05]">
+              {/* Headline — serif for institutional authority */}
+              <h1 className="heading-serif text-balance text-[2.5rem] sm:text-5xl lg:text-[3.75rem] font-bold tracking-tight leading-[1.1] text-foreground">
                 The leading think tank for security and resilience of critical
                 infrastructure
               </h1>
 
-              <p className="mt-6 text-pretty text-lg text-muted-foreground leading-relaxed max-w-2xl">
+              {/* Subhead */}
+              <p className="mt-8 text-pretty text-lg text-muted-foreground leading-relaxed max-w-2xl">
                 A non-partisan, fact-based initiative of experts from
                 Switzerland, Germany and Austria. We develop well-founded
                 concepts for secure, reliable and protected critical
                 infrastructures.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              {/* CTAs */}
+              <div className="mt-10 flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
-                  className="group"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-12"
                   onClick={() => scrollToSection("Publications")}
                 >
                   View Publications
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="group"
-                  onClick={() => scrollToSection("Get Involved")}
+                  className="border-border text-foreground hover:border-primary hover:text-primary font-semibold text-sm uppercase tracking-wider px-8 h-12"
+                  onClick={() => scrollToSection("involve")}
                 >
                   Get Involved
-                  <ArrowDown className="ml-2 h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+                  <ArrowDown className="ml-2 h-4 w-4" />
                 </Button>
               </div>
+            </div>
 
-              <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {/* Stats — clean institutional style */}
+            <div className="mt-20 pt-12 border-t border-border">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-12">
                 {[
-                  {
-                    icon: Activity,
-                    label: "Founded",
-                    value: "Autumn 2022",
-                  },
-                  {
-                    icon: Globe,
-                    label: "D-A-CH Countries",
-                    value: "3",
-                  },
-                  {
-                    icon: ShieldCheck,
-                    label: "Focus Sectors",
-                    value: "4",
-                  },
-                  {
-                    icon: ShieldCheck,
-                    label: "Circles of Competence",
-                    value: "4",
-                  },
+                  { icon: Activity, label: "Founded", value: "Autumn 2022" },
+                  { icon: Globe, label: "D-A-CH Countries", value: "3" },
+                  { icon: ShieldCheck, label: "Focus Sectors", value: "4" },
+                  { icon: ShieldCheck, label: "Circles of Competence", value: "4" },
                 ].map((stat) => (
-                  <div key={stat.label} className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <stat.icon className="h-3.5 w-3.5" />
-                      <span className="text-[10px] uppercase tracking-[0.14em]">
+                  <div key={stat.label}>
+                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                      <stat.icon className="h-4 w-4" />
+                      <span className="text-[10px] uppercase tracking-[0.18em] font-semibold">
                         {stat.label}
                       </span>
                     </div>
-                    <div className="text-2xl font-semibold tracking-tight">
+                    <div className="heading-serif text-3xl sm:text-4xl font-bold tracking-tight text-primary">
                       {stat.value}
                     </div>
                   </div>
@@ -414,35 +371,34 @@ export default function Home() {
           </div>
         </section>
 
-        {/* About Section */}
-        <section
-          id="about"
-          className="py-20 sm:py-28 border-t border-border/40"
-        >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* ===================== ABOUT ===================== */}
+        <section id="about" className="section-divider">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
               <div className="lg:col-span-5">
                 <SectionLabel num="01" label="About the SRC" />
-                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-balance">
+                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight text-balance leading-tight">
                   360° view and systemic thinking
                 </h2>
-                <div className="mt-6 inline-flex items-center gap-3 px-4 py-3 rounded-lg border border-accent/30 bg-accent/5">
-                  <Network className="h-5 w-5 text-accent" />
-                  <span className="text-xs uppercase tracking-[0.16em] font-mono text-accent-foreground">
+                <div className="mt-8 inline-flex items-center gap-3 px-5 py-3.5 border border-border rounded-sm bg-secondary">
+                  <Network className="h-5 w-5 text-primary shrink-0" />
+                  <span className="text-xs uppercase tracking-[0.18em] font-semibold text-foreground">
                     360° · systemic · fact-based
                   </span>
                 </div>
               </div>
               <div className="lg:col-span-7 space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="rounded-lg border border-border/60 bg-card/40 p-5 h-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="h-7 w-7 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="card-institutional p-6 h-full">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-9 w-9 bg-primary rounded-sm flex items-center justify-center text-white">
                         <Target className="h-4 w-4" />
                       </div>
-                      <h3 className="font-semibold text-sm">Mission</h3>
+                      <h3 className="font-bold text-sm uppercase tracking-wider">
+                        Mission
+                      </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-6">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       The SRC – Security &amp; Resilience Counsel (Switzerland –
                       Germany – Austria) was founded in autumn 2022 with the aim
                       of bringing together experts in various fields related to
@@ -452,14 +408,16 @@ export default function Home() {
                       food and water reserves.
                     </p>
                   </div>
-                  <div className="rounded-lg border border-border/60 bg-card/40 p-5 h-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="h-7 w-7 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
+                  <div className="card-institutional p-6 h-full">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-9 w-9 bg-primary rounded-sm flex items-center justify-center text-white">
                         <Eye className="h-4 w-4" />
                       </div>
-                      <h3 className="font-semibold text-sm">Vision</h3>
+                      <h3 className="font-bold text-sm uppercase tracking-wider">
+                        Vision
+                      </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-6">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       We are driven by the strong will to preserve our democracy,
                       our constitution and the society that our ancestors created
                       and in many cases fought for. In order to preserve and
@@ -470,8 +428,8 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-card/40 p-6">
-                  <div className="text-xs uppercase tracking-[0.16em] font-mono text-muted-foreground mb-3">
+                <div className="card-institutional p-8">
+                  <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-4">
                     Our Approach
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -488,44 +446,41 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Focus Areas Section */}
-        <section
-          id="focus"
-          className="py-20 sm:py-28 border-t border-border/40"
-        >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-12">
+        {/* ===================== FOCUS AREAS ===================== */}
+        <section id="focus" className="bg-secondary">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="max-w-2xl mb-14">
               <SectionLabel num="02" label="Focus Areas" />
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
                 Four central focus areas for the security and resilience of the
                 D-A-CH region
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {FOCUS_AREAS.map((area) => (
                 <article
                   key={area.num}
-                  className="group relative rounded-xl border border-border/60 bg-card/30 p-6 hover:border-accent/40 hover:bg-accent/5 transition-all duration-300"
+                  className="card-institutional group p-7 cursor-pointer"
                 >
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="h-11 w-11 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center">
-                      <area.icon className="h-5 w-5 text-accent" />
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="h-12 w-12 bg-primary rounded-sm flex items-center justify-center text-white">
+                      <area.icon className="h-5 w-5" />
                     </div>
-                    <span className="font-mono text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground font-semibold tracking-wider">
                       {area.num}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-base mb-2 tracking-tight">
+                  <h3 className="font-bold text-base mb-3 tracking-tight">
                     {area.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {area.desc}
                   </p>
-                  <div className="mt-5 pt-4 border-t border-border/40 flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground">
+                  <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
                       {area.tag}
                     </span>
-                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-[#E8272C] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                   </div>
                 </article>
               ))}
@@ -533,47 +488,43 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Circles Section */}
-        <section
-          id="circles"
-          className="py-20 sm:py-28 border-t border-border/40 relative overflow-hidden"
-        >
-          <div className="absolute -top-32 right-0 h-72 w-72 rounded-full bg-accent/5 blur-3xl -z-10" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-12">
+        {/* ===================== CIRCLES ===================== */}
+        <section id="circles" className="section-divider">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="max-w-3xl mb-14">
               <SectionLabel num="03" label="Circles of Competence" />
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
                 Circles of Competence
               </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <p className="mt-5 text-muted-foreground leading-relaxed">
                 For each topic we create a &quot;Circle of Competence&quot; whose
                 members meet regularly in person or virtually. In parallel, we
                 operate a digital workspace to collect data and information and
                 to develop innovative solutions.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {CIRCLES.map((circle) => (
                 <article
                   key={circle.title}
-                  className="relative rounded-xl border border-border/60 bg-card/30 p-6 hover:border-accent/40 transition-colors"
+                  className="card-institutional group p-8"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-                      <circle.icon className="h-5 w-5 text-accent" />
+                  <div className="flex items-start gap-5">
+                    <div className="h-11 w-11 bg-primary rounded-sm flex items-center justify-center text-white shrink-0">
+                      <circle.icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base mb-1.5 tracking-tight">
+                      <h3 className="font-bold text-base mb-2 tracking-tight">
                         {circle.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                         {circle.desc}
                       </p>
-                      <div className="pt-3 border-t border-border/40">
-                        <div className="text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground mb-1">
+                      <div className="pt-4 border-t border-border">
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-2">
                           Focus
                         </div>
-                        <p className="text-xs text-muted-foreground/90 leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                           {circle.focus}
                         </p>
                       </div>
@@ -585,55 +536,47 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Publications Section */}
-        <section
-          id="publications"
-          className="py-20 sm:py-28 border-t border-border/40"
-        >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+        {/* ===================== PUBLICATIONS ===================== */}
+        <section id="publications" className="bg-secondary">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-14">
               <div className="max-w-2xl">
                 <SectionLabel num="04" label="Publications & Analyses" />
-                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
-                  Fact-based analyses, strategies and statements from our
-                  Circles of Competence
+                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+                  Fact-based analyses, strategies and statements
                 </h2>
               </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="space-y-4">
               {PUBLICATIONS.map((pub, i) => (
                 <article
                   key={i}
-                  className="group rounded-xl border border-border/60 bg-card/30 p-6 hover:border-accent/40 hover:bg-accent/5 transition-all cursor-pointer"
+                  className="card-institutional group p-6 cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-[10px] uppercase tracking-wider font-mono">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+                    <span className="inline-flex items-center justify-center bg-primary text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold w-fit rounded-sm">
                       {pub.type}
                     </span>
-                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
                       <Calendar className="h-3 w-3" />
                       {pub.date}
                     </span>
                     {pub.tag && (
-                      <span className="text-[10px] uppercase tracking-[0.14em] font-mono text-muted-foreground ml-auto">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
                         {pub.tag}
                       </span>
                     )}
                   </div>
-                  <h3 className="font-semibold text-lg leading-snug tracking-tight mb-2 group-hover:text-accent transition-colors">
+                  <h3 className="font-bold text-lg leading-snug tracking-tight mb-2 group-hover:text-primary transition-colors">
                     {pub.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-                    {pub.desc}
-                  </p>
-                  <div className="mt-5 pt-4 border-t border-border/40 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
-                      <Users className="h-3 w-3" />
-                      {pub.author}
-                    </span>
-                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1 group-hover:text-accent transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+                      {pub.desc}
+                    </p>
+                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1 group-hover:text-[#E8272C] transition-colors shrink-0 font-semibold">
                       Read
-                      <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </span>
                   </div>
                 </article>
@@ -642,37 +585,35 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Expert Panel Section */}
-        <section id="team" className="py-20 sm:py-28 border-t border-border/40">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-12">
+        {/* ===================== EXPERT PANEL ===================== */}
+        <section id="team" className="section-divider">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="max-w-3xl mb-14">
               <SectionLabel num="05" label="Expert Panel" />
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
                 Expert Panel
               </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <p className="mt-5 text-muted-foreground leading-relaxed">
                 Experienced pragmatists from science, business, ICT and energy —
                 fearless and fact-based.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {EXPERTS.map((expert) => (
                 <article
                   key={expert.initials}
-                  className="group rounded-xl border border-border/60 bg-card/30 p-6 hover:border-accent/40 hover:bg-accent/5 transition-all"
+                  className="card-institutional group p-8"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 border border-accent/20 flex items-center justify-center font-mono text-sm font-semibold text-accent">
-                      {expert.initials}
-                    </div>
+                  <div className="h-14 w-14 bg-primary rounded-sm flex items-center justify-center text-sm font-bold text-white mb-5 tracking-wide">
+                    {expert.initials}
                   </div>
-                  <h3 className="font-semibold text-base tracking-tight">
+                  <h3 className="font-bold text-base tracking-tight">
                     {expert.name}
                   </h3>
-                  <div className="text-xs text-accent uppercase tracking-[0.12em] mt-1 mb-3">
+                  <div className="text-xs text-[#E8272C] uppercase tracking-[0.14em] mt-1.5 mb-4 font-semibold">
                     {expert.role}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {expert.desc}
                   </p>
                 </article>
@@ -681,24 +622,20 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Get Involved Section */}
-        <section
-          id="involve"
-          className="py-20 sm:py-28 border-t border-border/40 relative overflow-hidden"
-        >
-          <div className="absolute inset-0 -z-10 bg-radial-fade opacity-50" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-12">
+        {/* ===================== GET INVOLVED ===================== */}
+        <section id="involve" className="bg-secondary">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="max-w-3xl mb-14">
               <SectionLabel num="06" label="Get Involved" />
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-balance">
+              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight text-balance leading-tight">
                 Want to learn more or join us?
               </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <p className="mt-5 text-muted-foreground leading-relaxed">
                 The SRC addresses professionals, decision-makers and multipliers.
                 We welcome direct contact.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
                   icon: Users,
@@ -718,12 +655,12 @@ export default function Home() {
               ].map((item) => (
                 <article
                   key={item.title}
-                  className="rounded-xl border border-border/60 bg-card/30 p-6 hover:border-accent/40 hover:bg-accent/5 transition-all flex flex-col"
+                  className="card-institutional group p-8 flex flex-col"
                 >
-                  <div className="h-10 w-10 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
+                  <div className="h-11 w-11 bg-primary rounded-sm flex items-center justify-center text-white mb-5">
                     <item.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="font-semibold text-base tracking-tight mb-2">
+                  <h3 className="font-bold text-base tracking-tight mb-3">
                     {item.title}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed flex-1">
@@ -732,7 +669,7 @@ export default function Home() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="mt-5 -ml-2 self-start group"
+                    className="mt-6 -ml-2 self-start group hover:text-primary font-medium"
                     onClick={() => scrollToSection("Contact")}
                   >
                     Get in touch
@@ -744,89 +681,89 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="py-20 sm:py-28 border-t border-border/40">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-10">
+        {/* ===================== FAQ ===================== */}
+        <section className="section-divider">
+          <div className="mx-auto max-w-3xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="mb-12">
               <SectionLabel num="07" label="FAQ" />
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
                 Frequently Asked Questions
               </h2>
             </div>
-            <Accordion type="single" collapsible className="w-full">
+            <div className="divide-y divide-border border border-border rounded-sm">
               {FAQ_ITEMS.map((item, i) => (
-                <AccordionItem key={i} value={`item-${i}`}>
-                  <AccordionTrigger className="text-left text-base font-medium hover:no-underline">
-                    {item.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
+                <div key={i} className="px-6">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem key={i} value={`item-${i}`} className="border-b-0">
+                      <AccordionTrigger className="text-left text-base font-semibold hover:no-underline py-5 hover:text-primary transition-colors">
+                        {item.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
               ))}
-            </Accordion>
+            </div>
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section
-          id="contact"
-          className="py-20 sm:py-28 border-t border-border/40 relative overflow-hidden"
-        >
-          <div className="absolute -bottom-32 -left-32 h-72 w-72 rounded-full bg-accent/5 blur-3xl -z-10" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* ===================== CONTACT ===================== */}
+        <section id="contact" className="bg-secondary">
+          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
               <div>
                 <SectionLabel num="08" label="Contact" />
-                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
                   Contact
                 </h2>
-                <p className="mt-4 text-muted-foreground leading-relaxed">
+                <p className="mt-5 text-muted-foreground leading-relaxed">
                   Write to us — we usually respond within 48 hours.
                 </p>
-                <div className="mt-8 space-y-3 text-sm">
+                <div className="mt-10 space-y-6 text-sm">
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground">
+                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
                       Initiative
                     </div>
-                    <div className="mt-1">
+                    <div className="font-medium">
                       SRC — Security &amp; Resilience Counsel
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground">
+                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
                       Region
                     </div>
-                    <div className="mt-1">
+                    <div className="font-medium">
                       Switzerland · Germany · Austria
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground">
+                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
                       Orientation
                     </div>
-                    <div className="mt-1">
+                    <div className="font-medium">
                       Non-partisan · Politically neutral · Fact-based
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-border/60 bg-card/30 p-6">
+              <div className="card-institutional bg-white p-8">
                 <form
-                  className="space-y-4"
+                  className="space-y-5"
                   onSubmit={(e) => {
                     e.preventDefault();
                   }}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="name" className="text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider">
                         Name *
                       </Label>
-                      <Input id="name" required maxLength={120} />
+                      <Input id="name" required maxLength={120} className="h-11" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="email" className="text-xs">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider">
                         Email *
                       </Label>
                       <Input
@@ -834,35 +771,37 @@ export default function Home() {
                         type="email"
                         required
                         maxLength={160}
+                        className="h-11"
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="org" className="text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="org" className="text-xs font-semibold uppercase tracking-wider">
                         Organization
                       </Label>
-                      <Input id="org" maxLength={200} />
+                      <Input id="org" maxLength={200} className="h-11" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="role" className="text-xs">
+                    <div className="space-y-2">
+                      <Label htmlFor="role" className="text-xs font-semibold uppercase tracking-wider">
                         Role
                       </Label>
                       <Input
                         id="role"
                         maxLength={200}
                         placeholder="e.g. Expert, Decision-maker"
+                        className="h-11"
                       />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="subject" className="text-xs">
+                  <div className="space-y-2">
+                    <Label htmlFor="subject" className="text-xs font-semibold uppercase tracking-wider">
                       Subject
                     </Label>
-                    <Input id="subject" maxLength={200} />
+                    <Input id="subject" maxLength={200} className="h-11" />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="message" className="text-xs">
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-xs font-semibold uppercase tracking-wider">
                       Message *
                     </Label>
                     <Textarea
@@ -872,7 +811,10 @@ export default function Home() {
                       rows={5}
                     />
                   </div>
-                  <Button type="submit" className="w-full sm:w-auto">
+                  <Button
+                    type="submit"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-11"
+                  >
                     <Send className="mr-2 h-4 w-4" />
                     Send message
                   </Button>
@@ -883,40 +825,40 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-border/60 bg-background/50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* ===================== FOOTER ===================== */}
+      <footer className="bg-[#0A2540] text-white">
+        <div className="mx-auto max-w-7xl px-6 lg:px-10 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-3 mb-6">
                 <Image
                   src="/logo.png"
                   alt="SRC Logo"
                   width={32}
                   height={32}
-                  className="rounded-md object-contain"
+                  className="object-contain brightness-0 invert"
                 />
                 <div className="leading-tight">
-                  <div className="font-semibold text-sm">SRC</div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <div className="font-bold text-sm text-white">SRC</div>
+                  <div className="text-[9px] uppercase tracking-[0.2em] text-white/50 font-medium">
                     Security &amp; Resilience
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
+              <p className="text-xs text-white/50 leading-relaxed max-w-sm">
                 Security and resilience for the D-A-CH region. Non-partisan,
                 fact-based, neutral.
               </p>
             </div>
             <div className="text-xs">
-              <div className="text-[10px] uppercase tracking-[0.18em] font-mono text-muted-foreground mb-3">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-4 font-semibold">
                 Navigation
               </div>
-              <ul className="space-y-1.5 text-muted-foreground">
+              <ul className="space-y-2">
                 {NAV_ITEMS.map((item) => (
                   <li key={item}>
                     <button
-                      className="hover:text-foreground transition-colors"
+                      className="text-white/60 hover:text-white transition-colors"
                       onClick={() => scrollToSection(item)}
                     >
                       {item}
@@ -926,13 +868,13 @@ export default function Home() {
               </ul>
             </div>
             <div className="text-xs">
-              <div className="text-[10px] uppercase tracking-[0.18em] font-mono text-muted-foreground mb-3">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-4 font-semibold">
                 Legal
               </div>
-              <ul className="space-y-1.5 text-muted-foreground">
-                <li>Imprint</li>
-                <li>Privacy</li>
-                <li>© 2026 SRC. All rights reserved.</li>
+              <ul className="space-y-2 text-white/60">
+                <li className="hover:text-white transition-colors cursor-pointer">Imprint</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Privacy</li>
+                <li className="mt-4 text-white/40">© 2026 SRC. All rights reserved.</li>
               </ul>
             </div>
           </div>
