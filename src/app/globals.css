@@ -141,3 +141,123 @@
   letter-spacing: 0.02em;
   border-radius: 0.25rem;
 }
+
+/* ============================================
+   Report Content — Markdown Prose
+   ============================================ */
+.prose-src {
+  color: #0A2540;
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+.prose-src h1 {
+  font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.prose-src h2 {
+  font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #D8DEE6;
+}
+.prose-src h3 {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+.prose-src p {
+  margin-bottom: 1.25rem;
+}
+.prose-src ul,
+.prose-src ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+.prose-src ul {
+  list-style-type: disc;
+}
+.prose-src ol {
+  list-style-type: decimal;
+}
+.prose-src li {
+  margin-bottom: 0.35rem;
+}
+.prose-src strong {
+  font-weight: 700;
+}
+.prose-src blockquote {
+  border-left: 3px solid #E8272C;
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  color: #5A6B7F;
+  font-style: italic;
+}
+.prose-src code {
+  background: #F4F6F9;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.2rem;
+  font-size: 0.9em;
+}
+.prose-src pre {
+  background: #0A2540;
+  color: #E8ECF1;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.prose-src pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+.prose-src a {
+  color: #E8272C;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-src a:hover {
+  color: #0A2540;
+}
+.prose-src hr {
+  border: none;
+  border-top: 1px solid #D8DEE6;
+  margin: 2rem 0;
+}
+.prose-src table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+.prose-src th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: #F4F6F9;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5A6B7F;
+  border-bottom: 2px solid #D8DEE6;
+}
+.prose-src td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #D8DEE6;
+}
+.prose-src tr:last-child td {
+  border-bottom: none;
+}

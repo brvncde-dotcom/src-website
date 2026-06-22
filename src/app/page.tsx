@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -398,14 +399,13 @@ export default function Home() {
 
               {/* CTAs */}
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-12"
-                  onClick={() => scrollToSection("Publications")}
+                <Link
+                  href="/reports"
+                  className="inline-flex items-center bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-12 rounded-[var(--radius)] transition-colors"
                 >
                   View Publications
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="lg"
@@ -622,8 +622,12 @@ export default function Home() {
             </div>
             <div className="space-y-4">
               {displayPubs.map((pub) => (
-                <article
+                <Link
                   key={pub.id}
+                  href={pub.id.startsWith("placeholder") ? "#" : `/reports/${pub.id}`}
+                  className="block"
+                >
+                <article
                   className="card-institutional group p-6 cursor-pointer"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
@@ -661,7 +665,17 @@ export default function Home() {
                     </span>
                   </div>
                 </article>
+                </Link>
               ))}
+            </div>
+            <div className="mt-8 text-center sm:text-right">
+              <Link
+                href="/reports"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
+              >
+                View all reports
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
