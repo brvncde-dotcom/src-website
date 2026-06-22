@@ -9,21 +9,23 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export const VALID_SECTIONS = [
-  "ai-digital-infrastructure",
-  "geo-strategy",
-  "energy",
-  "agriculture",
-  "migration",
+  "digital-power-ai",
+  "geopolitics-hard-security",
+  "energy-resources",
+  "climate-environment-food",
+  "economy-competitiveness",
+  "society-migration-institutions",
 ] as const;
 
 export type Section = (typeof VALID_SECTIONS)[number];
 
 export const SECTION_LABELS: Record<Section, string> = {
-  "ai-digital-infrastructure": "AI & Digital Infrastructure",
-  "geo-strategy": "Geo-Strategy",
-  energy: "Energy",
-  agriculture: "Agriculture",
-  migration: "Migration",
+  "digital-power-ai": "Digital Power & AI",
+  "geopolitics-hard-security": "Geopolitics & Hard Security",
+  "energy-resources": "Energy & Resources",
+  "climate-environment-food": "Climate, Environment & Food",
+  "economy-competitiveness": "Economy & Competitiveness",
+  "society-migration-institutions": "Society, Migration & Institutions",
 };
 
 export const VALID_TYPES = [

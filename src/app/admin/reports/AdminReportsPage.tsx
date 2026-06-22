@@ -34,11 +34,12 @@ import {
 } from "lucide-react";
 
 const SECTION_LABELS: Record<string, string> = {
-  "ai-digital-infrastructure": "AI & Digital Infrastructure",
-  "geo-strategy": "Geo-Strategy",
-  energy: "Energy",
-  agriculture: "Agriculture",
-  migration: "Migration",
+  "digital-power-ai": "Digital Power & AI",
+  "geopolitics-hard-security": "Geopolitics & Hard Security",
+  "energy-resources": "Energy & Resources",
+  "climate-environment-food": "Climate, Environment & Food",
+  "economy-competitiveness": "Economy & Competitiveness",
+  "society-migration-institutions": "Society, Migration & Institutions",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -466,7 +467,7 @@ Content-Type: application/json
   "author": "SRC Expert Panel"
 }
 
-Sections: ai-digital-infrastructure | geo-strategy | energy | agriculture | migration
+Sections: digital-power-ai | geopolitics-hard-security | energy-resources | climate-environment-food | economy-competitiveness | society-migration-institutions
 Types: Analysis | Strategy Paper | Statement | Brief | Report`}</pre>
           </div>
         </div>

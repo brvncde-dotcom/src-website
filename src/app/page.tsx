@@ -14,10 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import {
   Shield,
-  Server,
   Zap,
-  Wheat,
-  Users,
   ArrowRight,
   ArrowUpRight,
   ArrowDown,
@@ -36,7 +33,11 @@ import {
   Briefcase,
   Megaphone,
   BrainCircuit,
-  Compass,
+  Swords,
+  Users,
+  Leaf,
+  TrendingUp,
+  Scale,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -52,84 +53,99 @@ const FOCUS_AREAS = [
   {
     icon: BrainCircuit,
     num: "01",
-    title: "AI & Digital Infrastructure",
-    desc: "Artificial intelligence, cloud services, secure ICT systems, IoT supply chain and emerging digital technologies.",
-    tag: "ai-digital-infrastructure",
+    title: "Digital Power & AI",
+    desc: "AI strategy, digital infrastructure, digital sovereignty, cybersecurity and critical digital infrastructure.",
+    tag: "digital-power-ai",
   },
   {
-    icon: Compass,
+    icon: Swords,
     num: "02",
-    title: "Geo-Strategy",
-    desc: "Geopolitical risk assessment, strategic foresight, alliance dynamics and their impact on critical infrastructure.",
-    tag: "geo-strategy",
+    title: "Geopolitics & Hard Security",
+    desc: "Great-power competition, D-A-CH foreign policy, NATO/EU defence posture, military readiness and hybrid threats.",
+    tag: "geopolitics-hard-security",
   },
   {
     icon: Zap,
     num: "03",
-    title: "Energy Generation & Supply",
-    desc: "Secure, redundant and affordable energy supply as the foundation of all critical infrastructures.",
-    tag: "energy",
+    title: "Energy & Resources",
+    desc: "Energy security, nuclear/SMR, LNG diversification, grid stability and critical minerals supply.",
+    tag: "energy-resources",
   },
   {
-    icon: Wheat,
+    icon: Leaf,
     num: "04",
-    title: "Agriculture & Food",
-    desc: "Food and water supply, logistical chains and fertiliser supply as critical lifelines.",
-    tag: "agriculture",
+    title: "Climate, Environment & Food",
+    desc: "Climate policy, decarbonisation, environmental security, agriculture and food systems resilience.",
+    tag: "climate-environment-food",
   },
   {
-    icon: Users,
+    icon: TrendingUp,
     num: "05",
-    title: "Migration & Demographics",
-    desc: "Demographic developments, migration and social resilience as strategic cross-cutting issues.",
-    tag: "migration",
+    title: "Economy & Competitiveness",
+    desc: "Deindustrialisation, industrial relocation, economic security and supply-chain resilience.",
+    tag: "economy-competitiveness",
+  },
+  {
+    icon: Scale,
+    num: "06",
+    title: "Society, Migration & Institutions",
+    desc: "Migration, demographics, social cohesion, institutional resilience and information warfare.",
+    tag: "society-migration-institutions",
   },
 ];
 
 const CIRCLES = [
   {
     icon: BrainCircuit,
-    title: "Circle I — AI & Digital Infrastructure",
-    desc: "Artificial intelligence, digital technologies, secure cloud services, IoT supply chain.",
+    title: "Circle I — Digital Power & AI",
+    desc: "AI strategy, digital infrastructure, digital sovereignty and cybersecurity.",
     focus:
-      "AI governance, resilient ICT systems, supply chain security, zero-trust architectures, data centre resilience.",
+      "AI governance, zero-trust architectures, critical digital infrastructure resilience, digital sovereignty, cyber defence.",
   },
   {
-    icon: Compass,
-    title: "Circle II — Geo-Strategy",
-    desc: "Geopolitical dynamics, strategic foresight and alliance analysis.",
+    icon: Swords,
+    title: "Circle II — Geopolitics & Hard Security",
+    desc: "Great-power competition, defence posture and hybrid threats.",
     focus:
-      "Geopolitical risk assessment, supply route vulnerabilities, D-A-CH strategic positioning, alliance resilience.",
+      "NATO/EU defence posture, military readiness, D-A-CH foreign policy alignment, hybrid and coercive threat analysis.",
   },
   {
     icon: Zap,
-    title: "Circle III — Energy",
-    desc: "Energy generation, supply and security in the D-A-CH region.",
+    title: "Circle III — Energy & Resources",
+    desc: "Energy security, critical minerals and supply-chain resilience.",
     focus:
-      "Security of supply, storage technologies, grid expansion planning, redundancy, geopolitical independence.",
+      "Nuclear/SMR deployment, LNG diversification, grid stability, critical minerals supply, geopolitical independence.",
   },
   {
-    icon: Wheat,
-    title: "Circle IV — Agriculture",
-    desc: "Food and water supply, logistics chains and fertilisers.",
+    icon: Leaf,
+    title: "Circle IV — Climate, Environment & Food",
+    desc: "Climate policy, environmental security and food systems.",
     focus:
-      "Supply resilience, water infrastructure, regional autarky, logistics chains.",
+      "Decarbonisation pathways, environmental security, agriculture resilience, food systems, water infrastructure.",
   },
   {
-    icon: Users,
-    title: "Circle V — Migration & Demographics",
-    desc: "Demographic development and social resilience.",
+    icon: TrendingUp,
+    title: "Circle V — Economy & Competitiveness",
+    desc: "Economic security, industrial policy and supply-chain resilience.",
     focus:
-      "Securing skilled labour, integration strategies, social cohesion, regional development.",
+      "Deindustrialisation risks, industrial relocation, economic coercion, supply-chain resilience, D-A-CH competitiveness.",
+  },
+  {
+    icon: Scale,
+    title: "Circle VI — Society, Migration & Institutions",
+    desc: "Social cohesion, migration, demographics and institutional resilience.",
+    focus:
+      "Migration policy, demographic trends, social cohesion, institutional capture, information warfare, democratic resilience.",
   },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
-  "ai-digital-infrastructure": "AI & Digital Infrastructure",
-  "geo-strategy": "Geo-Strategy",
-  energy: "Energy",
-  agriculture: "Agriculture",
-  migration: "Migration",
+  "digital-power-ai": "Digital Power & AI",
+  "geopolitics-hard-security": "Geopolitics & Hard Security",
+  "energy-resources": "Energy & Resources",
+  "climate-environment-food": "Climate, Environment & Food",
+  "economy-competitiveness": "Economy & Competitiveness",
+  "society-migration-institutions": "Society, Migration & Institutions",
 };
 
 interface DbReport {
@@ -186,7 +202,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Which topics does the SRC cover?",
-    a: "The SRC covers five central focus areas: AI & Digital Infrastructure, Geo-Strategy, Energy Generation & Supply, Agriculture & Food, and Migration & Demographics. Each area is supported by a dedicated Circle of Competence with specialised experts.",
+    a: "The SRC covers six central focus areas: Digital Power & AI, Geopolitics & Hard Security, Energy & Resources, Climate, Environment & Food, Economy & Competitiveness, and Society, Migration & Institutions. Each area is supported by a dedicated Circle of Competence with specialised experts.",
   },
 ];
 
@@ -408,8 +424,8 @@ export default function Home() {
                 {[
                   { icon: Activity, label: "Founded", value: "Autumn 2022" },
                   { icon: Globe, label: "D-A-CH Countries", value: "3" },
-                  { icon: ShieldCheck, label: "Focus Sectors", value: "5" },
-                  { icon: ShieldCheck, label: "Circles of Competence", value: "5" },
+                  { icon: ShieldCheck, label: "Focus Sectors", value: "6" },
+                  { icon: ShieldCheck, label: "Circles of Competence", value: "6" },
                 ].map((stat) => (
                   <div key={stat.label}>
                     <div className="flex items-center gap-2 text-muted-foreground mb-3">
@@ -509,7 +525,7 @@ export default function Home() {
             <div className="max-w-2xl mb-14">
               <SectionLabel num="02" label="Focus Areas" />
               <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-                Five central focus areas for the security and resilience of the
+                Six central focus areas for the security and resilience of the
                 D-A-CH region
               </h2>
             </div>

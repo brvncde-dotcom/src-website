@@ -1,20 +1,24 @@
 ---
 Task ID: 1
-Agent: Main
-Task: Redesign SRC website to "Swiss Federal" style
+Agent: Main Agent
+Task: Implement vnOrchestrator report ingestion workflow with 6 focus sections
 
 Work Log:
-- Analyzed current website via VLM screenshots (identified: generic dark cyber theme, orange accent, no imagery, monotonous cards)
-- Proposed 5 alternative design directions; user selected #1 "Swiss Federal"
-- Overhauled globals.css: deep navy (#0A2540) primary, Swiss red (#E8272C) accent, white background, custom components (.section-num, .card-institutional, .swiss-stripe, .heading-serif)
-- Updated layout.tsx: Replaced Geist fonts with Inter (body) + Playfair Display (headings), removed dark mode
-- Rewrote page.tsx: serif headings via .heading-serif class, institutional card design, red number badges, refined spacing, navy CTA buttons, alternating white/secondary backgrounds
-- Added .nvmrc for Vercel Node 22 compatibility
-- Fixed Tailwind v4 CSS variable system (raw :root vars + @theme inline mapping)
-- Production build verified: all 15 design checks pass (white bg, navy primary, red accent, Playfair/Inter fonts, custom components)
+- Updated Prisma schema with Report model (title, summary, content, type, section, status, sourceRef, author, publishedAt, reviewedBy, reviewedAt, reviewNote)
+- Ran prisma db push — Report table created in SQLite
+- Created src/lib/db.ts with Prisma singleton, VALID_SECTIONS (6 sections), SECTION_LABELS, VALID_TYPES, VALID_STATUSES, auth helpers
+- Created POST /api/reports — vnOrchestrator ingestion endpoint with Bearer auth, section/type validation, auto-sets status=pending
+- Created GET /api/reports — public fetches published only; admin key returns all with filter by section/status/limit/offset
+- Created PATCH /api/reports/[id] — review actions (approve/reject/publish) + field edits
+- Created DELETE /api/reports/[id] — admin delete
+- Created /admin/reports page — login with admin key, filter by section/status, approve/reject/publish workflow, expand to view content, delete with confirmation, API usage reference
+- Updated homepage: 6 Focus Areas (Digital Power & AI, Geopolitics & Hard Security, Energy & Resources, Climate Environment & Food, Economy & Competitiveness, Society Migration & Institutions), 6 Circles of Competence, DB-driven Publications with fallback, stats updated to 6, FAQ updated
+- Added .env with INGESTION_API_KEY and ADMIN_API_KEY placeholders
+- Final build passes clean — all 6 routes confirmed
 
 Stage Summary:
-- Complete "Swiss Federal" redesign implemented and production-built
-- All design tokens verified in build output
-- CDN caching at space-z.ai proxy layer preventing live preview (design is correct in build artifacts)
-- Files changed: globals.css, layout.tsx, page.tsx, next.config.ts, .nvmrc
+- Full report workflow: vnOrchestrator POST → pending → admin approve → publish → public GET
+- 6 sections matching user's final taxonomy
+- Admin dashboard at /admin/reports for manual review
+- API docs embedded in admin page for vnOrchestrator integration
+- Build verified: 0 errors, all routes render
