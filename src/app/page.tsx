@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +35,8 @@ import {
   Network,
   Briefcase,
   Megaphone,
+  BrainCircuit,
+  Compass,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -48,29 +50,36 @@ const NAV_ITEMS = [
 
 const FOCUS_AREAS = [
   {
-    icon: Server,
+    icon: BrainCircuit,
     num: "01",
-    title: "ICT & Cloud Services",
-    desc: "Secure information and communication technologies, IoT, supply chain and resilient, redundant systems.",
-    tag: "ict",
+    title: "AI & Digital Infrastructure",
+    desc: "Artificial intelligence, cloud services, secure ICT systems, IoT supply chain and emerging digital technologies.",
+    tag: "ai-digital-infrastructure",
+  },
+  {
+    icon: Compass,
+    num: "02",
+    title: "Geo-Strategy",
+    desc: "Geopolitical risk assessment, strategic foresight, alliance dynamics and their impact on critical infrastructure.",
+    tag: "geo-strategy",
   },
   {
     icon: Zap,
-    num: "02",
+    num: "03",
     title: "Energy Generation & Supply",
     desc: "Secure, redundant and affordable energy supply as the foundation of all critical infrastructures.",
     tag: "energy",
   },
   {
     icon: Wheat,
-    num: "03",
+    num: "04",
     title: "Agriculture & Food",
     desc: "Food and water supply, logistical chains and fertiliser supply as critical lifelines.",
     tag: "agriculture",
   },
   {
     icon: Users,
-    num: "04",
+    num: "05",
     title: "Migration & Demographics",
     desc: "Demographic developments, migration and social resilience as strategic cross-cutting issues.",
     tag: "migration",
@@ -79,61 +88,61 @@ const FOCUS_AREAS = [
 
 const CIRCLES = [
   {
-    icon: Server,
-    title: "Circle I — ICT & Cloud",
-    desc: "Information and communication technology, secure cloud services, IoT supply chain.",
+    icon: BrainCircuit,
+    title: "Circle I — AI & Digital Infrastructure",
+    desc: "Artificial intelligence, digital technologies, secure cloud services, IoT supply chain.",
     focus:
-      "Resilient & redundant ICT systems, supply chain security, zero-trust architectures, data centre blackout prevention.",
+      "AI governance, resilient ICT systems, supply chain security, zero-trust architectures, data centre resilience.",
+  },
+  {
+    icon: Compass,
+    title: "Circle II — Geo-Strategy",
+    desc: "Geopolitical dynamics, strategic foresight and alliance analysis.",
+    focus:
+      "Geopolitical risk assessment, supply route vulnerabilities, D-A-CH strategic positioning, alliance resilience.",
   },
   {
     icon: Zap,
-    title: "Circle II — Energy",
+    title: "Circle III — Energy",
     desc: "Energy generation, supply and security in the D-A-CH region.",
     focus:
       "Security of supply, storage technologies, grid expansion planning, redundancy, geopolitical independence.",
   },
   {
     icon: Wheat,
-    title: "Circle III — Agriculture",
+    title: "Circle IV — Agriculture",
     desc: "Food and water supply, logistics chains and fertilisers.",
     focus:
       "Supply resilience, water infrastructure, regional autarky, logistics chains.",
   },
   {
     icon: Users,
-    title: "Circle IV — Migration & Demographics",
+    title: "Circle V — Migration & Demographics",
     desc: "Demographic development and social resilience.",
     focus:
       "Securing skilled labour, integration strategies, social cohesion, regional development.",
   },
 ];
 
-const PUBLICATIONS = [
-  {
-    type: "Analysis",
-    date: "22 Jun 2026",
-    tag: "energy",
-    title: "Power Supply Redundancy in Switzerland: Critical Infrastructure for Data Centers",
-    desc: "An analysis of Switzerland's power supply architecture and its vulnerabilities in the context of growing data centre demand.",
-    author: "SRC Expert Panel",
-  },
-  {
-    type: "Strategy Paper",
-    date: "15 Jun 2026",
-    tag: "ict",
-    title: "Zero-Trust Architecture for D-A-CH Government Networks",
-    desc: "A strategic framework for implementing zero-trust security models across government ICT infrastructure in the D-A-CH region.",
-    author: "SRC Board",
-  },
-  {
-    type: "Statement",
-    date: "08 Jun 2026",
-    tag: "agriculture",
-    title: "Food Supply Chain Resilience: Lessons from Recent Disruptions",
-    desc: "An examination of vulnerabilities in the D-A-CH food supply chain and policy recommendations for increasing resilience.",
-    author: "SRC Expert Panel",
-  },
-];
+const SECTION_LABELS: Record<string, string> = {
+  "ai-digital-infrastructure": "AI & Digital Infrastructure",
+  "geo-strategy": "Geo-Strategy",
+  energy: "Energy",
+  agriculture: "Agriculture",
+  migration: "Migration",
+};
+
+interface DbReport {
+  id: string;
+  title: string;
+  summary: string | null;
+  type: string;
+  section: string;
+  status: string;
+  author: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+}
 
 const EXPERTS = [
   {
@@ -177,7 +186,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Which topics does the SRC cover?",
-    a: "The SRC covers four central focus areas: ICT & Cloud Services, Energy Generation & Supply, Agriculture & Food, and Migration & Demographics. Each area is supported by a dedicated Circle of Competence with specialised experts.",
+    a: "The SRC covers five central focus areas: AI & Digital Infrastructure, Geo-Strategy, Energy Generation & Supply, Agriculture & Food, and Migration & Demographics. Each area is supported by a dedicated Circle of Competence with specialised experts.",
   },
 ];
 
@@ -195,6 +204,54 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [publications, setPublications] = useState<DbReport[]>([]);
+
+  useEffect(() => {
+    fetch("/api/reports?limit=10")
+      .then((res) => res.json())
+      .then((data) => setPublications(data.reports || []))
+      .catch(() => {});
+  }, []);
+
+  const displayPubs =
+    publications.length > 0
+      ? publications
+      : [
+          // Fallback placeholder when no DB reports are published yet
+          {
+            id: "placeholder-1",
+            type: "Analysis",
+            section: "energy",
+            title: "Power Supply Redundancy in Switzerland: Critical Infrastructure for Data Centers",
+            summary: "An analysis of Switzerland's power supply architecture and its vulnerabilities in the context of growing data centre demand.",
+            author: "SRC Expert Panel",
+            publishedAt: "2026-06-22T10:00:00.000Z",
+            createdAt: "2026-06-22T10:00:00.000Z",
+            status: "published",
+          },
+          {
+            id: "placeholder-2",
+            type: "Strategy Paper",
+            section: "ai-digital-infrastructure",
+            title: "Zero-Trust Architecture for D-A-CH Government Networks",
+            summary: "A strategic framework for implementing zero-trust security models across government ICT infrastructure in the D-A-CH region.",
+            author: "SRC Board",
+            publishedAt: "2026-06-15T10:00:00.000Z",
+            createdAt: "2026-06-15T10:00:00.000Z",
+            status: "published",
+          },
+          {
+            id: "placeholder-3",
+            type: "Statement",
+            section: "agriculture",
+            title: "Food Supply Chain Resilience: Lessons from Recent Disruptions",
+            summary: "An examination of vulnerabilities in the D-A-CH food supply chain and policy recommendations for increasing resilience.",
+            author: "SRC Expert Panel",
+            publishedAt: "2026-06-08T10:00:00.000Z",
+            createdAt: "2026-06-08T10:00:00.000Z",
+            status: "published",
+          },
+        ];
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
@@ -351,8 +408,8 @@ export default function Home() {
                 {[
                   { icon: Activity, label: "Founded", value: "Autumn 2022" },
                   { icon: Globe, label: "D-A-CH Countries", value: "3" },
-                  { icon: ShieldCheck, label: "Focus Sectors", value: "4" },
-                  { icon: ShieldCheck, label: "Circles of Competence", value: "4" },
+                  { icon: ShieldCheck, label: "Focus Sectors", value: "5" },
+                  { icon: ShieldCheck, label: "Circles of Competence", value: "5" },
                 ].map((stat) => (
                   <div key={stat.label}>
                     <div className="flex items-center gap-2 text-muted-foreground mb-3">
@@ -452,11 +509,11 @@ export default function Home() {
             <div className="max-w-2xl mb-14">
               <SectionLabel num="02" label="Focus Areas" />
               <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-                Four central focus areas for the security and resilience of the
+                Five central focus areas for the security and resilience of the
                 D-A-CH region
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {FOCUS_AREAS.map((area) => (
                 <article
                   key={area.num}
@@ -478,7 +535,7 @@ export default function Home() {
                   </p>
                   <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
                     <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
-                      {area.tag}
+                      {SECTION_LABELS[area.tag] || area.tag}
                     </span>
                     <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-[#E8272C] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                   </div>
@@ -503,7 +560,7 @@ export default function Home() {
                 to develop innovative solutions.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {CIRCLES.map((circle) => (
                 <article
                   key={circle.title}
@@ -548,9 +605,9 @@ export default function Home() {
               </div>
             </div>
             <div className="space-y-4">
-              {PUBLICATIONS.map((pub, i) => (
+              {displayPubs.map((pub) => (
                 <article
-                  key={i}
+                  key={pub.id}
                   className="card-institutional group p-6 cursor-pointer"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
@@ -559,20 +616,28 @@ export default function Home() {
                     </span>
                     <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
                       <Calendar className="h-3 w-3" />
-                      {pub.date}
+                      {pub.publishedAt
+                        ? new Date(pub.publishedAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : new Date(pub.createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
                     </span>
-                    {pub.tag && (
-                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
-                        {pub.tag}
-                      </span>
-                    )}
+                    <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
+                      {SECTION_LABELS[pub.section] || pub.section}
+                    </span>
                   </div>
                   <h3 className="font-bold text-lg leading-snug tracking-tight mb-2 group-hover:text-primary transition-colors">
                     {pub.title}
                   </h3>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-                      {pub.desc}
+                      {pub.summary || pub.title}
                     </p>
                     <span className="text-xs text-muted-foreground inline-flex items-center gap-1 group-hover:text-[#E8272C] transition-colors shrink-0 font-semibold">
                       Read

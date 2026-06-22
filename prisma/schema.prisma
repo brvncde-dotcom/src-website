@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -29,4 +23,22 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  summary     String?
+  content     String?   // Full markdown or HTML content
+  type        String   @default("Analysis") // Analysis, Strategy Paper, Statement, Brief, Report
+  section     String   // Must be one of: ai-digital-infrastructure, geo-strategy, energy, agriculture, migration
+  status      String   @default("pending") // pending, approved, rejected, published
+  sourceRef   String?  // Reference ID from vnOrchestrator / Paperclip
+  author      String?  // "SRC Expert Panel", "SRC Board", etc.
+  publishedAt DateTime?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNote  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
