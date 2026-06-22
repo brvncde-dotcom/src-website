@@ -3,42 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Report {
   id          String   @id @default(cuid())
   title       String
   summary     String?
-  content     String?   // Full markdown or HTML content
-  type        String   @default("Analysis") // Analysis, Strategy Paper, Statement, Brief, Report
-  section     String   // Must be one of: ai-digital-infrastructure, geo-strategy, energy, agriculture, migration
-  status      String   @default("pending") // pending, approved, rejected, published
-  sourceRef   String?  // Reference ID from vnOrchestrator / Paperclip
-  author      String?  // "SRC Expert Panel", "SRC Board", etc.
+  content     String?
+  type        String   @default("Analysis")
+  section     String
+  status      String   @default("pending")
+  sourceRef   String?
+  author      String?
   publishedAt DateTime?
   reviewedBy  String?
   reviewedAt  DateTime?
   reviewNote  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([section])
+  @@index([status])
+  @@index([publishedAt])
 }

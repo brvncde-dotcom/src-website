@@ -1,13 +1,39 @@
 import { PrismaClient } from "@prisma/client";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
 
+// Neon serverless requires a WebSocket for HTTP connections
+if (typeof WebSocket === "undefined") {
+  // @ts-expect-error — ws is a Node WebSocket implementation
+  globalThis.WebSocket = ws;
+  neonConfig.webSocketConstructor = ws;
+}
+
+// --- Prisma Singleton ---
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+function createPrismaClient(): PrismaClient {
+  const databaseUrl = process.env.DATABASE_URL || "";
+
+  // If it's a PostgreSQL URL (Neon / Vercel Postgres), use the Neon adapter
+  if (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://")) {
+    const pool = new Pool({ connectionString: databaseUrl });
+    const adapter = new PrismaNeon(pool);
+    return new PrismaClient({ adapter });
+  }
+
+  // Fallback: direct connection (e.g. local dev with a local Postgres)
+  return new PrismaClient();
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
+// --- Constants ---
 export const VALID_SECTIONS = [
   "digital-power-ai",
   "geopolitics-hard-security",
@@ -43,8 +69,7 @@ export const VALID_STATUSES = [
   "published",
 ] as const;
 
-// Simple API key check for report ingestion
-// In production, replace with proper auth (NextAuth, etc.)
+// --- Auth helpers ---
 export function validateIngestionKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
@@ -59,7 +84,6 @@ export function validateIngestionKey(request: Request): boolean {
   return token === apiKey;
 }
 
-// Simple admin key check for review operations
 export function validateAdminKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
