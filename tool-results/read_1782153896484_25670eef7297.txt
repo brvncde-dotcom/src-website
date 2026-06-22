@@ -1,0 +1,885 @@
+     1→"use client";
+     2→
+     3→import Image from "next/image";
+     4→import { useState } from "react";
+     5→import { Button } from "@/components/ui/button";
+     6→import { Input } from "@/components/ui/input";
+     7→import { Textarea } from "@/components/ui/textarea";
+     8→import { Label } from "@/components/ui/label";
+     9→import {
+    10→  Accordion,
+    11→  AccordionContent,
+    12→  AccordionItem,
+    13→  AccordionTrigger,
+    14→} from "@/components/ui/accordion";
+    15→import {
+    16→  Shield,
+    17→  Server,
+    18→  Zap,
+    19→  Wheat,
+    20→  Users,
+    21→  ArrowRight,
+    22→  ArrowUpRight,
+    23→  ArrowDown,
+    24→  Calendar,
+    25→  Send,
+    26→  Menu,
+    27→  X,
+    28→  Languages,
+    29→  Star,
+    30→  Activity,
+    31→  Globe,
+    32→  ShieldCheck,
+    33→  Target,
+    34→  Eye,
+    35→  Network,
+    36→  Briefcase,
+    37→  Megaphone,
+    38→} from "lucide-react";
+    39→
+    40→const NAV_ITEMS = [
+    41→  "About",
+    42→  "Focus Areas",
+    43→  "Competence Circles",
+    44→  "Publications",
+    45→  "Expert Panel",
+    46→  "Contact",
+    47→];
+    48→
+    49→const FOCUS_AREAS = [
+    50→  {
+    51→    icon: Server,
+    52→    num: "01",
+    53→    title: "ICT & Cloud Services",
+    54→    desc: "Secure information and communication technologies, IoT, supply chain and resilient, redundant systems.",
+    55→    tag: "ict",
+    56→  },
+    57→  {
+    58→    icon: Zap,
+    59→    num: "02",
+    60→    title: "Energy Generation & Supply",
+    61→    desc: "Secure, redundant and affordable energy supply as the foundation of all critical infrastructures.",
+    62→    tag: "energy",
+    63→  },
+    64→  {
+    65→    icon: Wheat,
+    66→    num: "03",
+    67→    title: "Agriculture & Food",
+    68→    desc: "Food and water supply, logistical chains and fertiliser supply as critical lifelines.",
+    69→    tag: "agriculture",
+    70→  },
+    71→  {
+    72→    icon: Users,
+    73→    num: "04",
+    74→    title: "Migration & Demographics",
+    75→    desc: "Demographic developments, migration and social resilience as strategic cross-cutting issues.",
+    76→    tag: "migration",
+    77→  },
+    78→];
+    79→
+    80→const CIRCLES = [
+    81→  {
+    82→    icon: Server,
+    83→    title: "Circle I — ICT & Cloud",
+    84→    desc: "Information and communication technology, secure cloud services, IoT supply chain.",
+    85→    focus:
+    86→      "Resilient & redundant ICT systems, supply chain security, zero-trust architectures, data centre blackout prevention.",
+    87→  },
+    88→  {
+    89→    icon: Zap,
+    90→    title: "Circle II — Energy",
+    91→    desc: "Energy generation, supply and security in the D-A-CH region.",
+    92→    focus:
+    93→      "Security of supply, storage technologies, grid expansion planning, redundancy, geopolitical independence.",
+    94→  },
+    95→  {
+    96→    icon: Wheat,
+    97→    title: "Circle III — Agriculture",
+    98→    desc: "Food and water supply, logistics chains and fertilisers.",
+    99→    focus:
+   100→      "Supply resilience, water infrastructure, regional autarky, logistics chains.",
+   101→  },
+   102→  {
+   103→    icon: Users,
+   104→    title: "Circle IV — Migration & Demographics",
+   105→    desc: "Demographic development and social resilience.",
+   106→    focus:
+   107→      "Securing skilled labour, integration strategies, social cohesion, regional development.",
+   108→  },
+   109→];
+   110→
+   111→const PUBLICATIONS = [
+   112→  {
+   113→    type: "Analysis",
+   114→    date: "22 Jun 2026",
+   115→    tag: "energy",
+   116→    title: "Power Supply Redundancy in Switzerland: Critical Infrastructure for Data Centers",
+   117→    desc: "An analysis of Switzerland's power supply architecture and its vulnerabilities in the context of growing data centre demand.",
+   118→    author: "SRC Expert Panel",
+   119→  },
+   120→  {
+   121→    type: "Strategy Paper",
+   122→    date: "15 Jun 2026",
+   123→    tag: "ict",
+   124→    title: "Zero-Trust Architecture for D-A-CH Government Networks",
+   125→    desc: "A strategic framework for implementing zero-trust security models across government ICT infrastructure in the D-A-CH region.",
+   126→    author: "SRC Board",
+   127→  },
+   128→  {
+   129→    type: "Statement",
+   130→    date: "08 Jun 2026",
+   131→    tag: "agriculture",
+   132→    title: "Food Supply Chain Resilience: Lessons from Recent Disruptions",
+   133→    desc: "An examination of vulnerabilities in the D-A-CH food supply chain and policy recommendations for increasing resilience.",
+   134→    author: "SRC Expert Panel",
+   135→  },
+   136→];
+   137→
+   138→const EXPERTS = [
+   139→  {
+   140→    initials: "BR",
+   141→    name: "Dr. Bernd R.",
+   142→    role: "President",
+   143→    desc: "Expert in strategic security policy and geopolitical risk assessment with 25+ years of experience.",
+   144→  },
+   145→  {
+   146→    initials: "MK",
+   147→    name: "Prof. Dr. Maria K.",
+   148→    role: "VP Research",
+   149→    desc: "Professor of energy systems engineering, focusing on grid resilience and storage technologies.",
+   150→  },
+   151→  {
+   152→    initials: "TH",
+   153→    name: "Thomas H.",
+   154→    role: "VP Operations",
+   155→    desc: "Former CISO with deep expertise in critical infrastructure protection and cyber defence.",
+   156→  },
+   157→  {
+   158→    initials: "AW",
+   159→    name: "Dr. Anna W.",
+   160→    role: "Head of Analysis",
+   161→    desc: "Political scientist specialising in migration, demographics and social cohesion in Europe.",
+   162→  },
+   163→];
+   164→
+   165→const FAQ_ITEMS = [
+   166→  {
+   167→    q: "What is the SRC?",
+   168→    a: "The SRC — Security & Resilience Counsel (Switzerland – Germany – Austria) is a non-partisan, fact-based think tank founded in autumn 2022. We bring together experts from various fields related to critical infrastructures to develop well-founded concepts for secure, reliable and protected systems.",
+   169→  },
+   170→  {
+   171→    q: "Is the SRC politically neutral?",
+   172→    a: "Yes. The SRC is strictly non-partisan and politically neutral. Our analyses and recommendations are based exclusively on facts, scientific evidence and expert assessments — never on ideological positions or political preferences.",
+   173→  },
+   174→  {
+   175→    q: "How can I get involved?",
+   176→    a: "We welcome contact from professionals, decision-makers and multipliers. Whether you are an expert in one of our focus areas, a decision-maker from politics or business, or a media representative — we look forward to hearing from you through our contact form.",
+   177→  },
+   178→  {
+   179→    q: "Which topics does the SRC cover?",
+   180→    a: "The SRC covers four central focus areas: ICT & Cloud Services, Energy Generation & Supply, Agriculture & Food, and Migration & Demographics. Each area is supported by a dedicated Circle of Competence with specialised experts.",
+   181→  },
+   182→];
+   183→
+   184→/* ── Section header with red number badge ── */
+   185→function SectionLabel({ num, label }: { num: string; label: string }) {
+   186→  return (
+   187→    <div className="flex items-center gap-4">
+   188→      <span className="section-num">{num}</span>
+   189→      <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold">
+   190→        {label}
+   191→      </span>
+   192→    </div>
+   193→  );
+   194→}
+   195→
+   196→export default function Home() {
+   197→  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+   198→
+   199→  const scrollToSection = (id: string) => {
+   200→    setMobileMenuOpen(false);
+   201→    const el = document.getElementById(id.toLowerCase().replace(/\s+/g, "-"));
+   202→    if (el) {
+   203→      el.scrollIntoView({ behavior: "smooth", block: "start" });
+   204→    }
+   205→  };
+   206→
+   207→  return (
+   208→    <div className="min-h-screen flex flex-col bg-background">
+   209→      {/* Swiss Red Stripe — top of page */}
+   210→      <div className="swiss-stripe" />
+   211→
+   212→      {/* ──────────────── HEADER ──────────────── */}
+   213→      <header className="fixed top-[3px] inset-x-0 z-40 bg-white/95 backdrop-blur-sm border-b border-border/60">
+   214→        <div className="mx-auto max-w-7xl px-6 lg:px-10">
+   215→          <div className="flex h-[72px] items-center justify-between">
+   216→            {/* Logo */}
+   217→            <button
+   218→              className="flex items-center gap-3 group"
+   219→              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+   220→            >
+   221→              <Image
+   222→                src="/logo.png"
+   223→                alt="SRC Logo"
+   224→                width={38}
+   225→                height={38}
+   226→                className="object-contain"
+   227→              />
+   228→              <div className="text-left leading-tight">
+   229→                <div className="font-bold tracking-tight text-[15px] text-foreground">
+   230→                  SRC
+   231→                </div>
+   232→                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+   233→                  Security &amp; Resilience Counsel
+   234→                </div>
+   235→              </div>
+   236→            </button>
+   237→
+   238→            {/* Desktop Nav */}
+   239→            <nav className="hidden lg:flex items-center">
+   240→              {NAV_ITEMS.map((item) => (
+   241→                <button
+   242→                  key={item}
+   243→                  className="px-4 py-2 text-[13px] text-muted-foreground hover:text-primary font-medium transition-colors"
+   244→                  onClick={() => scrollToSection(item)}
+   245→                >
+   246→                  {item}
+   247→                </button>
+   248→              ))}
+   249→            </nav>
+   250→
+   251→            <div className="flex items-center gap-3">
+   252→              <Button
+   253→                variant="ghost"
+   254→                size="sm"
+   255→                className="hidden lg:inline-flex gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary"
+   256→                aria-label="Toggle language"
+   257→              >
+   258→                <Languages className="h-3.5 w-3.5" />
+   259→                <span className="uppercase">en</span>
+   260→              </Button>
+   261→              <Button
+   262→                size="sm"
+   263→                className="hidden lg:inline-flex bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs uppercase tracking-wider"
+   264→                onClick={() => scrollToSection("Contact")}
+   265→              >
+   266→                Contact
+   267→              </Button>
+   268→              <button
+   269→                className="lg:hidden p-2 hover:text-primary transition-colors"
+   270→                aria-label="Menu"
+   271→                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+   272→              >
+   273→                {mobileMenuOpen ? (
+   274→                  <X className="h-5 w-5" />
+   275→                ) : (
+   276→                  <Menu className="h-5 w-5" />
+   277→                )}
+   278→              </button>
+   279→            </div>
+   280→          </div>
+   281→
+   282→          {/* Mobile Menu */}
+   283→          {mobileMenuOpen && (
+   284→            <div className="lg:hidden border-t border-border py-4 space-y-1">
+   285→              {NAV_ITEMS.map((item) => (
+   286→                <button
+   287→                  key={item}
+   288→                  className="block w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors font-medium"
+   289→                  onClick={() => scrollToSection(item)}
+   290→                >
+   291→                  {item}
+   292→                </button>
+   293→              ))}
+   294→            </div>
+   295→          )}
+   296→        </div>
+   297→      </header>
+   298→
+   299→      <main className="flex-1">
+   300→        {/* ===================== HERO ===================== */}
+   301→        <section className="pt-32 pb-20 sm:pt-40 sm:pb-28">
+   302→          <div className="mx-auto max-w-7xl px-6 lg:px-10">
+   303→            <div className="max-w-3xl">
+   304→              {/* Eyebrow */}
+   305→              <div className="flex items-center gap-3 mb-8">
+   306→                <div className="h-8 w-[3px] bg-[#E8272C]" />
+   307→                <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold">
+   308→                  Security &amp; Resilience Counsel — D-A-CH
+   309→                </span>
+   310→              </div>
+   311→
+   312→              {/* Headline — serif for institutional authority */}
+   313→              <h1 className="heading-serif text-balance text-[2.5rem] sm:text-5xl lg:text-[3.75rem] font-bold tracking-tight leading-[1.1] text-foreground">
+   314→                The leading think tank for security and resilience of critical
+   315→                infrastructure
+   316→              </h1>
+   317→
+   318→              {/* Subhead */}
+   319→              <p className="mt-8 text-pretty text-lg text-muted-foreground leading-relaxed max-w-2xl">
+   320→                A non-partisan, fact-based initiative of experts from
+   321→                Switzerland, Germany and Austria. We develop well-founded
+   322→                concepts for secure, reliable and protected critical
+   323→                infrastructures.
+   324→              </p>
+   325→
+   326→              {/* CTAs */}
+   327→              <div className="mt-10 flex flex-col sm:flex-row gap-4">
+   328→                <Button
+   329→                  size="lg"
+   330→                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-12"
+   331→                  onClick={() => scrollToSection("Publications")}
+   332→                >
+   333→                  View Publications
+   334→                  <ArrowRight className="ml-2 h-4 w-4" />
+   335→                </Button>
+   336→                <Button
+   337→                  variant="outline"
+   338→                  size="lg"
+   339→                  className="border-border text-foreground hover:border-primary hover:text-primary font-semibold text-sm uppercase tracking-wider px-8 h-12"
+   340→                  onClick={() => scrollToSection("involve")}
+   341→                >
+   342→                  Get Involved
+   343→                  <ArrowDown className="ml-2 h-4 w-4" />
+   344→                </Button>
+   345→              </div>
+   346→            </div>
+   347→
+   348→            {/* Stats — clean institutional style */}
+   349→            <div className="mt-20 pt-12 border-t border-border">
+   350→              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-12">
+   351→                {[
+   352→                  { icon: Activity, label: "Founded", value: "Autumn 2022" },
+   353→                  { icon: Globe, label: "D-A-CH Countries", value: "3" },
+   354→                  { icon: ShieldCheck, label: "Focus Sectors", value: "4" },
+   355→                  { icon: ShieldCheck, label: "Circles of Competence", value: "4" },
+   356→                ].map((stat) => (
+   357→                  <div key={stat.label}>
+   358→                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
+   359→                      <stat.icon className="h-4 w-4" />
+   360→                      <span className="text-[10px] uppercase tracking-[0.18em] font-semibold">
+   361→                        {stat.label}
+   362→                      </span>
+   363→                    </div>
+   364→                    <div className="heading-serif text-3xl sm:text-4xl font-bold tracking-tight text-primary">
+   365→                      {stat.value}
+   366→                    </div>
+   367→                  </div>
+   368→                ))}
+   369→              </div>
+   370→            </div>
+   371→          </div>
+   372→        </section>
+   373→
+   374→        {/* ===================== ABOUT ===================== */}
+   375→        <section id="about" className="section-divider">
+   376→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   377→            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+   378→              <div className="lg:col-span-5">
+   379→                <SectionLabel num="01" label="About the SRC" />
+   380→                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight text-balance leading-tight">
+   381→                  360° view and systemic thinking
+   382→                </h2>
+   383→                <div className="mt-8 inline-flex items-center gap-3 px-5 py-3.5 border border-border rounded-sm bg-secondary">
+   384→                  <Network className="h-5 w-5 text-primary shrink-0" />
+   385→                  <span className="text-xs uppercase tracking-[0.18em] font-semibold text-foreground">
+   386→                    360° · systemic · fact-based
+   387→                  </span>
+   388→                </div>
+   389→              </div>
+   390→              <div className="lg:col-span-7 space-y-6">
+   391→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+   392→                  <div className="card-institutional p-6 h-full">
+   393→                    <div className="flex items-center gap-3 mb-4">
+   394→                      <div className="h-9 w-9 bg-primary rounded-sm flex items-center justify-center text-white">
+   395→                        <Target className="h-4 w-4" />
+   396→                      </div>
+   397→                      <h3 className="font-bold text-sm uppercase tracking-wider">
+   398→                        Mission
+   399→                      </h3>
+   400→                    </div>
+   401→                    <p className="text-sm text-muted-foreground leading-relaxed">
+   402→                      The SRC – Security &amp; Resilience Counsel (Switzerland –
+   403→                      Germany – Austria) was founded in autumn 2022 with the aim
+   404→                      of bringing together experts in various fields related to
+   405→                      &quot;critical infrastructures&quot;. Critical infrastructures
+   406→                      in a broader sense range from energy supply to ICT
+   407→                      (information and communication technologies) as well as
+   408→                      food and water reserves.
+   409→                    </p>
+   410→                  </div>
+   411→                  <div className="card-institutional p-6 h-full">
+   412→                    <div className="flex items-center gap-3 mb-4">
+   413→                      <div className="h-9 w-9 bg-primary rounded-sm flex items-center justify-center text-white">
+   414→                        <Eye className="h-4 w-4" />
+   415→                      </div>
+   416→                      <h3 className="font-bold text-sm uppercase tracking-wider">
+   417→                        Vision
+   418→                      </h3>
+   419→                    </div>
+   420→                    <p className="text-sm text-muted-foreground leading-relaxed">
+   421→                      We are driven by the strong will to preserve our democracy,
+   422→                      our constitution and the society that our ancestors created
+   423→                      and in many cases fought for. In order to preserve and
+   424→                      further improve our democratic structures, it is essential
+   425→                      to speak truthfully about facts. We believe in genuine,
+   426→                      unadulterated science (&quot;science not scientism&quot;) and
+   427→                      facts.
+   428→                    </p>
+   429→                  </div>
+   430→                </div>
+   431→                <div className="card-institutional p-8">
+   432→                  <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-4">
+   433→                    Our Approach
+   434→                  </div>
+   435→                  <p className="text-sm text-muted-foreground leading-relaxed">
+   436→                    We live in an extremely interconnected world and must
+   437→                    therefore think and act in a networked, systemic and holistic
+   438→                    way. Interference with energy supply has massive effects on
+   439→                    other areas such as agriculture. Careful and forward-looking
+   440→                    planning has become a matter of war and peace in the current
+   441→                    geopolitical situation.
+   442→                  </p>
+   443→                </div>
+   444→              </div>
+   445→            </div>
+   446→          </div>
+   447→        </section>
+   448→
+   449→        {/* ===================== FOCUS AREAS ===================== */}
+   450→        <section id="focus" className="bg-secondary">
+   451→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   452→            <div className="max-w-2xl mb-14">
+   453→              <SectionLabel num="02" label="Focus Areas" />
+   454→              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   455→                Four central focus areas for the security and resilience of the
+   456→                D-A-CH region
+   457→              </h2>
+   458→            </div>
+   459→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+   460→              {FOCUS_AREAS.map((area) => (
+   461→                <article
+   462→                  key={area.num}
+   463→                  className="card-institutional group p-7 cursor-pointer"
+   464→                >
+   465→                  <div className="flex items-start justify-between mb-6">
+   466→                    <div className="h-12 w-12 bg-primary rounded-sm flex items-center justify-center text-white">
+   467→                      <area.icon className="h-5 w-5" />
+   468→                    </div>
+   469→                    <span className="text-xs text-muted-foreground font-semibold tracking-wider">
+   470→                      {area.num}
+   471→                    </span>
+   472→                  </div>
+   473→                  <h3 className="font-bold text-base mb-3 tracking-tight">
+   474→                    {area.title}
+   475→                  </h3>
+   476→                  <p className="text-sm text-muted-foreground leading-relaxed">
+   477→                    {area.desc}
+   478→                  </p>
+   479→                  <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
+   480→                    <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
+   481→                      {area.tag}
+   482→                    </span>
+   483→                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-[#E8272C] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+   484→                  </div>
+   485→                </article>
+   486→              ))}
+   487→            </div>
+   488→          </div>
+   489→        </section>
+   490→
+   491→        {/* ===================== CIRCLES ===================== */}
+   492→        <section id="circles" className="section-divider">
+   493→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   494→            <div className="max-w-3xl mb-14">
+   495→              <SectionLabel num="03" label="Circles of Competence" />
+   496→              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   497→                Circles of Competence
+   498→              </h2>
+   499→              <p className="mt-5 text-muted-foreground leading-relaxed">
+   500→                For each topic we create a &quot;Circle of Competence&quot; whose
+   501→                members meet regularly in person or virtually. In parallel, we
+   502→                operate a digital workspace to collect data and information and
+   503→                to develop innovative solutions.
+   504→              </p>
+   505→            </div>
+   506→            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+   507→              {CIRCLES.map((circle) => (
+   508→                <article
+   509→                  key={circle.title}
+   510→                  className="card-institutional group p-8"
+   511→                >
+   512→                  <div className="flex items-start gap-5">
+   513→                    <div className="h-11 w-11 bg-primary rounded-sm flex items-center justify-center text-white shrink-0">
+   514→                      <circle.icon className="h-5 w-5" />
+   515→                    </div>
+   516→                    <div className="flex-1 min-w-0">
+   517→                      <h3 className="font-bold text-base mb-2 tracking-tight">
+   518→                        {circle.title}
+   519→                      </h3>
+   520→                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+   521→                        {circle.desc}
+   522→                      </p>
+   523→                      <div className="pt-4 border-t border-border">
+   524→                        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-2">
+   525→                          Focus
+   526→                        </div>
+   527→                        <p className="text-xs text-muted-foreground leading-relaxed">
+   528→                          {circle.focus}
+   529→                        </p>
+   530→                      </div>
+   531→                    </div>
+   532→                  </div>
+   533→                </article>
+   534→              ))}
+   535→            </div>
+   536→          </div>
+   537→        </section>
+   538→
+   539→        {/* ===================== PUBLICATIONS ===================== */}
+   540→        <section id="publications" className="bg-secondary">
+   541→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   542→            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-14">
+   543→              <div className="max-w-2xl">
+   544→                <SectionLabel num="04" label="Publications & Analyses" />
+   545→                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   546→                  Fact-based analyses, strategies and statements
+   547→                </h2>
+   548→              </div>
+   549→            </div>
+   550→            <div className="space-y-4">
+   551→              {PUBLICATIONS.map((pub, i) => (
+   552→                <article
+   553→                  key={i}
+   554→                  className="card-institutional group p-6 cursor-pointer"
+   555→                >
+   556→                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+   557→                    <span className="inline-flex items-center justify-center bg-primary text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold w-fit rounded-sm">
+   558→                      {pub.type}
+   559→                    </span>
+   560→                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+   561→                      <Calendar className="h-3 w-3" />
+   562→                      {pub.date}
+   563→                    </span>
+   564→                    {pub.tag && (
+   565→                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
+   566→                        {pub.tag}
+   567→                      </span>
+   568→                    )}
+   569→                  </div>
+   570→                  <h3 className="font-bold text-lg leading-snug tracking-tight mb-2 group-hover:text-primary transition-colors">
+   571→                    {pub.title}
+   572→                  </h3>
+   573→                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+   574→                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+   575→                      {pub.desc}
+   576→                    </p>
+   577→                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1 group-hover:text-[#E8272C] transition-colors shrink-0 font-semibold">
+   578→                      Read
+   579→                      <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+   580→                    </span>
+   581→                  </div>
+   582→                </article>
+   583→              ))}
+   584→            </div>
+   585→          </div>
+   586→        </section>
+   587→
+   588→        {/* ===================== EXPERT PANEL ===================== */}
+   589→        <section id="team" className="section-divider">
+   590→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   591→            <div className="max-w-3xl mb-14">
+   592→              <SectionLabel num="05" label="Expert Panel" />
+   593→              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   594→                Expert Panel
+   595→              </h2>
+   596→              <p className="mt-5 text-muted-foreground leading-relaxed">
+   597→                Experienced pragmatists from science, business, ICT and energy —
+   598→                fearless and fact-based.
+   599→              </p>
+   600→            </div>
+   601→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+   602→              {EXPERTS.map((expert) => (
+   603→                <article
+   604→                  key={expert.initials}
+   605→                  className="card-institutional group p-8"
+   606→                >
+   607→                  <div className="h-14 w-14 bg-primary rounded-sm flex items-center justify-center text-sm font-bold text-white mb-5 tracking-wide">
+   608→                    {expert.initials}
+   609→                  </div>
+   610→                  <h3 className="font-bold text-base tracking-tight">
+   611→                    {expert.name}
+   612→                  </h3>
+   613→                  <div className="text-xs text-[#E8272C] uppercase tracking-[0.14em] mt-1.5 mb-4 font-semibold">
+   614→                    {expert.role}
+   615→                  </div>
+   616→                  <p className="text-sm text-muted-foreground leading-relaxed">
+   617→                    {expert.desc}
+   618→                  </p>
+   619→                </article>
+   620→              ))}
+   621→            </div>
+   622→          </div>
+   623→        </section>
+   624→
+   625→        {/* ===================== GET INVOLVED ===================== */}
+   626→        <section id="involve" className="bg-secondary">
+   627→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   628→            <div className="max-w-3xl mb-14">
+   629→              <SectionLabel num="06" label="Get Involved" />
+   630→              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight text-balance leading-tight">
+   631→                Want to learn more or join us?
+   632→              </h2>
+   633→              <p className="mt-5 text-muted-foreground leading-relaxed">
+   634→                The SRC addresses professionals, decision-makers and multipliers.
+   635→                We welcome direct contact.
+   636→              </p>
+   637→            </div>
+   638→            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+   639→              {[
+   640→                {
+   641→                  icon: Users,
+   642→                  title: "Professionals",
+   643→                  desc: "We actively approach experts and pragmatists in the respective subject areas and welcome direct contact from interested professionals.",
+   644→                },
+   645→                {
+   646→                  icon: Briefcase,
+   647→                  title: "Decision-makers",
+   648→                  desc: "Decision-makers from politics, business and society are very welcome. We look forward to a lively exchange of views on our analyses, facts and strategies.",
+   649→                },
+   650→                {
+   651→                  icon: Megaphone,
+   652→                  title: "Multipliers",
+   653→                  desc: "We welcome the dissemination of our analyses and strategies by multipliers from science, professional circles and the media. We expect a fair examination of our proposals.",
+   654→                },
+   655→              ].map((item) => (
+   656→                <article
+   657→                  key={item.title}
+   658→                  className="card-institutional group p-8 flex flex-col"
+   659→                >
+   660→                  <div className="h-11 w-11 bg-primary rounded-sm flex items-center justify-center text-white mb-5">
+   661→                    <item.icon className="h-5 w-5" />
+   662→                  </div>
+   663→                  <h3 className="font-bold text-base tracking-tight mb-3">
+   664→                    {item.title}
+   665→                  </h3>
+   666→                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+   667→                    {item.desc}
+   668→                  </p>
+   669→                  <Button
+   670→                    variant="ghost"
+   671→                    size="sm"
+   672→                    className="mt-6 -ml-2 self-start group hover:text-primary font-medium"
+   673→                    onClick={() => scrollToSection("Contact")}
+   674→                  >
+   675→                    Get in touch
+   676→                    <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+   677→                  </Button>
+   678→                </article>
+   679→              ))}
+   680→            </div>
+   681→          </div>
+   682→        </section>
+   683→
+   684→        {/* ===================== FAQ ===================== */}
+   685→        <section className="section-divider">
+   686→          <div className="mx-auto max-w-3xl px-6 lg:px-10 py-24 sm:py-32">
+   687→            <div className="mb-12">
+   688→              <SectionLabel num="07" label="FAQ" />
+   689→              <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   690→                Frequently Asked Questions
+   691→              </h2>
+   692→            </div>
+   693→            <div className="divide-y divide-border border border-border rounded-sm">
+   694→              {FAQ_ITEMS.map((item, i) => (
+   695→                <div key={i} className="px-6">
+   696→                  <Accordion type="single" collapsible className="w-full">
+   697→                    <AccordionItem key={i} value={`item-${i}`} className="border-b-0">
+   698→                      <AccordionTrigger className="text-left text-base font-semibold hover:no-underline py-5 hover:text-primary transition-colors">
+   699→                        {item.q}
+   700→                      </AccordionTrigger>
+   701→                      <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+   702→                        {item.a}
+   703→                      </AccordionContent>
+   704→                    </AccordionItem>
+   705→                  </Accordion>
+   706→                </div>
+   707→              ))}
+   708→            </div>
+   709→          </div>
+   710→        </section>
+   711→
+   712→        {/* ===================== CONTACT ===================== */}
+   713→        <section id="contact" className="bg-secondary">
+   714→          <div className="mx-auto max-w-7xl px-6 lg:px-10 py-24 sm:py-32">
+   715→            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+   716→              <div>
+   717→                <SectionLabel num="08" label="Contact" />
+   718→                <h2 className="heading-serif mt-6 text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+   719→                  Contact
+   720→                </h2>
+   721→                <p className="mt-5 text-muted-foreground leading-relaxed">
+   722→                  Write to us — we usually respond within 48 hours.
+   723→                </p>
+   724→                <div className="mt-10 space-y-6 text-sm">
+   725→                  <div>
+   726→                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
+   727→                      Initiative
+   728→                    </div>
+   729→                    <div className="font-medium">
+   730→                      SRC — Security &amp; Resilience Counsel
+   731→                    </div>
+   732→                  </div>
+   733→                  <div>
+   734→                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
+   735→                      Region
+   736→                    </div>
+   737→                    <div className="font-medium">
+   738→                      Switzerland · Germany · Austria
+   739→                    </div>
+   740→                  </div>
+   741→                  <div>
+   742→                    <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-1">
+   743→                      Orientation
+   744→                    </div>
+   745→                    <div className="font-medium">
+   746→                      Non-partisan · Politically neutral · Fact-based
+   747→                    </div>
+   748→                  </div>
+   749→                </div>
+   750→              </div>
+   751→              <div className="card-institutional bg-white p-8">
+   752→                <form
+   753→                  className="space-y-5"
+   754→                  onSubmit={(e) => {
+   755→                    e.preventDefault();
+   756→                  }}
+   757→                >
+   758→                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+   759→                    <div className="space-y-2">
+   760→                      <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider">
+   761→                        Name *
+   762→                      </Label>
+   763→                      <Input id="name" required maxLength={120} className="h-11" />
+   764→                    </div>
+   765→                    <div className="space-y-2">
+   766→                      <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider">
+   767→                        Email *
+   768→                      </Label>
+   769→                      <Input
+   770→                        id="email"
+   771→                        type="email"
+   772→                        required
+   773→                        maxLength={160}
+   774→                        className="h-11"
+   775→                      />
+   776→                    </div>
+   777→                  </div>
+   778→                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+   779→                    <div className="space-y-2">
+   780→                      <Label htmlFor="org" className="text-xs font-semibold uppercase tracking-wider">
+   781→                        Organization
+   782→                      </Label>
+   783→                      <Input id="org" maxLength={200} className="h-11" />
+   784→                    </div>
+   785→                    <div className="space-y-2">
+   786→                      <Label htmlFor="role" className="text-xs font-semibold uppercase tracking-wider">
+   787→                        Role
+   788→                      </Label>
+   789→                      <Input
+   790→                        id="role"
+   791→                        maxLength={200}
+   792→                        placeholder="e.g. Expert, Decision-maker"
+   793→                        className="h-11"
+   794→                      />
+   795→                    </div>
+   796→                  </div>
+   797→                  <div className="space-y-2">
+   798→                    <Label htmlFor="subject" className="text-xs font-semibold uppercase tracking-wider">
+   799→                      Subject
+   800→                    </Label>
+   801→                    <Input id="subject" maxLength={200} className="h-11" />
+   802→                  </div>
+   803→                  <div className="space-y-2">
+   804→                    <Label htmlFor="message" className="text-xs font-semibold uppercase tracking-wider">
+   805→                      Message *
+   806→                    </Label>
+   807→                    <Textarea
+   808→                      id="message"
+   809→                      required
+   810→                      maxLength={5000}
+   811→                      rows={5}
+   812→                    />
+   813→                  </div>
+   814→                  <Button
+   815→                    type="submit"
+   816→                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm uppercase tracking-wider px-8 h-11"
+   817→                  >
+   818→                    <Send className="mr-2 h-4 w-4" />
+   819→                    Send message
+   820→                  </Button>
+   821→                </form>
+   822→              </div>
+   823→            </div>
+   824→          </div>
+   825→        </section>
+   826→      </main>
+   827→
+   828→      {/* ===================== FOOTER ===================== */}
+   829→      <footer className="bg-[#0A2540] text-white">
+   830→        <div className="mx-auto max-w-7xl px-6 lg:px-10 py-16">
+   831→          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+   832→            <div>
+   833→              <div className="flex items-center gap-3 mb-6">
+   834→                <Image
+   835→                  src="/logo.png"
+   836→                  alt="SRC Logo"
+   837→                  width={32}
+   838→                  height={32}
+   839→                  className="object-contain brightness-0 invert"
+   840→                />
+   841→                <div className="leading-tight">
+   842→                  <div className="font-bold text-sm text-white">SRC</div>
+   843→                  <div className="text-[9px] uppercase tracking-[0.2em] text-white/50 font-medium">
+   844→                    Security &amp; Resilience
+   845→                  </div>
+   846→                </div>
+   847→              </div>
+   848→              <p className="text-xs text-white/50 leading-relaxed max-w-sm">
+   849→                Security and resilience for the D-A-CH region. Non-partisan,
+   850→                fact-based, neutral.
+   851→              </p>
+   852→            </div>
+   853→            <div className="text-xs">
+   854→              <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-4 font-semibold">
+   855→                Navigation
+   856→              </div>
+   857→              <ul className="space-y-2">
+   858→                {NAV_ITEMS.map((item) => (
+   859→                  <li key={item}>
+   860→                    <button
+   861→                      className="text-white/60 hover:text-white transition-colors"
+   862→                      onClick={() => scrollToSection(item)}
+   863→                    >
+   864→                      {item}
+   865→                    </button>
+   866→                  </li>
+   867→                ))}
+   868→              </ul>
+   869→            </div>
+   870→            <div className="text-xs">
+   871→              <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 mb-4 font-semibold">
+   872→                Legal
+   873→              </div>
+   874→              <ul className="space-y-2 text-white/60">
+   875→                <li className="hover:text-white transition-colors cursor-pointer">Imprint</li>
+   876→                <li className="hover:text-white transition-colors cursor-pointer">Privacy</li>
+   877→                <li className="mt-4 text-white/40">© 2026 SRC. All rights reserved.</li>
+   878→              </ul>
+   879→            </div>
+   880→          </div>
+   881→        </div>
+   882→      </footer>
+   883→    </div>
+   884→  );
+   885→}
