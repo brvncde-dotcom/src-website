@@ -1,14 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import ws from "ws";
-
-// Neon serverless requires a WebSocket for HTTP connections
-if (typeof WebSocket === "undefined") {
-  // @ts-expect-error — ws is a Node WebSocket implementation
-  globalThis.WebSocket = ws;
-  neonConfig.webSocketConstructor = ws;
-}
 
 // --- Prisma Singleton ---
 const globalForPrisma = globalThis as unknown as {
@@ -16,16 +6,8 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const databaseUrl = process.env.DATABASE_URL || "";
-
-  // If it's a PostgreSQL URL (Neon / Vercel Postgres), use the Neon adapter
-  if (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://")) {
-    const pool = new Pool({ connectionString: databaseUrl });
-    const adapter = new PrismaNeon(pool);
-    return new PrismaClient({ adapter });
-  }
-
-  // Fallback: direct connection (e.g. local dev with a local Postgres)
+  // Standard Prisma Client — works with any PostgreSQL provider
+  // (Prisma Postgres, Neon, Vercel Postgres, etc.)
   return new PrismaClient();
 }
 
