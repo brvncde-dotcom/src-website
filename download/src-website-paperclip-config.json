@@ -1,0 +1,141 @@
+{
+  "name": "src-website",
+  "version": "1.0.0",
+  "description": "SRC Website — Report ingestion configuration for Paperclip AI / vnOrchestrator",
+
+  "ingestion": {
+    "endpoint": "https://src-website-orcin.vercel.app/api/reports",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {INGESTION_API_KEY}",
+      "Content-Type": "application/json"
+    },
+    "api_key_env_var": "SRC_INGESTION_API_KEY",
+    "api_key": "src-ingest-paperclip-2026"
+  },
+
+  "admin": {
+    "endpoint": "https://src-website-orcin.vercel.app/api/reports",
+    "admin_endpoint": "https://src-website-orcin.vercel.app/api/reports/{id}",
+    "admin_panel": "https://src-website-orcin.vercel.app/admin/reports",
+    "api_key_env_var": "SRC_ADMIN_API_KEY",
+    "api_key": "src-admin-review-2026",
+    "review_actions": ["approved", "rejected", "published"]
+  },
+
+  "sections": [
+    {
+      "slug": "digital-power-ai",
+      "label": "Digital Power & AI"
+    },
+    {
+      "slug": "geopolitics-hard-security",
+      "label": "Geopolitics & Hard Security"
+    },
+    {
+      "slug": "energy-resources",
+      "label": "Energy & Resources"
+    },
+    {
+      "slug": "climate-environment-food",
+      "label": "Climate, Environment & Food"
+    },
+    {
+      "slug": "economy-competitiveness",
+      "label": "Economy & Competitiveness"
+    },
+    {
+      "slug": "society-migration-institutions",
+      "label": "Society, Migration & Institutions"
+    }
+  ],
+
+  "report_types": [
+    "Analysis",
+    "Strategy Paper",
+    "Statement",
+    "Brief",
+    "Report"
+  ],
+
+  "payload_schema": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "description": "Report title"
+    },
+    "summary": {
+      "type": "string",
+      "required": false,
+      "description": "Short summary (shown in listings)"
+    },
+    "content": {
+      "type": "string",
+      "required": false,
+      "description": "Full content in Markdown or HTML"
+    },
+    "section": {
+      "type": "string",
+      "required": true,
+      "enum": [
+        "digital-power-ai",
+        "geopolitics-hard-security",
+        "energy-resources",
+        "climate-environment-food",
+        "economy-competitiveness",
+        "society-migration-institutions"
+      ],
+      "description": "Focus section slug"
+    },
+    "type": {
+      "type": "string",
+      "required": false,
+      "default": "Analysis",
+      "enum": ["Analysis", "Strategy Paper", "Statement", "Brief", "Report"],
+      "description": "Report type"
+    },
+    "author": {
+      "type": "string",
+      "required": false,
+      "examples": ["SRC Expert Panel", "SRC Board"],
+      "description": "Author or publishing body"
+    },
+    "sourceRef": {
+      "type": "string",
+      "required": false,
+      "description": "Reference ID from vnOrchestrator / Paperclip for traceability"
+    }
+  },
+
+  "response": {
+    "success_status": 201,
+    "example": {
+      "id": "cmqprz2a10000la04aol3t5wi",
+      "title": "AI Governance in Europe",
+      "section": "digital-power-ai",
+      "type": "Analysis",
+      "status": "pending",
+      "createdAt": "2026-06-22T22:16:30.793Z",
+      "message": "Report ingested successfully and awaits review."
+    }
+  },
+
+  "workflow": {
+    "status_flow": "pending → approved → published  |  pending → rejected",
+    "description": "All ingested reports start as 'pending'. Admin reviews and publishes via /admin/reports or the PATCH API."
+  },
+
+  "github": {
+    "repo": "brvncde-dotcom/src-website",
+    "branch": "main",
+    "clone_url": "https://github.com/brvncde-dotcom/src-website.git",
+    "note": "Code changes go through Git. Content goes through the Ingestion API above."
+  },
+
+  "vercel": {
+    "production_url": "https://src-website-orcin.vercel.app",
+    "project_id": "prj_TIArN2wE65T9WiNFmNQuipgLVi3T",
+    "auto_deploy": true,
+    "deploy_trigger": "push to main branch on GitHub"
+  }
+}
