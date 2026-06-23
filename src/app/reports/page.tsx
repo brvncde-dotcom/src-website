@@ -35,7 +35,6 @@ export default function ReportsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
     const params = new URLSearchParams();
     params.set("limit", "100");
     if (activeSection) params.set("section", activeSection);

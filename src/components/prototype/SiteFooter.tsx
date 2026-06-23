@@ -1,0 +1,97 @@
+"use client";
+
+import { ArrowRight } from "lucide-react";
+
+export function SiteFooter() {
+  return (
+    <footer className="bg-primary text-primary-foreground mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top section */}
+        <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 border-b border-white/10">
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-[#E8272C] rounded-sm flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="6" y="3" width="6" height="12" rx="0.5" fill="white" />
+                  <rect x="3" y="6" width="12" height="6" rx="0.5" fill="white" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-bold tracking-[0.15em]">SRC</div>
+                <div className="text-[10px] tracking-widest text-white/50 uppercase">
+                  Security & Resilience Counsel
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-white/60 leading-relaxed">
+              A non-partisan, fact-based think tank for the security and resilience of critical
+              infrastructures in the D-A-CH region.
+            </p>
+          </div>
+
+          {/* Focus Areas */}
+          <div>
+            <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">
+              Focus Areas
+            </h4>
+            <ul className="space-y-2.5 text-sm text-white/60">
+              <li className="hover:text-white transition-colors cursor-pointer">Digital Power & AI</li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                Geopolitics & Hard Security
+              </li>
+              <li className="hover:text-white transition-colors cursor-pointer">Energy & Resources</li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                Climate, Environment & Food
+              </li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                Economy & Competitiveness
+              </li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                Society, Migration & Institutions
+              </li>
+            </ul>
+          </div>
+
+          {/* Organisation */}
+          <div>
+            <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">
+              Organisation
+            </h4>
+            <ul className="space-y-2.5 text-sm text-white/60">
+              <li className="hover:text-white transition-colors cursor-pointer">About SRC</li>
+              <li className="hover:text-white transition-colors cursor-pointer">Our Approach</li>
+              <li className="hover:text-white transition-colors cursor-pointer">Expert Panel</li>
+              <li className="hover:text-white transition-colors cursor-pointer">Opinions</li>
+              <li className="hover:text-white transition-colors cursor-pointer">Contact</li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">Legal</h4>
+            <ul className="space-y-2.5 text-sm text-white/60">
+              <li className="hover:text-white transition-colors cursor-pointer">Impressum</li>
+              <li className="hover:text-white transition-colors cursor-pointer">Datenschutz</li>
+              <li className="hover:text-white transition-colors cursor-pointer">AGB</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+          <span>&copy; {new Date().getFullYear()} SRC — Security & Resilience Counsel. All rights reserved.</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 bg-[#E8272C] rounded-sm flex items-center justify-center">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <rect x="3.5" y="1" width="3" height="8" rx="0.3" fill="white" />
+                <rect x="1" y="3.5" width="8" height="3" rx="0.3" fill="white" />
+              </svg>
+            </span>
+            Based in Switzerland
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}

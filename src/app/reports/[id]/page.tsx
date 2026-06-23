@@ -47,7 +47,6 @@ export default function ReportPage() {
 
   useEffect(() => {
     if (!params.id) return;
-    setLoading(true);
     fetch(`/api/reports/${params.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("not found");
