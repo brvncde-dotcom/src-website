@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BrainCircuit, Swords, Zap, Leaf, TrendingUp, Scale,
-  ArrowRight, ArrowLeft, Lock, Search, Filter,
+  ArrowRight, ArrowLeft, Lock, Search, Filter, UserPlus, LogIn,
+  ShieldCheck, CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+/* ── Types ── */
+interface Member {
+  id: string;
+  name: string;
+}
+
+type GateState = "register" | "welcome" | "login" | "access";
+
+/* ── Data ── */
 const FOCUS_AREAS = [
   { icon: BrainCircuit, label: "Digital Power & AI", slug: "digital-power-ai" },
   { icon: Swords, label: "Geopolitics & Hard Security", slug: "geopolitics-hard-security" },
@@ -19,7 +29,7 @@ const FOCUS_AREAS = [
 
 const MOCK_REPORTS = [
   { id: "1", title: "AI Governance Frameworks for Critical Infrastructure: A D-A-CH Comparative Analysis", section: "Digital Power & AI", date: "2026-06-18", type: "Analysis" },
-  { id: "2", title: "SMR Deployment Roadmap: Central Europe's Nuclear Renaissance", section: "Energy & Resources", date: "2026-06-12", type: "Report" },
+  { id: "2", title: "SMR Deployment Roadmap: Central Europe\u2019s Nuclear Renaissance", section: "Energy & Resources", date: "2026-06-12", type: "Report" },
   { id: "3", title: "Hybrid Threat Landscape Q2 2026: D-A-CH Threat Assessment", section: "Geopolitics & Hard Security", date: "2026-06-05", type: "Intelligence Brief" },
   { id: "4", title: "Cyber-Physical Attack Vectors on Swiss Power Grids", section: "Digital Power & AI", date: "2026-05-28", type: "Technical Report" },
   { id: "5", title: "LNG Terminal Security: Baltic Sea Supply Chain Risk Assessment", section: "Energy & Resources", date: "2026-05-20", type: "Analysis" },
@@ -29,99 +39,293 @@ const MOCK_REPORTS = [
   { id: "9", title: "Economic Coercion Playbook: How Authoritarian States Target D-A-CH Economies", section: "Economy & Competitiveness", date: "2026-04-28", type: "Report" },
 ];
 
-export function ReportsView() {
-  const [showLogin, setShowLogin] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+/* ── Welcome message after registration ── */
+function WelcomeMessage({ onContinue }: { onContinue: () => void }) {
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="max-w-lg w-full mx-4">
+        <div className="border border-border p-8 sm:p-10 text-center">
+          <div className="w-14 h-14 bg-[#E8272C]/10 text-[#E8272C] rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle2 className="w-7 h-7" />
+          </div>
+          <h2 className="heading-serif text-2xl font-bold text-primary mb-4">
+            Welcome to SRC
+          </h2>
+          <div className="bg-secondary/50 border border-border p-5 mb-6 text-left">
+            <p className="text-sm text-primary leading-relaxed">
+              There are currently no fees for the time being. We just want to know with whom we share profound information. We might change our policy in the future.
+            </p>
+          </div>
+          <Button
+            className="w-full h-10 bg-primary hover:bg-primary/90 text-sm font-medium"
+            onClick={onContinue}
+          >
+            Access Reports <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  if (showLogin) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="max-w-md w-full mx-4">
-          {/* Login card */}
-          <div className="border border-border p-8 sm:p-10">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-7 h-7" />
-              </div>
-              <h1 className="heading-serif text-2xl font-bold text-primary mb-2">Member Access</h1>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                SRC reports are available to members and trial users. New visitors receive
-                <span className="font-semibold text-primary"> 10 days of free access</span> to all published reports.
-              </p>
+/* ── Registration form ── */
+function RegisterForm({ onRegistered }: { onRegistered: (member: Member) => void }) {
+  const [form, setForm] = useState({ name: "", address: "", email: "", profession: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    setError("");
+    if (!form.name.trim() || !form.address.trim() || !form.email.trim() || !form.profession.trim()) {
+      setError("All fields are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/members/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Registration failed.");
+        return;
+      }
+      localStorage.setItem("src_member", JSON.stringify({ id: data.member.id, name: data.member.name }));
+      onRegistered(data.member);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fields = [
+    { key: "name" as const, label: "Full Name", placeholder: "Your full name", type: "text" },
+    { key: "address" as const, label: "Address", placeholder: "City, Country", type: "text" },
+    { key: "email" as const, label: "Email", placeholder: "your@email.com", type: "email" },
+    { key: "profession" as const, label: "Profession", placeholder: "Your profession or role", type: "text" },
+  ];
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="max-w-md w-full mx-4">
+        <div className="border border-border p-8 sm:p-10">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-6 h-6" />
             </div>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Email</label>
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="h-10 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Password</label>
-                <Input
-                  type="password"
-                  placeholder="Enter your password"
-                  className="h-10 text-sm"
-                />
-              </div>
-            </div>
-
-            <Button className="w-full h-10 bg-primary hover:bg-primary/90 text-sm font-medium mb-3">
-              Sign In
-            </Button>
-
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted-foreground">or</span>
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full h-10 text-sm font-medium border-[#E8272C] text-[#E8272C] hover:bg-[#E8272C] hover:text-white"
-              onClick={() => setShowLogin(false)}
-            >
-              Start 10-Day Free Trial
-            </Button>
-
-            <p className="text-[10px] text-center text-muted-foreground mt-5 leading-relaxed">
-              By signing in or starting a trial, you agree to SRC&apos;s terms of use and privacy policy.
-              Trial access is limited to 10 days and includes all published reports.
+            <h1 className="heading-serif text-2xl font-bold text-primary mb-2">Request Access</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Register to access SRC reports and analyses. All fields are required.
             </p>
           </div>
 
-          {/* Benefits */}
-          <div className="mt-6 border border-border p-5">
-            <h3 className="text-xs font-bold tracking-[0.1em] uppercase text-primary mb-3">
-              What you get
-            </h3>
-            <ul className="space-y-2">
-              {[
-                "Full access to all published reports and analyses",
-                "Early access to new publications",
-                "PDF downloads and printable formats",
-                "Weekly intelligence briefings",
-                "Expert Q&A sessions (members)",
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E8272C] mt-1 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-4 mb-6">
+            {fields.map((f) => (
+              <div key={f.key}>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">{f.label}</label>
+                <Input
+                  type={f.type}
+                  placeholder={f.placeholder}
+                  className="h-10 text-sm"
+                  value={form[f.key]}
+                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                />
+              </div>
+            ))}
           </div>
+
+          {error && (
+            <p className="text-xs text-[#E8272C] mb-3">{error}</p>
+          )}
+
+          <Button
+            className="w-full h-10 bg-primary hover:bg-primary/90 text-sm font-medium"
+            onClick={submit}
+            disabled={loading}
+          >
+            {loading ? "Registering\u2026" : "Register & Access Reports"}
+          </Button>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-3 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-center text-muted-foreground mb-3">
+            Already registered? Sign in with your name below.
+          </p>
+          <button
+            onClick={() => {
+              const saved = localStorage.getItem("src_member");
+              if (saved) {
+                try { onRegistered(JSON.parse(saved)); return; } catch { /* fall through */ }
+              }
+              window.dispatchEvent(new CustomEvent("src:show-login"));
+            }}
+            className="block w-full text-center text-sm font-medium text-[#E8272C] hover:underline"
+          >
+            Returning Member Sign In
+          </button>
+
+          <p className="text-[10px] text-center text-muted-foreground mt-5 leading-relaxed">
+            By registering, you agree to SRC&apos;s privacy policy. Your data is stored securely and used solely to manage access.
+          </p>
         </div>
       </div>
-    );
+    </div>
+  );
+}
+
+/* ── Returning member login (name only) ── */
+function LoginForm({ onAccess }: { onAccess: (member: Member) => void }) {
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    setError("");
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/members/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "No member found.");
+        return;
+      }
+      if (data.members.length === 1) {
+        localStorage.setItem("src_member", JSON.stringify(data.members[0]));
+        onAccess(data.members[0]);
+      } else {
+        setError(`Multiple members found. Please be more specific.`);
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="max-w-md w-full mx-4">
+        <div className="border border-border p-8 sm:p-10">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogIn className="w-6 h-6" />
+            </div>
+            <h1 className="heading-serif text-2xl font-bold text-primary mb-2">Welcome Back</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Enter your name to access the reports.
+            </p>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Name</label>
+              <Input
+                placeholder="Your full name"
+                className="h-10 text-sm"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && submit()}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-xs text-[#E8272C] mb-3">{error}</p>
+          )}
+
+          <Button
+            className="w-full h-10 bg-primary hover:bg-primary/90 text-sm font-medium"
+            onClick={submit}
+            disabled={loading}
+          >
+            {loading ? "Signing in\u2026" : "Access Reports"}
+          </Button>
+
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("src:show-register"))}
+            className="block w-full text-center text-sm font-medium text-muted-foreground hover:text-primary mt-4"
+          >
+            New here? Register for access
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Reports View ── */
+export function ReportsView() {
+  const [gate, setGate] = useState<GateState>("register");
+  const [member, setMember] = useState<Member | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  /* Restore session from localStorage on mount */
+  useEffect(() => {
+    const saved = localStorage.getItem("src_member");
+    if (saved) {
+      try {
+        const m = JSON.parse(saved);
+        setMember(m);
+        setGate("access");
+      } catch { /* ignore */ }
+    }
+  }, []);
+
+  /* Listen for login/register tab switches */
+  useEffect(() => {
+    const showLogin = () => setGate("login");
+    const showRegister = () => setGate("register");
+    window.addEventListener("src:show-login", showLogin);
+    window.addEventListener("src:show-register", showRegister);
+    return () => {
+      window.removeEventListener("src:show-login", showLogin);
+      window.removeEventListener("src:show-register", showRegister);
+    };
+  }, []);
+
+  const handleRegistered = useCallback((m: Member) => {
+    setMember(m);
+    setGate("welcome");
+  }, []);
+
+  const handleContinue = useCallback(() => {
+    setGate("access");
+  }, []);
+
+  /* ── Gate: Welcome message ── */
+  if (gate === "welcome") {
+    return <WelcomeMessage onContinue={handleContinue} />;
   }
 
-  // Report listing (after "login")
+  /* ── Gate: Login (returning member) ── */
+  if (gate === "login") {
+    return <LoginForm onAccess={(m) => { setMember(m); setGate("access"); }} />;
+  }
+
+  /* ── Gate: Register (new visitor) ── */
+  if (gate === "register") {
+    return <RegisterForm onRegistered={handleRegistered} />;
+  }
+
+  /* ── Reports listing ── */
   const filtered = activeFilter
     ? MOCK_REPORTS.filter((r) =>
         FOCUS_AREAS.find((fa) => fa.slug === activeFilter)?.label === r.section
@@ -134,7 +338,6 @@ export function ReportsView() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <ArrowLeft className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary" />
             <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C]">
               Reports
             </span>
@@ -217,17 +420,27 @@ export function ReportsView() {
         ))}
       </div>
 
-      {/* Trial banner */}
-      <div className="mt-10 bg-secondary/50 border border-border p-6 text-center">
-        <p className="text-sm text-muted-foreground mb-3">
-          You are currently on a <span className="font-semibold text-primary">10-day free trial</span>.
-          <span className="mx-1.5">&middot;</span>
-          8 days remaining
-        </p>
-        <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white text-sm">
-          Contact Us for Full Membership
-        </Button>
-      </div>
+      {/* Member status bar */}
+      {member && (
+        <div className="mt-10 bg-secondary/50 border border-border p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-primary" />
+            <span className="text-sm text-muted-foreground">
+              Signed in as <span className="font-medium text-primary">{member.name}</span>
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem("src_member");
+              setMember(null);
+              setGate("register");
+            }}
+            className="text-xs text-muted-foreground hover:text-[#E8272C] transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
   );
 }
