@@ -11,12 +11,13 @@ export function SiteFooter() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-[#E8272C] rounded-sm flex items-center justify-center">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <rect x="6" y="3" width="6" height="12" rx="0.5" fill="white" />
-                  <rect x="3" y="6" width="12" height="6" rx="0.5" fill="white" />
-                </svg>
-              </div>
+              <Image
+                src="/src-logo.png"
+                alt="SRC Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
               <div>
                 <div className="text-sm font-bold tracking-[0.15em]">SRC</div>
                 <div className="text-[10px] tracking-widest text-white/50 uppercase">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, MapPin, Mail, Phone, Clock } from "lucide-react";
+import { Send, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SwissCrossLogo } from "./SwissCrossLogo";
 import { Input } from "@/components/ui/input";

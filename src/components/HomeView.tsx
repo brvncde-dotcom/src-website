@@ -104,7 +104,7 @@ export function HomeView({ onNavigate }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 hover:text-white"
+                className="border-white/20 text-primary hover:bg-white/20 hover:text-primary"
                 onClick={() => onNavigate("approach")}
               >
                 Our Approach
@@ -251,7 +251,7 @@ export function HomeView({ onNavigate }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 hover:text-white"
+                className="border-white/20 text-primary hover:bg-white/20 hover:text-primary"
                 onClick={() => onNavigate("reports")}
               >
                 Request Trial Access

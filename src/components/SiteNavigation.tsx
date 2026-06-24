@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "experts" | "contact";
@@ -43,6 +43,13 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
               onClick={() => handleNav("home")}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
+              <Image
+                src="/src-logo.png"
+                alt="SRC Logo"
+                width={36}
+                height={36}
+                className="rounded-full"
+              />
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-bold tracking-[0.15em] text-primary">SRC</span>
                 <span className="text-[10px] tracking-[0.08em] text-muted-foreground hidden sm:block">
