@@ -4,96 +4,60 @@ import {
   BrainCircuit, ShieldCheck, FileCheck, Users, ArrowRight, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLang } from "./LangProvider";
 
 const PRINCIPLES = [
-  {
-    icon: BrainCircuit,
-    title: "AI as Research Accelerator",
-    desc: "We deploy a powerful AI engine to rapidly synthesise information from thousands of open-source documents, academic publications, government reports, and news sources. This enables our experts to begin analysis from a foundation of comprehensive, structured research rather than starting from scratch. The AI identifies patterns, connections, and anomalies across datasets that would take human researchers weeks to compile manually.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Expert Validation at Every Stage",
-    desc: "Every AI-produced draft undergoes rigorous review by domain specialists with deep knowledge of the specific subject area. Experts challenge assumptions, verify claims against primary sources, add contextual understanding that AI cannot replicate, and identify gaps or biases in the analysis. No publication leaves SRC without at least two independent expert reviews.",
-  },
-  {
-    icon: FileCheck,
-    title: "Non-Partisan Editorial Standards",
-    desc: "Our editorial process ensures that every publication meets SRC\u2019s standards for factual accuracy, analytical rigour, and political neutrality. Editors review language for implicit bias, verify that conclusions are supported by evidence, and ensure that policy recommendations are balanced and actionable. We never publish analyses that serve any political party, commercial interest, or ideological agenda.",
-  },
-  {
-    icon: Users,
-    title: "Human-AI Collaboration, Not Replacement",
-    desc: "We view AI as a powerful tool that amplifies human expertise, not a replacement for it. Our methodology is designed to leverage the complementary strengths of both: AI provides speed, breadth, and pattern recognition; humans provide judgment, contextual understanding, ethical reasoning, and accountability. This partnership model allows SRC to produce analyses that are both timely and deeply informed.",
-  },
+  { icon: BrainCircuit, titleKey: "approach.p1.title", descKey: "approach.p1.desc" },
+  { icon: ShieldCheck, titleKey: "approach.p2.title", descKey: "approach.p2.desc" },
+  { icon: FileCheck, titleKey: "approach.p3.title", descKey: "approach.p3.desc" },
+  { icon: Users, titleKey: "approach.p4.title", descKey: "approach.p4.desc" },
 ];
 
 const PROCESS_STEPS = [
   {
     num: "01",
-    title: "Source Collection",
-    desc: "Our AI research engine ingests and structures data from 500+ curated sources across six domains, including government databases, academic repositories, industry reports, and multilingual news sources.",
-    details: [
-      "500+ curated sources",
-      "Real-time monitoring",
-      "6 domain-specific collections",
-      "Multilingual coverage (DE/FR/EN)",
-    ],
+    titleKey: "approach.s1.title",
+    descKey: "approach.s1.desc",
+    detailKeys: ["approach.s1.d1", "approach.s1.d2", "approach.s1.d3", "approach.s1.d4"],
   },
   {
     num: "02",
-    title: "AI Analysis Draft",
-    desc: "The AI engine synthesises collected data into structured analysis drafts, identifying key findings, trend patterns, risk indicators, and cross-domain connections.",
-    details: [
-      "Structured analysis framework",
-      "Cross-domain pattern matching",
-      "Risk indicator identification",
-      "Trend analysis and forecasting",
-    ],
+    titleKey: "approach.s2.title",
+    descKey: "approach.s2.desc",
+    detailKeys: ["approach.s2.d1", "approach.s2.d2", "approach.s2.d3", "approach.s2.d4"],
   },
   {
     num: "03",
-    title: "Expert Review",
-    desc: "Domain specialists review, challenge, and enrich the AI draft. They verify factual claims, add contextual expertise, identify blind spots, and assess analytical soundness.",
-    details: [
-      "Minimum 2 independent reviewers",
-      "Fact-checking against primary sources",
-      "Contextual expertise injection",
-      "Methodology critique",
-    ],
+    titleKey: "approach.s3.title",
+    descKey: "approach.s3.desc",
+    detailKeys: ["approach.s3.d1", "approach.s3.d2", "approach.s3.d3", "approach.s3.d4"],
   },
   {
     num: "04",
-    title: "Editorial Finalisation",
-    desc: "Senior editors review for clarity, accuracy, consistency, and adherence to SRC\u2019s non-partisan standards before publication.",
-    details: [
-      "Language and bias review",
-      "Evidence-chain verification",
-      "Policy recommendation review",
-      "Final quality assurance",
-    ],
+    titleKey: "approach.s4.title",
+    descKey: "approach.s4.desc",
+    detailKeys: ["approach.s4.d1", "approach.s4.d2", "approach.s4.d3", "approach.s4.d4"],
   },
 ];
 
 export function ApproachView() {
+  const { t: tr } = useLang();
+
   return (
     <div>
       {/* Hero */}
       <div className="bg-primary text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">
-            Methodology
+            {tr("approach.hero.tag")}
           </span>
           <h1 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 max-w-xl">
-            AI-Augmented Analysis,
+            {tr("approach.hero.title.1")}
             <br />
-            Human-Validated Insight
+            {tr("approach.hero.title.2")}
           </h1>
           <p className="text-sm text-white/60 max-w-lg leading-relaxed">
-            SRC pioneered a research methodology that combines the speed of
-            artificial intelligence with the judgment of domain experts. The
-            result: timely, rigorous, and actionable analysis that no purely
-            human or purely automated approach can achieve alone.
+            {tr("approach.hero.desc")}
           </p>
         </div>
       </div>
@@ -102,27 +66,27 @@ export function ApproachView() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
         <div className="text-center mb-12">
           <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">
-            Core Principles
+            {tr("approach.principles.tag")}
           </span>
           <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">
-            How We Work
+            {tr("approach.principles.heading")}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {PRINCIPLES.map((p) => (
             <div
-              key={p.title}
+              key={p.titleKey}
               className="border border-border p-6 hover:border-primary/20 transition-colors"
             >
               <div className="w-10 h-10 bg-secondary flex items-center justify-center rounded-sm mb-4">
                 <p.icon className="w-5 h-5 text-primary" />
               </div>
               <h3 className="font-semibold text-base text-primary mb-2">
-                {p.title}
+                {tr(p.titleKey)}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {p.desc}
+                {tr(p.descKey)}
               </p>
             </div>
           ))}
@@ -134,10 +98,10 @@ export function ApproachView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <div className="text-center mb-12">
             <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">
-              From Source to Publication
+              {tr("approach.pipeline.tag")}
             </span>
             <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">
-              The Production Pipeline
+              {tr("approach.pipeline.heading")}
             </h2>
           </div>
 
@@ -160,19 +124,19 @@ export function ApproachView() {
                     </span>
                     <div className="flex-1">
                       <h3 className="font-semibold text-base text-primary mb-2">
-                        {step.title}
+                        {tr(step.titleKey)}
                       </h3>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                        {step.desc}
+                        {tr(step.descKey)}
                       </p>
                       <div className="grid grid-cols-2 gap-2">
-                        {step.details.map((d) => (
+                        {step.detailKeys.map((dk) => (
                           <div
-                            key={d}
+                            key={dk}
                             className="flex items-center gap-2 text-xs text-muted-foreground"
                           >
                             <Check className="w-3.5 h-3.5 text-[#E8272C] flex-shrink-0" />
-                            {d}
+                            {tr(dk)}
                           </div>
                         ))}
                       </div>
@@ -185,25 +149,17 @@ export function ApproachView() {
         </div>
       </section>
 
-      {/* Tech note — generic, no brand name */}
+      {/* Tech note */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="heading-serif text-2xl font-bold text-primary mb-4">
-            Powered by Advanced AI
+            {tr("approach.tech.heading")}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-            SRC uses a state-of-the-art large language model as its primary AI
-            research engine. The system was selected for its strong multilingual
-            capabilities — critical for D-A-CH analysis — its ability to process
-            and synthesise long-form documents, and its capacity for structured
-            analytical output that integrates seamlessly into human expert
-            workflows. Our AI engine enables SRC to monitor and analyse
-            developments across all six focus areas in near real-time, producing
-            draft analyses that serve as the starting point — not the end
-            product — of our research process.
+            {tr("approach.tech.desc")}
           </p>
           <Button variant="outline" className="text-xs gap-1.5">
-            Learn more about our technology{" "}
+            {tr("approach.tech.cta")}{" "}
             <ArrowRight className="w-3.5 h-3.5" />
           </Button>
         </div>

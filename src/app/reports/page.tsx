@@ -4,17 +4,25 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Calendar, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLang } from "@/components/LangProvider";
 
-const SECTION_LABELS: Record<string, string> = {
-  "digital-power-ai": "Digital Power & AI",
-  "geopolitics-hard-security": "Geopolitics & Hard Security",
-  "energy-resources": "Energy & Resources",
-  "climate-environment-food": "Climate, Environment & Food",
-  "economy-competitiveness": "Economy & Competitiveness",
-  "society-migration-institutions": "Society, Migration & Institutions",
+const SECTION_SLUGS = [
+  "digital-power-ai",
+  "geopolitics-hard-security",
+  "energy-resources",
+  "climate-environment-food",
+  "economy-competitiveness",
+  "society-migration-institutions",
+];
+
+const SECTION_KEY_MAP: Record<string, string> = {
+  "digital-power-ai": "focus.digital",
+  "geopolitics-hard-security": "focus.geopolitics",
+  "energy-resources": "focus.energy",
+  "climate-environment-food": "focus.climate",
+  "economy-competitiveness": "focus.economy",
+  "society-migration-institutions": "focus.society",
 };
-
-const ALL_SECTIONS = Object.entries(SECTION_LABELS) as [string, string][];
 
 interface Report {
   id: string;
@@ -29,6 +37,7 @@ interface Report {
 }
 
 export default function ReportsPage() {
+  const { t: tr } = useLang();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -62,15 +71,14 @@ export default function ReportsPage() {
             <div className="flex items-center gap-4 mb-6">
               <span className="section-num">04</span>
               <span className="text-xs uppercase tracking-[0.22em] text-white/60 font-semibold">
-                Publications & Analyses
+                {tr("reports.page.tag")}
               </span>
             </div>
             <h1 className="heading-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
-              Reports
+              {tr("reports.heading")}
             </h1>
             <p className="mt-4 text-white/70 leading-relaxed max-w-xl">
-              Fact-based analyses, strategy papers and statements by the SRC
-              Expert Panel and Board.
+              {tr("reports.page.desc")}
             </p>
           </div>
         </div>
@@ -82,7 +90,7 @@ export default function ReportsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-10 pb-8 border-b border-[#D8DEE6]">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground font-semibold">
             <Filter className="h-3.5 w-3.5" />
-            Filter by section
+            {tr("reports.page.filter-label")}
           </div>
           <div className="flex flex-wrap gap-2">
             <button
@@ -93,9 +101,9 @@ export default function ReportsPage() {
                   : "bg-[#F0F2F5] text-muted-foreground hover:bg-[#E2E6EC]"
               }`}
             >
-              All ({total})
+              {tr("reports.page.all").replace("{n}", String(total))}
             </button>
-            {ALL_SECTIONS.map(([slug, label]) => (
+            {SECTION_SLUGS.map((slug) => (
               <button
                 key={slug}
                 onClick={() => setActiveSection(slug === activeSection ? null : slug)}
@@ -105,7 +113,7 @@ export default function ReportsPage() {
                     : "bg-[#F0F2F5] text-muted-foreground hover:bg-[#E2E6EC]"
                 }`}
               >
-                {label}
+                {tr(SECTION_KEY_MAP[slug] || slug)}
               </button>
             ))}
           </div>
@@ -114,15 +122,15 @@ export default function ReportsPage() {
         {/* Reports List */}
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">
-            Loading reports...
+            {tr("reports.page.loading")}
           </div>
         ) : filteredCount === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground text-lg mb-2">
-              No reports published yet.
+              {tr("reports.page.empty")}
             </p>
             <p className="text-sm text-muted-foreground/70">
-              Check back soon for analyses from the SRC Expert Panel.
+              {tr("reports.page.empty.hint")}
             </p>
           </div>
         ) : (
@@ -149,7 +157,7 @@ export default function ReportsPage() {
                           })}
                     </span>
                     <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
-                      {SECTION_LABELS[report.section] || report.section}
+                      {tr(SECTION_KEY_MAP[report.section] || report.section)}
                     </span>
                   </div>
                   <h3 className="font-bold text-lg leading-snug tracking-tight mb-2 group-hover:text-[#0A2540] transition-colors">
@@ -160,7 +168,7 @@ export default function ReportsPage() {
                       {report.summary || report.title}
                     </p>
                     <span className="text-xs text-muted-foreground inline-flex items-center gap-1 group-hover:text-[#E8272C] transition-colors shrink-0 font-semibold">
-                      Read
+                      {tr("reports.page.read")}
                       <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </span>
                   </div>

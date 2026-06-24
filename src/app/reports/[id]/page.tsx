@@ -10,14 +10,15 @@ import {
   User,
   BookOpen,
 } from "lucide-react";
+import { useLang } from "@/components/LangProvider";
 
-const SECTION_LABELS: Record<string, string> = {
-  "digital-power-ai": "Digital Power & AI",
-  "geopolitics-hard-security": "Geopolitics & Hard Security",
-  "energy-resources": "Energy & Resources",
-  "climate-environment-food": "Climate, Environment & Food",
-  "economy-competitiveness": "Economy & Competitiveness",
-  "society-migration-institutions": "Society, Migration & Institutions",
+const SECTION_KEY_MAP: Record<string, string> = {
+  "digital-power-ai": "focus.digital",
+  "geopolitics-hard-security": "focus.geopolitics",
+  "energy-resources": "focus.energy",
+  "climate-environment-food": "focus.climate",
+  "economy-competitiveness": "focus.economy",
+  "society-migration-institutions": "focus.society",
 };
 
 interface Report {
@@ -39,6 +40,7 @@ interface Report {
 }
 
 export default function ReportPage() {
+  const { t: tr } = useLang();
   const params = useParams();
   const router = useRouter();
   const [report, setReport] = useState<Report | null>(null);
@@ -60,7 +62,7 @@ export default function ReportPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-muted-foreground">Loading report...</div>
+        <div className="text-muted-foreground">{tr("reports.detail.loading")}</div>
       </main>
     );
   }
@@ -69,16 +71,16 @@ export default function ReportPage() {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Report not found</h1>
+          <h1 className="text-2xl font-bold mb-2">{tr("reports.detail.not-found")}</h1>
           <p className="text-muted-foreground mb-6">
-            The report you are looking for does not exist or is not publicly available.
+            {tr("reports.detail.not-found.desc")}
           </p>
           <Link
             href="/reports"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A2540] hover:text-[#E8272C] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Reports
+            {tr("reports.detail.back")}
           </Link>
         </div>
       </main>
@@ -103,7 +105,7 @@ export default function ReportPage() {
             className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            All Reports
+            {tr("reports.detail.all-reports")}
           </Link>
         </div>
       </div>
@@ -116,7 +118,7 @@ export default function ReportPage() {
               {report.type}
             </span>
             <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
-              {SECTION_LABELS[report.section] || report.section}
+              {tr(SECTION_KEY_MAP[report.section] || report.section)}
             </span>
           </div>
           <h1 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight">
@@ -154,7 +156,7 @@ export default function ReportPage() {
           <div className="text-center py-16">
             <BookOpen className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground">
-              Full content is not yet available for this report.
+              {tr("reports.detail.no-content")}
             </p>
           </div>
         )}
@@ -168,7 +170,7 @@ export default function ReportPage() {
             className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to all reports
+            {tr("reports.detail.back-all")}
           </Link>
         </div>
       </div>

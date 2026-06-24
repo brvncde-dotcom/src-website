@@ -65,16 +65,16 @@ function RegisterForm({ onRegistered }: { onRegistered: (member: Member) => void
   const submit = async () => {
     setError("");
     if (!form.name.trim() || !form.address.trim() || !form.email.trim() || !form.profession.trim()) {
-      setError("All fields are required."); return;
+      setError(tr("reports.error.fields-required")); return;
     }
     setLoading(true);
     try {
       const res = await fetch("/api/members/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Registration failed."); return; }
+      if (!res.ok) { setError(data.error || tr("reports.error.registration-failed")); return; }
       localStorage.setItem("src_member", JSON.stringify({ id: data.member.id, name: data.member.name }));
       onRegistered(data.member);
-    } catch { setError("Network error."); } finally { setLoading(false); }
+    } catch { setError(tr("reports.error.network")); } finally { setLoading(false); }
   };
 
   const fields = [
@@ -107,7 +107,7 @@ function RegisterForm({ onRegistered }: { onRegistered: (member: Member) => void
           </Button>
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">or</span></div>
+            <div className="relative flex justify-center text-xs"><span className="bg-background px-3 text-muted-foreground">{tr("reports.error.or")}</span></div>
           </div>
           <p className="text-xs text-center text-muted-foreground mb-3">{tr("reports.gate.returning")}</p>
           <button onClick={() => { const s = localStorage.getItem("src_member"); if (s) { try { onRegistered(JSON.parse(s)); return; } catch {} } window.dispatchEvent(new CustomEvent("src:show-login")); }} className="block w-full text-center text-sm font-medium text-[#E8272C] hover:underline">
@@ -135,8 +135,8 @@ function LoginForm({ onAccess }: { onAccess: (member: Member) => void }) {
       const data = await res.json();
       if (!res.ok) { setError(data.error || " "); return; }
       if (data.members.length === 1) { localStorage.setItem("src_member", JSON.stringify(data.members[0])); onAccess(data.members[0]); }
-      else { setError("Multiple members found."); }
-    } catch { setError("Network error."); } finally { setLoading(false); }
+      else { setError(tr("reports.error.multiple-members")); }
+    } catch { setError(tr("reports.error.network")); } finally { setLoading(false); }
   };
 
   return (
