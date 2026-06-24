@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   BrainCircuit, Swords, Zap, Leaf, TrendingUp, Scale,
   Shield, ArrowRight, FileText,
@@ -7,17 +8,36 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLang } from "./LangProvider";
 
+const SECTION_SLUGS = [
+  "digital-power-ai",
+  "geopolitics-hard-security",
+  "energy-resources",
+  "climate-environment-food",
+  "economy-competitiveness",
+  "society-migration-institutions",
+] as const;
+
 const FOCUS_AREAS = [
-  { icon: BrainCircuit, num: "01", titleKey: "focus.digital", descKey: "focus.d1.desc", topicKeys: ["focus.d1.t1","focus.d1.t2","focus.d1.t3","focus.d1.t4","focus.d1.t5","focus.d1.t6"], reports: 12, color: "#0A2540" },
-  { icon: Swords, num: "02", titleKey: "focus.geopolitics", descKey: "focus.d2.desc", topicKeys: ["focus.d2.t1","focus.d2.t2","focus.d2.t3","focus.d2.t4","focus.d2.t5","focus.d2.t6"], reports: 9, color: "#1A3A5C" },
-  { icon: Zap, num: "03", titleKey: "focus.energy", descKey: "focus.d3.desc", topicKeys: ["focus.d3.t1","focus.d3.t2","focus.d3.t3","focus.d3.t4","focus.d3.t5","focus.d3.t6"], reports: 7, color: "#E8272C" },
-  { icon: Leaf, num: "04", titleKey: "focus.climate", descKey: "focus.d4.desc", topicKeys: ["focus.d4.t1","focus.d4.t2","focus.d4.t3","focus.d4.t4","focus.d4.t5","focus.d4.t6"], reports: 5, color: "#2D6A4F" },
-  { icon: TrendingUp, num: "05", titleKey: "focus.economy", descKey: "focus.d5.desc", topicKeys: ["focus.d5.t1","focus.d5.t2","focus.d5.t3","focus.d5.t4","focus.d5.t5","focus.d5.t6"], reports: 8, color: "#7C3AED" },
-  { icon: Scale, num: "06", titleKey: "focus.society", descKey: "focus.d6.desc", topicKeys: ["focus.d6.t1","focus.d6.t2","focus.d6.t3","focus.d6.t4","focus.d6.t5","focus.d6.t6"], reports: 6, color: "#B45309" },
+  { icon: BrainCircuit, num: "01", titleKey: "focus.digital", descKey: "focus.d1.desc", topicKeys: ["focus.d1.t1","focus.d1.t2","focus.d1.t3","focus.d1.t4","focus.d1.t5","focus.d1.t6"], section: SECTION_SLUGS[0], color: "#0A2540" },
+  { icon: Swords, num: "02", titleKey: "focus.geopolitics", descKey: "focus.d2.desc", topicKeys: ["focus.d2.t1","focus.d2.t2","focus.d2.t3","focus.d2.t4","focus.d2.t5","focus.d2.t6"], section: SECTION_SLUGS[1], color: "#1A3A5C" },
+  { icon: Zap, num: "03", titleKey: "focus.energy", descKey: "focus.d3.desc", topicKeys: ["focus.d3.t1","focus.d3.t2","focus.d3.t3","focus.d3.t4","focus.d3.t5","focus.d3.t6"], section: SECTION_SLUGS[2], color: "#E8272C" },
+  { icon: Leaf, num: "04", titleKey: "focus.climate", descKey: "focus.d4.desc", topicKeys: ["focus.d4.t1","focus.d4.t2","focus.d4.t3","focus.d4.t4","focus.d4.t5","focus.d4.t6"], section: SECTION_SLUGS[3], color: "#2D6A4F" },
+  { icon: TrendingUp, num: "05", titleKey: "focus.economy", descKey: "focus.d5.desc", topicKeys: ["focus.d5.t1","focus.d5.t2","focus.d5.t3","focus.d5.t4","focus.d5.t5","focus.d5.t6"], section: SECTION_SLUGS[4], color: "#7C3AED" },
+  { icon: Scale, num: "06", titleKey: "focus.society", descKey: "focus.d6.desc", topicKeys: ["focus.d6.t1","focus.d6.t2","focus.d6.t3","focus.d6.t4","focus.d6.t5","focus.d6.t6"], section: SECTION_SLUGS[5], color: "#B45309" },
 ];
 
 export function FocusAreasView() {
   const { t: tr } = useLang();
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetch("/api/reports/counts")
+      .then((r) => r.json())
+      .then((data: { bySection?: Record<string, number> }) => {
+        if (data.bySection) setCounts(data.bySection);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -60,7 +80,7 @@ export function FocusAreasView() {
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="w-3.5 h-3.5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      {area.reports} {tr("focus.reports-count")}
+                      {counts[area.section] ?? 0} {tr("focus.reports-count")}
                     </span>
                   </div>
                   <Button variant="outline" size="sm" className="text-xs gap-1.5">
