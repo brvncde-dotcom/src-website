@@ -8,23 +8,24 @@ import { OpinionsView } from "@/components/OpinionsView";
 import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
+import { NavigationProvider } from "@/components/NavigationProvider";
 
-function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageKey) => void }) {
+function PageRouter({ page }: { page: PageKey }) {
   switch (page) {
-    case "home":
-      return <HomeView onNavigate={onNavigate} />;
-    case "reports":
-      return <ReportsView />;
-    case "opinions":
-      return <OpinionsView />;
-    case "focus-areas":
-      return <FocusAreasView />;
-    case "approach":
-      return <ApproachView />;
-    case "contact":
-      return <ContactView />;
-    default:
-      return <HomeView onNavigate={onNavigate} />;
+  case "home":
+    return <HomeView />;
+  case "reports":
+    return <ReportsView />;
+  case "opinions":
+    return <OpinionsView />;
+  case "focus-areas":
+    return <FocusAreasView />;
+  case "approach":
+    return <ApproachView />;
+  case "contact":
+    return <ContactView />;
+  default:
+    return <HomeView />;
   }
 }
 
@@ -32,9 +33,9 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState<PageKey>("home");
 
   return (
-    <>
-      <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
-      <PageRouter page={currentPage} onNavigate={setCurrentPage} />
-    </>
+    <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
+      <SiteNavigation />
+      <PageRouter page={currentPage} />
+    </NavigationProvider>
   );
 }

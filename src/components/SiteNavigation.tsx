@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useLang } from "./LangProvider";
 import { LANG_LABELS, type Lang } from "@/lib/i18n";
+import { useNavigation } from "./NavigationProvider";
 
 export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact";
 
@@ -19,11 +20,6 @@ const NAV_KEYS: { key: PageKey; labelKey: string }[] = [
 ];
 
 const ALL_LANGS: Lang[] = ["en", "de", "fr", "it"];
-
-interface Props {
-  currentPage: PageKey;
-  onNavigate: (page: PageKey) => void;
-}
 
 function LangSwitcher() {
   const { lang, setLang } = useLang();
@@ -46,14 +42,14 @@ function LangSwitcher() {
   );
 }
 
-export function SiteNavigation({ currentPage, onNavigate }: Props) {
+export function SiteNavigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t: tr } = useLang();
+  const { currentPage, navigate } = useNavigation();
 
   const handleNav = (key: PageKey) => {
-    onNavigate(key);
+    navigate(key);
     setMobileOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

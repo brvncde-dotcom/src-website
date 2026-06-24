@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLang } from "./LangProvider";
-import type { PageKey } from "./SiteNavigation";
+import { useNavigation } from "./NavigationProvider";
 
 const MOCK_REPORTS = [
   { id: "1", sectionKey: "focus.digital", date: "2026-06-18", type: "Analysis", titleEn: "AI Governance Frameworks for Critical Infrastructure: A D-A-CH Comparative Analysis", summaryEn: "An in-depth comparison of AI regulatory approaches across Switzerland, Germany, and Austria, with recommendations for harmonised governance of AI in critical infrastructure systems." },
@@ -19,12 +19,9 @@ const DIFF_KEYS = [
   { icon: Scale, titleKey: "why.swiss.title", descKey: "why.swiss.desc" },
 ];
 
-interface Props {
-  onNavigate: (page: PageKey) => void;
-}
-
-export function HomeView({ onNavigate }: Props) {
+export function HomeView() {
   const { t: tr } = useLang();
+  const { navigate } = useNavigation();
 
   return (
     <div>
@@ -43,10 +40,10 @@ export function HomeView({ onNavigate }: Props) {
             </h1>
             <p className="text-base sm:text-lg text-white/60 leading-relaxed max-w-xl mb-10">{tr("hero.subtitle")}</p>
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => onNavigate("reports")} className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2">
+              <Button onClick={() => navigate("reports")} className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2">
                 {tr("hero.cta.reports")} <ArrowRight className="w-4 h-4" />
               </Button>
-              <Button variant="outline" className="border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white" onClick={() => onNavigate("approach")}>
+              <Button variant="outline" className="border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white" onClick={() => navigate("approach")}>
                 {tr("hero.cta.approach")}
               </Button>
             </div>
@@ -62,13 +59,13 @@ export function HomeView({ onNavigate }: Props) {
             <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">{tr("latest.tag")}</span>
             <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">{tr("latest.heading")}</h2>
           </div>
-          <Button variant="ghost" className="text-muted-foreground gap-2 text-sm hidden sm:flex" onClick={() => onNavigate("reports")}>
+          <Button variant="ghost" className="text-muted-foreground gap-2 text-sm hidden sm:flex" onClick={() => navigate("reports")}>
             {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {MOCK_REPORTS.map((report) => (
-            <article key={report.id} className="group border border-border p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
+            <article key={report.id} className="group border border-border p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer" onClick={() => navigate("reports")}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[10px] font-bold tracking-[0.1em] uppercase bg-secondary px-2 py-0.5 rounded-sm text-muted-foreground">{report.type}</span>
                 <span className="text-[10px] text-muted-foreground">{report.date}</span>
@@ -83,7 +80,7 @@ export function HomeView({ onNavigate }: Props) {
           ))}
         </div>
         <div className="mt-4 sm:hidden">
-          <Button variant="ghost" className="w-full text-muted-foreground gap-2 text-sm" onClick={() => onNavigate("reports")}>
+          <Button variant="ghost" className="w-full text-muted-foreground gap-2 text-sm" onClick={() => navigate("reports")}>
             {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -108,7 +105,7 @@ export function HomeView({ onNavigate }: Props) {
             ))}
           </div>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={() => onNavigate("approach")}>
+            <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={() => navigate("approach")}>
               {tr("why.cta.methodology")} <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -124,10 +121,10 @@ export function HomeView({ onNavigate }: Props) {
               <p className="text-sm text-white/50 leading-relaxed">{tr("cta.desc")}</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2" onClick={() => onNavigate("contact")}>
+              <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2" onClick={() => navigate("contact")}>
                 {tr("cta.contact")} <ArrowRight className="w-4 h-4" />
               </Button>
-              <Button variant="outline" className="border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white" onClick={() => onNavigate("reports")}>
+              <Button variant="outline" className="border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white" onClick={() => navigate("reports")}>
                 {tr("cta.trial")}
               </Button>
             </div>

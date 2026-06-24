@@ -2,44 +2,73 @@
 
 import Image from "next/image";
 import { useLang } from "./LangProvider";
+import { useNavigation } from "./NavigationProvider";
+import type { PageKey } from "./SiteNavigation";
 
 export function SiteFooter() {
   const { t: tr } = useLang();
+  const { navigate } = useNavigation();
 
-  const focusKeys = ["focus.digital", "focus.geopolitics", "focus.energy", "focus.climate", "focus.economy", "focus.society"];
-  const orgKeys = ["footer.about", "footer.our-approach", "footer.opinions", "footer.contact"];
-  const legalKeys = ["footer.impressum", "footer.datenschutz", "footer.agb"];
+  const focusKeys: { key: string; labelKey: string }[] = [
+    { key: "focus-areas", labelKey: "focus.digital" },
+    { key: "focus-areas", labelKey: "focus.geopolitics" },
+    { key: "focus-areas", labelKey: "focus.energy" },
+    { key: "focus-areas", labelKey: "focus.climate" },
+    { key: "focus-areas", labelKey: "focus.economy" },
+    { key: "focus-areas", labelKey: "focus.society" },
+  ];
+
+  const orgLinks: { key: PageKey; labelKey: string }[] = [
+    { key: "home", labelKey: "footer.about" },
+    { key: "approach", labelKey: "footer.our-approach" },
+    { key: "opinions", labelKey: "footer.opinions" },
+    { key: "contact", labelKey: "footer.contact" },
+  ];
 
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 border-b border-white/10">
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
+            <button onClick={() => navigate("home")} className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity">
               <Image src="/src-logo.png" alt="SRC Logo" width={32} height={32} className="rounded-full" />
               <div>
                 <div className="text-sm font-bold tracking-[0.15em]">SRC</div>
                 <div className="text-[10px] tracking-widest text-white/50 uppercase">Security & Resilience Counsel</div>
               </div>
-            </div>
+            </button>
             <p className="text-sm text-white/60 leading-relaxed">{tr("footer.desc")}</p>
           </div>
           <div>
             <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">{tr("footer.focus-areas")}</h4>
             <ul className="space-y-2.5 text-sm text-white/60">
-              {focusKeys.map((k) => <li key={k} className="hover:text-white transition-colors cursor-pointer">{tr(k)}</li>)}
+              {focusKeys.map((item) => (
+                <li key={item.labelKey}>
+                  <button onClick={() => navigate(item.key)} className="hover:text-white transition-colors">
+                    {tr(item.labelKey)}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">{tr("footer.organisation")}</h4>
             <ul className="space-y-2.5 text-sm text-white/60">
-              {orgKeys.map((k) => <li key={k} className="hover:text-white transition-colors cursor-pointer">{tr(k)}</li>)}
+              {orgLinks.map((item) => (
+                <li key={item.labelKey}>
+                  <button onClick={() => navigate(item.key)} className="hover:text-white transition-colors">
+                    {tr(item.labelKey)}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">{tr("footer.legal")}</h4>
             <ul className="space-y-2.5 text-sm text-white/60">
-              {legalKeys.map((k) => <li key={k} className="hover:text-white transition-colors cursor-pointer">{tr(k)}</li>)}
+              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.impressum")}</li>
+              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.datenschutz")}</li>
+              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.agb")}</li>
             </ul>
           </div>
         </div>
