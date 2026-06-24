@@ -38,6 +38,7 @@ model Report {
   section     String
   status      String   @default("pending")
   sourceRef   String?
+  language    String   @default("en")
   author      String?
   publishedAt DateTime?
   reviewedBy  String?
@@ -46,7 +47,9 @@ model Report {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@unique([sourceRef, language])
   @@index([section])
   @@index([status])
   @@index([publishedAt])
+  @@index([language])
 }

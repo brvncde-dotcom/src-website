@@ -1,11 +1,20 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma, VALID_LANGUAGES } from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const lang = searchParams.get("lang");
+
   try {
+    const where: Record<string, unknown> = { status: "published" };
+
+    if (lang && VALID_LANGUAGES.includes(lang as typeof VALID_LANGUAGES[number])) {
+      where.language = lang;
+    }
+
     const counts = await prisma.report.groupBy({
       by: ["section"],
-      where: { status: "published" },
+      where,
       _count: { id: true },
     });
 

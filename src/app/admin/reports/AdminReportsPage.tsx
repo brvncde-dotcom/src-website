@@ -31,6 +31,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
+  Layers,
 } from "lucide-react";
 
 const SECTION_LABELS: Record<string, string> = {
@@ -49,6 +50,20 @@ const STATUS_COLORS: Record<string, string> = {
   published: "bg-green-100 text-green-800 border-green-300",
 };
 
+const LANG_LABELS: Record<string, string> = {
+  en: "EN",
+  de: "DE",
+  fr: "FR",
+  it: "IT",
+};
+
+const LANG_COLORS: Record<string, string> = {
+  en: "bg-blue-100 text-blue-800 border-blue-300",
+  de: "bg-purple-100 text-purple-800 border-purple-300",
+  fr: "bg-orange-100 text-orange-800 border-orange-300",
+  it: "bg-green-100 text-green-800 border-green-300",
+};
+
 interface Report {
   id: string;
   title: string;
@@ -59,6 +74,7 @@ interface Report {
   status: string;
   author: string | null;
   sourceRef: string | null;
+  language: string;
   publishedAt: string | null;
   createdAt: string;
   reviewedAt: string | null;
@@ -71,6 +87,8 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterLang, setFilterLang] = useState<string>("all");
+  const [groupBySource, setGroupBySource] = useState<boolean>(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
@@ -96,6 +114,8 @@ export default function AdminReportsPage() {
       const params = new URLSearchParams();
       if (filterSection !== "all") params.set("section", filterSection);
       if (filterStatus !== "all") params.set("status", filterStatus);
+      if (filterLang !== "all") params.set("lang", filterLang);
+      if (groupBySource) params.set("groupBy", "sourceRef");
 
       const res = await fetch(`/api/reports?${params.toString()}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
@@ -105,13 +125,23 @@ export default function AdminReportsPage() {
         return;
       }
       const data = await res.json();
-      setReports(data.reports || []);
+      if (data.grouped) {
+        // Flatten grouped reports for display, but track grouping
+        const flat: Report[] = [];
+        for (const group of data.grouped) {
+          flat.push(...group.versions);
+        }
+        flat.push(...(data.ungrouped || []));
+        setReports(flat);
+      } else {
+        setReports(data.reports || []);
+      }
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
-  }, [apiKey, filterSection, filterStatus]);
+  }, [apiKey, filterSection, filterStatus, filterLang, groupBySource]);
 
   useEffect(() => {
     if (apiKey) {
@@ -251,7 +281,7 @@ export default function AdminReportsPage() {
 
       <div className="mx-auto max-w-6xl px-6 py-8">
         {/* Filters */}
-        <div className="bg-white border border-[#D8DEE6] rounded-sm p-4 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="bg-white border border-[#D8DEE6] rounded-sm p-4 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-wrap">
           <Filter className="h-4 w-4 text-[#5A6B7F] shrink-0" />
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-[180px] h-9 text-xs">
@@ -278,6 +308,27 @@ export default function AdminReportsPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={filterLang} onValueChange={setFilterLang}>
+            <SelectTrigger className="w-full sm:w-[120px] h-9 text-xs">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Languages</SelectItem>
+              <SelectItem value="en">EN — English</SelectItem>
+              <SelectItem value="de">DE — German</SelectItem>
+              <SelectItem value="fr">FR — French</SelectItem>
+              <SelectItem value="it">IT — Italian</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant={groupBySource ? "default" : "outline"}
+            size="sm"
+            className="h-9 text-xs gap-1.5"
+            onClick={() => setGroupBySource(!groupBySource)}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            Group by Source
+          </Button>
           <div className="ml-auto text-xs text-[#5A6B7F]">
             {reports.length} report{reports.length !== 1 ? "s" : ""}
           </div>
@@ -316,6 +367,11 @@ export default function AdminReportsPage() {
                         </span>
                         <span className="inline-flex items-center bg-[#0A2540] text-white px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm">
                           {report.type}
+                        </span>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${LANG_COLORS[report.language] || "bg-gray-100 text-gray-800 border-gray-300"}`}
+                        >
+                          {LANG_LABELS[report.language] || report.language}
                         </span>
                         <span className="text-[10px] uppercase tracking-wider text-[#5A6B7F] font-semibold">
                           {SECTION_LABELS[report.section] || report.section}
@@ -462,13 +518,17 @@ Content-Type: application/json
   "summary": "Brief summary",
   "content": "Full report content (markdown)",
   "type": "Analysis",
-  "section": "energy",
+  "section": "energy-resources",
   "sourceRef": "paperclip-project-id",
+  "language": "en",
   "author": "SRC Expert Panel"
 }
 
 Sections: digital-power-ai | geopolitics-hard-security | energy-resources | climate-environment-food | economy-competitiveness | society-migration-institutions
-Types: Analysis | Strategy Paper | Statement | Brief | Report`}</pre>
+Types: Analysis | Strategy Paper | Statement | Brief | Report
+Languages: en | de | fr | it (default: en)
+Unique constraint: (sourceRef, language) — one version per language per source
+Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
           </div>
         </div>
       </div>
@@ -493,7 +553,7 @@ Types: Analysis | Strategy Paper | Statement | Brief | Report`}</pre>
               {actionDialog.action === "rejected" &&
                 "This report will be marked as rejected."}
               {actionDialog.action === "published" &&
-                "This report will be published and visible on the public website."}
+                "This report will be published and visible on the public website. All translations sharing the same source reference will be published simultaneously."}
             </DialogDescription>
           </DialogHeader>
           {actionDialog.report && (

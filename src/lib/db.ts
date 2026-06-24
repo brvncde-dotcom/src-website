@@ -51,6 +51,10 @@ export const VALID_STATUSES = [
   "published",
 ] as const;
 
+export const VALID_LANGUAGES = ["en", "de", "fr", "it"] as const;
+export type Language = (typeof VALID_LANGUAGES)[number];
+export const DEFAULT_LANGUAGE: Language = "en";
+
 // --- Auth helpers ---
 export function validateIngestionKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");

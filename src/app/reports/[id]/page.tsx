@@ -28,14 +28,16 @@ interface Report {
   type: string;
   section: string;
   status: string;
+  language: string;
+  sourceRef: string | null;
   author: string | null;
   publishedAt: string | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
-  sourceRef: string | null;
   createdAt: string;
   updatedAt: string;
+  translations?: { id: string; language: string; title: string }[];
 }
 
 function BackLink({ label }: { label: string }) {
@@ -50,6 +52,13 @@ function BackLink({ label }: { label: string }) {
   );
 }
 
+const LANG_LABELS: Record<string, string> = {
+  en: "English",
+  de: "Deutsch",
+  fr: "Français",
+  it: "Italiano",
+};
+
 export default function ReportPage() {
   const { t: tr } = useLang();
   const params = useParams();
@@ -59,7 +68,8 @@ export default function ReportPage() {
 
   useEffect(() => {
     if (!params.id) return;
-    fetch(`/api/reports/${params.id}`)
+    const lang = typeof window !== "undefined" ? localStorage.getItem("src_lang") || "en" : "en";
+    fetch(`/api/reports/${params.id}?lang=${lang}`)
       .then((res) => {
         if (!res.ok) throw new Error("not found");
         return res.json();
@@ -118,6 +128,11 @@ export default function ReportPage() {
             <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
               {tr(SECTION_KEY_MAP[report.section] || report.section)}
             </span>
+            {report.language && (
+              <span className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded-sm">
+                {LANG_LABELS[report.language] || report.language}
+              </span>
+            )}
           </div>
           <h1 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight">
             {report.title}
@@ -141,6 +156,24 @@ export default function ReportPage() {
               </span>
             )}
           </div>
+          {report.translations && report.translations.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Translations:</span>
+              {report.translations.map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/reports/${t.id}`}
+                  className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                    t.id === report.id
+                      ? "bg-[#0A2540] text-white"
+                      : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  }`}
+                >
+                  {t.language}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

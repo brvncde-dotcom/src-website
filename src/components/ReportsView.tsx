@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   BrainCircuit, Swords, Zap, Leaf, TrendingUp, Scale,
   ArrowRight, Lock, Search, Filter, UserPlus, LogIn,
@@ -23,15 +24,15 @@ const FOCUS_KEYS = [
 ];
 
 const MOCK_REPORTS = [
-  { id: "1", sectionKey: "focus.digital", date: "2026-06-18", type: "Analysis", title: "AI Governance Frameworks for Critical Infrastructure: A D-A-CH Comparative Analysis" },
-  { id: "2", sectionKey: "focus.energy", date: "2026-06-12", type: "Report", title: "SMR Deployment Roadmap: Central Europe\u2019s Nuclear Renaissance" },
-  { id: "3", sectionKey: "focus.geopolitics", date: "2026-06-05", type: "Intelligence Brief", title: "Hybrid Threat Landscape Q2 2026: D-A-CH Threat Assessment" },
-  { id: "4", sectionKey: "focus.digital", date: "2026-05-28", type: "Technical Report", title: "Cyber-Physical Attack Vectors on Swiss Power Grids" },
-  { id: "5", sectionKey: "focus.energy", date: "2026-05-20", type: "Analysis", title: "LNG Terminal Security: Baltic Sea Supply Chain Risk Assessment" },
-  { id: "6", sectionKey: "focus.society", date: "2026-05-15", type: "Report", title: "Migration Pressure Points: Eastern Border Infrastructure Stress Test" },
-  { id: "7", sectionKey: "focus.geopolitics", date: "2026-05-10", type: "Policy Brief", title: "EU Defence Industrial Strategy: Implications for Austrian Procurement" },
-  { id: "8", sectionKey: "focus.climate", date: "2026-05-05", type: "Analysis", title: "Food Supply Chain Resilience Under Climate Stress Scenarios" },
-  { id: "9", sectionKey: "focus.economy", date: "2026-04-28", type: "Report", title: "Economic Coercion Playbook: How Authoritarian States Target D-A-CH Economies" },
+  { id: "1", sectionKey: "focus.digital", date: "2026-06-18", type: "Analysis", title: "AI Governance Frameworks for Critical Infrastructure: A D-A-CH Comparative Analysis", language: "en" },
+  { id: "2", sectionKey: "focus.energy", date: "2026-06-12", type: "Report", title: "SMR Deployment Roadmap: Central Europe\u2019s Nuclear Renaissance", language: "en" },
+  { id: "3", sectionKey: "focus.geopolitics", date: "2026-06-05", type: "Intelligence Brief", title: "Hybrid Threat Landscape Q2 2026: D-A-CH Threat Assessment", language: "en" },
+  { id: "4", sectionKey: "focus.digital", date: "2026-05-28", type: "Technical Report", title: "Cyber-Physical Attack Vectors on Swiss Power Grids", language: "en" },
+  { id: "5", sectionKey: "focus.energy", date: "2026-05-20", type: "Analysis", title: "LNG Terminal Security: Baltic Sea Supply Chain Risk Assessment", language: "en" },
+  { id: "6", sectionKey: "focus.society", date: "2026-05-15", type: "Report", title: "Migration Pressure Points: Eastern Border Infrastructure Stress Test", language: "en" },
+  { id: "7", sectionKey: "focus.geopolitics", date: "2026-05-10", type: "Policy Brief", title: "EU Defence Industrial Strategy: Implications for Austrian Procurement", language: "en" },
+  { id: "8", sectionKey: "focus.climate", date: "2026-05-05", type: "Analysis", title: "Food Supply Chain Resilience Under Climate Stress Scenarios", language: "en" },
+  { id: "9", sectionKey: "focus.economy", date: "2026-04-28", type: "Report", title: "Economic Coercion Playbook: How Authoritarian States Target D-A-CH Economies", language: "en" },
 ];
 
 function WelcomeMessage({ onContinue }: { onContinue: () => void }) {
@@ -167,11 +168,65 @@ function LoginForm({ onAccess }: { onAccess: (member: Member) => void }) {
   );
 }
 
+const SECTION_TO_FOCUS_KEY: Record<string, string> = {
+  "digital-power-ai": "focus.digital",
+  "geopolitics-hard-security": "focus.geopolitics",
+  "energy-resources": "focus.energy",
+  "climate-environment-food": "focus.climate",
+  "economy-competitiveness": "focus.economy",
+  "society-migration-institutions": "focus.society",
+};
+
+interface ApiReport {
+  id: string;
+  title: string;
+  summary: string | null;
+  type: string;
+  section: string;
+  status: string;
+  language: string;
+  sourceRef: string | null;
+  author: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
 export function ReportsView() {
-  const { t: tr } = useLang();
+  const { lang, t: tr } = useLang();
   const [gate, setGate] = useState<GateState>("register");
   const [member, setMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [apiReports, setApiReports] = useState<ApiReport[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+
+  // Fetch reports for the selected language, falling back to English
+  useEffect(() => {
+    let cancelled = false;
+    const fetchReports = async (language: string) => {
+      setLoadingReports(true);
+      try {
+        const res = await fetch(`/api/reports?lang=${language}&limit=100`);
+        const data = await res.json();
+        if (!cancelled) {
+          const reports = data.reports || [];
+          if (reports.length > 0 || language === "en") {
+            setApiReports(reports);
+          } else {
+            // Fall back to English if no reports in selected language
+            const enRes = await fetch(`/api/reports?lang=en&limit=100`);
+            const enData = await enRes.json();
+            if (!cancelled) setApiReports(enData.reports || []);
+          }
+        }
+      } catch {
+        if (!cancelled) setApiReports([]);
+      } finally {
+        if (!cancelled) setLoadingReports(false);
+      }
+    };
+    fetchReports(lang);
+    return () => { cancelled = true; };
+  }, [lang]);
 
   useEffect(() => {
     const saved = localStorage.getItem("src_member");
@@ -193,7 +248,22 @@ export function ReportsView() {
   if (gate === "login") return <LoginForm onAccess={(m) => { setMember(m); setGate("access"); }} />;
   if (gate === "register") return <RegisterForm onRegistered={handleRegistered} />;
 
-  const filtered = activeFilter ? MOCK_REPORTS.filter((r) => FOCUS_KEYS.find((fa) => fa.slug === activeFilter)?.labelKey === r.sectionKey) : MOCK_REPORTS;
+  // Use API reports if available, otherwise fall back to mock data
+  const hasApiReports = apiReports.length > 0;
+  const reports = hasApiReports
+    ? apiReports.map((r) => ({
+        id: r.id,
+        sectionKey: SECTION_TO_FOCUS_KEY[r.section] || r.section,
+        date: r.publishedAt ? new Date(r.publishedAt).toISOString().split("T")[0] : new Date(r.createdAt).toISOString().split("T")[0],
+        type: r.type,
+        title: r.title,
+        language: r.language,
+      }))
+    : MOCK_REPORTS;
+
+  const filtered = activeFilter
+    ? reports.filter((r) => FOCUS_KEYS.find((fa) => fa.slug === activeFilter)?.labelKey === r.sectionKey)
+    : reports;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
@@ -222,22 +292,41 @@ export function ReportsView() {
         ))}
       </div>
       <div className="space-y-3">
-        {filtered.map((report) => (
-          <article key={report.id} className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 p-4 border border-border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-bold tracking-[0.08em] uppercase bg-secondary px-2 py-0.5 rounded-sm text-muted-foreground flex-shrink-0">{report.type}</span>
-                <span className="text-[10px] text-muted-foreground flex-shrink-0">{report.date}</span>
+        {loadingReports && (
+          <div className="text-center py-12 text-sm text-muted-foreground">Loading reports…</div>
+        )}
+        {!loadingReports && filtered.length === 0 && (
+          <div className="text-center py-12 text-sm text-muted-foreground">No reports found.</div>
+        )}
+        {!loadingReports && filtered.map((report) => {
+          const isApiReport = hasApiReports;
+          const content = (
+            <article className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 p-4 border border-border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[10px] font-bold tracking-[0.08em] uppercase bg-secondary px-2 py-0.5 rounded-sm text-muted-foreground flex-shrink-0">{report.type}</span>
+                  <span className="text-[10px] text-muted-foreground flex-shrink-0">{report.date}</span>
+                  {hasApiReports && report.language !== lang && (
+                    <span className="text-[9px] font-bold uppercase bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-sm flex-shrink-0">
+                      {report.language}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-sm text-primary group-hover:text-[#E8272C] transition-colors leading-snug">{report.title}</h3>
+                <span className="text-[10px] text-muted-foreground mt-1 block">{tr(report.sectionKey)}</span>
               </div>
-              <h3 className="font-semibold text-sm text-primary group-hover:text-[#E8272C] transition-colors leading-snug">{report.title}</h3>
-              <span className="text-[10px] text-muted-foreground mt-1 block">{tr(report.sectionKey)}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0 sm:ml-auto">
-              <span className="text-xs text-muted-foreground hidden sm:block">{tr("reports.read")}</span>
-              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
-            </div>
-          </article>
-        ))}
+              <div className="flex items-center gap-2 flex-shrink-0 sm:ml-auto">
+                <span className="text-xs text-muted-foreground hidden sm:block">{tr("reports.read")}</span>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
+              </div>
+            </article>
+          );
+          return isApiReport ? (
+            <Link key={report.id} href={`/reports/${report.id}`}>{content}</Link>
+          ) : (
+            <div key={report.id}>{content}</div>
+          );
+        })}
       </div>
       {member && (
         <div className="mt-10 bg-secondary/50 border border-border p-4 flex items-center justify-between">

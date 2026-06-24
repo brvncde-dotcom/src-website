@@ -31,32 +31,67 @@ interface Report {
   type: string;
   section: string;
   status: string;
+  language: string;
+  sourceRef: string | null;
   author: string | null;
   publishedAt: string | null;
   createdAt: string;
 }
+
+const LANG_LABELS: Record<string, string> = {
+  en: "EN",
+  de: "DE",
+  fr: "FR",
+  it: "IT",
+};
 
 export default function ReportsPage() {
   const { t: tr } = useLang();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeLang, setActiveLang] = useState<string>("en");
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("limit", "100");
-    if (activeSection) params.set("section", activeSection);
+    const savedLang = localStorage.getItem("src_lang");
+    if (savedLang) setActiveLang(savedLang);
+  }, []);
 
-    fetch(`/api/reports?${params}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setReports(data.reports || []);
-        setTotal(data.total || 0);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [activeSection]);
+  useEffect(() => {
+    const fetchReports = async (language: string) => {
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.set("limit", "100");
+      params.set("lang", language);
+      if (activeSection) params.set("section", activeSection);
+
+      try {
+        const res = await fetch(`/api/reports?${params}`);
+        const data = await res.json();
+        const fetchedReports = data.reports || [];
+        if (fetchedReports.length > 0 || language === "en") {
+          setReports(fetchedReports);
+          setTotal(data.total || 0);
+        } else {
+          // Fall back to English
+          const enParams = new URLSearchParams();
+          enParams.set("limit", "100");
+          enParams.set("lang", "en");
+          if (activeSection) enParams.set("section", activeSection);
+          const enRes = await fetch(`/api/reports?${enParams}`);
+          const enData = await enRes.json();
+          setReports(enData.reports || []);
+          setTotal(enData.total || 0);
+        }
+      } catch {
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReports(activeLang);
+  }, [activeSection, activeLang]);
 
   const filteredCount = activeSection
     ? reports.filter((r) => r.section === activeSection).length
@@ -86,13 +121,13 @@ export default function ReportsPage() {
 
       {/* Filters + Content */}
       <div className="mx-auto max-w-7xl px-6 lg:px-10 py-12 sm:py-16">
-        {/* Section Filter */}
+        {/* Section Filter + Language */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-10 pb-8 border-b border-[#D8DEE6]">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground font-semibold">
             <Filter className="h-3.5 w-3.5" />
             {tr("reports.page.filter-label")}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 flex-1">
             <button
               onClick={() => setActiveSection(null)}
               className={`px-3 py-1.5 text-xs uppercase tracking-wider font-semibold rounded-sm transition-colors ${
@@ -114,6 +149,24 @@ export default function ReportsPage() {
                 }`}
               >
                 {tr(SECTION_KEY_MAP[slug] || slug)}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-0.5 border border-[#D8DEE6] rounded-sm overflow-hidden">
+            {["en", "de", "fr", "it"].map((l) => (
+              <button
+                key={l}
+                onClick={() => {
+                  setActiveLang(l);
+                  localStorage.setItem("src_lang", l);
+                }}
+                className={`px-2.5 py-1.5 text-[10px] font-bold tracking-wide transition-colors ${
+                  activeLang === l
+                    ? "bg-[#0A2540] text-white"
+                    : "text-muted-foreground hover:text-[#0A2540] hover:bg-[#F0F2F5]"
+                }`}
+              >
+                {LANG_LABELS[l]}
               </button>
             ))}
           </div>
@@ -159,6 +212,11 @@ export default function ReportsPage() {
                     <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:ml-auto font-semibold">
                       {tr(SECTION_KEY_MAP[report.section] || report.section)}
                     </span>
+                    {report.language !== activeLang && (
+                      <span className="text-[9px] font-bold uppercase bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-sm">
+                        {LANG_LABELS[report.language] || report.language}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-bold text-lg leading-snug tracking-tight mb-2 group-hover:text-[#0A2540] transition-colors">
                     {report.title}
