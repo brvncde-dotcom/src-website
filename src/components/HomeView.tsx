@@ -52,7 +52,7 @@ const DIFFERENTIATORS = [
   {
     icon: Scale,
     title: "Non-Partisan & Swiss-Housed",
-    desc: "Based in Zurich, SRC operates with Swiss neutrality principles. We serve no political party, commercial interest, or ideological agenda.",
+    desc: "Based in Zug, SRC operates with Swiss neutrality principles. We serve no political party, commercial interest, or ideological agenda.",
   },
 ];
 
@@ -104,7 +104,7 @@ export function HomeView({ onNavigate }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-primary hover:bg-white/20 hover:text-primary"
+                className="border-white/20 text-white hover:bg-white/20 hover:text-white"
                 onClick={() => onNavigate("approach")}
               >
                 Our Approach
@@ -251,7 +251,7 @@ export function HomeView({ onNavigate }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-primary hover:bg-white/20 hover:text-primary"
+                className="border-white/20 text-white hover:bg-white/20 hover:text-white"
                 onClick={() => onNavigate("reports")}
               >
                 Request Trial Access
