@@ -8,9 +8,15 @@ import { OpinionsView } from "@/components/OpinionsView";
 import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
+import { LegalView } from "@/components/LegalView";
 import { NavigationProvider } from "@/components/NavigationProvider";
 
+const LEGAL_PAGES: PageKey[] = ["impressum", "datenschutz", "agb"];
+
 function PageRouter({ page }: { page: PageKey }) {
+  if (LEGAL_PAGES.includes(page)) {
+    return <LegalView page={page as "impressum" | "datenschutz" | "agb"} />;
+  }
   switch (page) {
   case "home":
     return <HomeView />;

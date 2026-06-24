@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   BrainCircuit, ShieldCheck, ArrowRight, Lock, Scale,
 } from "lucide-react";
@@ -7,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { useLang } from "./LangProvider";
 import { useNavigation } from "./NavigationProvider";
 
-const MOCK_REPORTS = [
-  { id: "1", sectionKey: "focus.digital", date: "2026-06-18", type: "Analysis", titleEn: "AI Governance Frameworks for Critical Infrastructure: A D-A-CH Comparative Analysis", summaryEn: "An in-depth comparison of AI regulatory approaches across Switzerland, Germany, and Austria, with recommendations for harmonised governance of AI in critical infrastructure systems." },
-  { id: "2", sectionKey: "focus.energy", date: "2026-06-12", type: "Report", titleEn: "SMR Deployment Roadmap: Central Europe\u2019s Nuclear Renaissance", summaryEn: "Timeline analysis and regulatory pathway assessment for Small Modular Reactor deployment in the D-A-CH region, including supply chain and grid integration considerations." },
-  { id: "3", sectionKey: "focus.geopolitics", date: "2026-06-05", type: "Intelligence Brief", titleEn: "Hybrid Threat Landscape Q2 2026: D-A-CH Threat Assessment", summaryEn: "Quarterly assessment of hybrid threats targeting D-A-CH critical infrastructure, including cyber-espionage campaigns, disinformation operations, and supply-chain manipulation." },
-];
+const SECTION_KEY_MAP: Record<string, string> = {
+  "digital-power-ai": "focus.digital",
+  "geopolitics-hard-security": "focus.geopolitics",
+  "energy-resources": "focus.energy",
+  "climate-environment-food": "focus.climate",
+  "economy-competitiveness": "focus.economy",
+  "society-migration-institutions": "focus.society",
+};
 
 const DIFF_KEYS = [
   { icon: BrainCircuit, titleKey: "why.speed.title", descKey: "why.speed.desc" },
@@ -19,9 +23,27 @@ const DIFF_KEYS = [
   { icon: Scale, titleKey: "why.swiss.title", descKey: "why.swiss.desc" },
 ];
 
+interface Report {
+  id: string;
+  title: string;
+  summary: string | null;
+  type: string;
+  section: string;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
 export function HomeView() {
   const { t: tr } = useLang();
   const { navigate } = useNavigation();
+  const [latestReports, setLatestReports] = useState<Report[]>([]);
+
+  useEffect(() => {
+    fetch("/api/reports?status=published&limit=3")
+      .then((r) => r.json())
+      .then((data) => setLatestReports(data.reports || []))
+      .catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -53,38 +75,44 @@ export function HomeView() {
       </section>
 
       {/* ═══════ LATEST FROM SRC ═══════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">{tr("latest.tag")}</span>
-            <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">{tr("latest.heading")}</h2>
+      {latestReports.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">{tr("latest.tag")}</span>
+              <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">{tr("latest.heading")}</h2>
+            </div>
+            <Button variant="ghost" className="text-muted-foreground gap-2 text-sm hidden sm:flex" onClick={() => navigate("reports")}>
+              {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
+            </Button>
           </div>
-          <Button variant="ghost" className="text-muted-foreground gap-2 text-sm hidden sm:flex" onClick={() => navigate("reports")}>
-            {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {MOCK_REPORTS.map((report) => (
-            <article key={report.id} className="group border border-border p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer" onClick={() => navigate("reports")}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold tracking-[0.1em] uppercase bg-secondary px-2 py-0.5 rounded-sm text-muted-foreground">{report.type}</span>
-                <span className="text-[10px] text-muted-foreground">{report.date}</span>
-              </div>
-              <h3 className="font-semibold text-sm leading-snug text-primary mb-2 group-hover:text-[#E8272C] transition-colors">{report.titleEn}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 mb-3">{report.summaryEn}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground">{tr(report.sectionKey)}</span>
-                <div className="flex items-center gap-1 text-[10px] text-[#E8272C] font-medium"><Lock className="w-3 h-3" />{tr("latest.members")}</div>
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="mt-4 sm:hidden">
-          <Button variant="ghost" className="w-full text-muted-foreground gap-2 text-sm" onClick={() => navigate("reports")}>
-            {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </section>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {latestReports.map((report) => (
+              <article key={report.id} className="group border border-border p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer" onClick={() => navigate("reports")}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-bold tracking-[0.1em] uppercase bg-secondary px-2 py-0.5 rounded-sm text-muted-foreground">{report.type}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {report.publishedAt
+                      ? new Date(report.publishedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                      : new Date(report.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-sm leading-snug text-primary mb-2 group-hover:text-[#E8272C] transition-colors">{report.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 mb-3">{report.summary || ""}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-medium text-muted-foreground">{tr(SECTION_KEY_MAP[report.section] || report.section)}</span>
+                  <div className="flex items-center gap-1 text-[10px] text-[#E8272C] font-medium"><Lock className="w-3 h-3" />{tr("latest.members")}</div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="mt-4 sm:hidden">
+            <Button variant="ghost" className="w-full text-muted-foreground gap-2 text-sm" onClick={() => navigate("reports")}>
+              {tr("latest.all-reports")} <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* ═══════ WHY SRC ═══════ */}
       <section className="border-y border-border bg-secondary/30">

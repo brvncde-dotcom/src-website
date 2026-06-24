@@ -5,7 +5,7 @@ import type { PageKey } from "./SiteNavigation";
 
 interface NavigationContextValue {
   currentPage: PageKey;
-  navigate: (page: PageKey) => void;
+  navigate: (page: PageKey, scrollId?: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue>({
@@ -19,6 +19,17 @@ export function useNavigation() {
 
 export { NavigationContext };
 
+// Map hash fragment to a valid PageKey
+function hashToPage(hash: string): PageKey {
+  const validPages: PageKey[] = [
+    "home", "reports", "opinions", "focus-areas", "approach", "contact",
+    "impressum", "datenschutz", "agb",
+  ];
+  const page = hash.replace(/^#\/?/, "");
+  if (validPages.includes(page as PageKey)) return page as PageKey;
+  return "home";
+}
+
 export function NavigationProvider({
   children,
   currentPage,
@@ -28,15 +39,41 @@ export function NavigationProvider({
   currentPage: PageKey;
   onNavigate: (page: PageKey) => void;
 }) {
-  // Track last programmatic navigation to avoid popstate loops
-  const isPushing = useRef(false);
+  const initialised = useRef(false);
+  const pendingScrollId = useRef<string | undefined>(undefined);
+
+  // Read initial hash on mount and sync
+  useEffect(() => {
+    if (initialised.current) return;
+    initialised.current = true;
+    const hash = window.location.hash;
+    const page = hashToPage(hash);
+    window.history.replaceState({ page }, "", `#${page}`);
+    if (page !== "home") {
+      onNavigate(page);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll to element after page change renders
+  useEffect(() => {
+    if (!pendingScrollId.current) return;
+    const id = pendingScrollId.current;
+    pendingScrollId.current = undefined;
+    // Small delay to allow the new page to render
+    const timer = setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [currentPage]);
 
   const navigate = useCallback(
-    (page: PageKey) => {
-      if (page === currentPage) return;
+    (page: PageKey, scrollId?: string) => {
+      if (page === currentPage && !scrollId) return;
       window.scrollTo({ top: 0, behavior: "smooth" });
-      // Use history API so browser back/forward works
-      isPushing.current = true;
+      if (scrollId) {
+        pendingScrollId.current = scrollId;
+      }
       window.history.pushState({ page }, "", `#${page}`);
       onNavigate(page);
     },
@@ -46,10 +83,6 @@ export function NavigationProvider({
   // Handle browser back/forward
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
-      if (isPushing.current) {
-        isPushing.current = false;
-        return;
-      }
       const page = (e.state?.page as PageKey) || "home";
       window.scrollTo({ top: 0, behavior: "smooth" });
       onNavigate(page);
@@ -57,11 +90,6 @@ export function NavigationProvider({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [onNavigate]);
-
-  // Set initial history state
-  useEffect(() => {
-    window.history.replaceState({ page: currentPage }, "", `#${currentPage}`);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <NavigationContext.Provider value={{ currentPage, navigate }}>

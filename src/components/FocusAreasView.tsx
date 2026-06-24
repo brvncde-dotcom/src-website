@@ -60,7 +60,7 @@ export function FocusAreasView() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="space-y-0">
           {FOCUS_AREAS.map((area, idx) => (
-            <div key={area.num}>
+            <div key={area.num} id={`area-${area.num}`}>
               {idx > 0 && <div className="border-t border-border" />}
               <div className="py-10 sm:py-14 grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 lg:gap-14">
                 {/* Left: Meta */}

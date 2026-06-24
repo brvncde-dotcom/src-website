@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import Markdown from "react-markdown";
+import { useParams } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
   User,
   BookOpen,
 } from "lucide-react";
+import Markdown from "react-markdown";
 import { useLang } from "@/components/LangProvider";
 
 const SECTION_KEY_MAP: Record<string, string> = {
@@ -39,10 +38,21 @@ interface Report {
   updatedAt: string;
 }
 
+function BackLink({ label }: { label: string }) {
+  return (
+    <button
+      onClick={() => window.history.back()}
+      className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
+
 export default function ReportPage() {
   const { t: tr } = useLang();
   const params = useParams();
-  const router = useRouter();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -75,13 +85,7 @@ export default function ReportPage() {
           <p className="text-muted-foreground mb-6">
             {tr("reports.detail.not-found.desc")}
           </p>
-          <Link
-            href="/reports"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A2540] hover:text-[#E8272C] transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {tr("reports.detail.back")}
-          </Link>
+          <BackLink label={tr("reports.detail.back")} />
         </div>
       </main>
     );
@@ -100,13 +104,7 @@ export default function ReportPage() {
       {/* Top bar */}
       <div className="border-b border-[#D8DEE6]">
         <div className="mx-auto max-w-4xl px-6 lg:px-10 py-4">
-          <Link
-            href="/reports"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {tr("reports.detail.all-reports")}
-          </Link>
+          <BackLink label={tr("reports.detail.all-reports")} />
         </div>
       </div>
 
@@ -165,13 +163,7 @@ export default function ReportPage() {
       {/* Bottom nav */}
       <div className="border-t border-[#D8DEE6]">
         <div className="mx-auto max-w-4xl px-6 lg:px-10 py-6">
-          <Link
-            href="/reports"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#0A2540] transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {tr("reports.detail.back-all")}
-          </Link>
+          <BackLink label={tr("reports.detail.back-all")} />
         </div>
       </div>
     </main>

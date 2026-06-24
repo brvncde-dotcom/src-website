@@ -9,13 +9,13 @@ export function SiteFooter() {
   const { t: tr } = useLang();
   const { navigate } = useNavigation();
 
-  const focusKeys: { key: string; labelKey: string }[] = [
-    { key: "focus-areas", labelKey: "focus.digital" },
-    { key: "focus-areas", labelKey: "focus.geopolitics" },
-    { key: "focus-areas", labelKey: "focus.energy" },
-    { key: "focus-areas", labelKey: "focus.climate" },
-    { key: "focus-areas", labelKey: "focus.economy" },
-    { key: "focus-areas", labelKey: "focus.society" },
+  const focusKeys: { key: PageKey; labelKey: string; scrollId: string }[] = [
+    { key: "focus-areas", labelKey: "focus.digital", scrollId: "area-01" },
+    { key: "focus-areas", labelKey: "focus.geopolitics", scrollId: "area-02" },
+    { key: "focus-areas", labelKey: "focus.energy", scrollId: "area-03" },
+    { key: "focus-areas", labelKey: "focus.climate", scrollId: "area-04" },
+    { key: "focus-areas", labelKey: "focus.economy", scrollId: "area-05" },
+    { key: "focus-areas", labelKey: "focus.society", scrollId: "area-06" },
   ];
 
   const orgLinks: { key: PageKey; labelKey: string }[] = [
@@ -23,6 +23,12 @@ export function SiteFooter() {
     { key: "approach", labelKey: "footer.our-approach" },
     { key: "opinions", labelKey: "footer.opinions" },
     { key: "contact", labelKey: "footer.contact" },
+  ];
+
+  const legalLinks: { key: PageKey; labelKey: string }[] = [
+    { key: "impressum", labelKey: "footer.impressum" },
+    { key: "datenschutz", labelKey: "footer.datenschutz" },
+    { key: "agb", labelKey: "footer.agb" },
   ];
 
   return (
@@ -44,7 +50,7 @@ export function SiteFooter() {
             <ul className="space-y-2.5 text-sm text-white/60">
               {focusKeys.map((item) => (
                 <li key={item.labelKey}>
-                  <button onClick={() => navigate(item.key)} className="hover:text-white transition-colors">
+                  <button onClick={() => navigate(item.key, item.scrollId)} className="hover:text-white transition-colors">
                     {tr(item.labelKey)}
                   </button>
                 </li>
@@ -66,9 +72,13 @@ export function SiteFooter() {
           <div>
             <h4 className="text-xs font-bold tracking-[0.12em] uppercase mb-4 text-white/40">{tr("footer.legal")}</h4>
             <ul className="space-y-2.5 text-sm text-white/60">
-              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.impressum")}</li>
-              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.datenschutz")}</li>
-              <li className="hover:text-white transition-colors cursor-pointer">{tr("footer.agb")}</li>
+              {legalLinks.map((item) => (
+                <li key={item.labelKey}>
+                  <button onClick={() => navigate(item.key)} className="hover:text-white transition-colors">
+                    {tr(item.labelKey)}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
