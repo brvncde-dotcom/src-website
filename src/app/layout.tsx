@@ -19,31 +19,34 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "SRC — Security & Resilience Counsel | D-A-CH Think Tank",
+  title: "SRC — Security & Resilience Counsel | Global Think Tank",
   description:
-    "The leading non-partisan, fact-based think tank for the security and resilience of critical infrastructures in the D-A-CH region (Switzerland, Germany, Austria).",
+    "The leading non-partisan, fact-based think tank for global security and resilience — independent analysis grounded in Swiss neutrality.",
   authors: [{ name: "SRC — Security & Resilience Counsel" }],
   keywords: [
     "SRC",
     "Security & Resilience Counsel",
     "think tank",
-    "critical infrastructure",
-    "ICT security",
+    "global security",
+    "geopolitics",
     "energy security",
-    "D-A-CH",
+    "AI governance",
     "resilience",
-    "security",
+    "Swiss think tank",
+    "independent analysis",
   ],
   openGraph: {
     title: "SRC — Security & Resilience Counsel",
     description:
-      "The leading non-partisan think tank for critical infrastructure security and resilience in the D-A-CH region.",
+      "Independent, global analysis on security, resilience, and geopolitics — grounded in Swiss neutrality.",
     siteName: "SRC",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "SRC — Security & Resilience Counsel",
+    description:
+      "Independent, global analysis on security, resilience, and geopolitics — grounded in Swiss neutrality.",
   },
 };
 

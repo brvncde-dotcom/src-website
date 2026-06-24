@@ -16,13 +16,13 @@ const strings: Record<Lang, Record<string, string>> = {
     "nav.focus-areas": "Focus Areas",
     "nav.approach": "Approach",
     "nav.contact": "Contact",
-    "nav.member-access": "Member Access",
+    "nav.member-access": "Member Portal",
 
     // Hero
-    "hero.tag": "D-A-CH Think Tank",
-    "hero.title.1": "Security & Resilience",
-    "hero.title.2": "for Critical Infrastructure",
-    "hero.subtitle": "Independent, fact-based analysis on the most pressing security and resilience challenges facing the D-A-CH region.",
+    "hero.tag": "Independent Think Tank \u00b7 Based in Switzerland",
+    "hero.title.1": "Global Security Intelligence.",
+    "hero.title.2": "Swiss Independence.",
+    "hero.subtitle": "From energy transitions and AI governance to geopolitical risk and societal resilience \u2014 SRC delivers non-partisan, expert-validated analysis trusted by decision-makers worldwide.",
     "hero.cta.reports": "Access Reports",
     "hero.cta.approach": "Our Approach",
 
@@ -138,8 +138,8 @@ const strings: Record<Lang, Record<string, string>> = {
     "footer.datenschutz": "Datenschutz",
     "footer.agb": "AGB",
     "footer.copyright": "All rights reserved.",
-    "footer.based-in": "Based in Zug, Switzerland",
-    "footer.desc": "A non-partisan, fact-based think tank for the security and resilience of critical infrastructures in the D-A-CH region.",
+    "footer.based-in": "Based in Zug, Switzerland \u00b7 Global Scope",
+    "footer.desc": "Independent, global analysis on security and resilience \u2014 grounded in Swiss neutrality.",
   },
   de: {
     // Navigation
@@ -149,13 +149,13 @@ const strings: Record<Lang, Record<string, string>> = {
     "nav.focus-areas": "Schwerpunkte",
     "nav.approach": "Ansatz",
     "nav.contact": "Kontakt",
-    "nav.member-access": "Mitgliedzugang",
+    "nav.member-access": "Mitgliederportal",
 
     // Hero
-    "hero.tag": "D-A-CH Denkfabrik",
-    "hero.title.1": "Sicherheit & Resilienz",
-    "hero.title.2": "für Kritische Infrastrukturen",
-    "hero.subtitle": "Unabhängige, faktenbasierte Analysen zu den drängendsten Sicherheits- und Resilienzherausforderungen in der D-A-CH-Region.",
+    "hero.tag": "Unabh\u00e4ngiger Think Tank \u00b7 Mit Sitz in der Schweiz",
+    "hero.title.1": "Globale Sicherheitsanalysen.",
+    "hero.title.2": "Schweizer Unabhängigkeit.",
+    "hero.subtitle": "Von der Energiewende und KI-Governance bis hin zu geopolitischem Risiko und gesellschaftlicher Resilienz — SRC liefert unparteiische, von Experten validierte Analysen, denen Entscheidungsträger weltweit vertrauen.",
     "hero.cta.reports": "Berichte zugreifen",
     "hero.cta.approach": "Unser Ansatz",
 
@@ -271,8 +271,8 @@ const strings: Record<Lang, Record<string, string>> = {
     "footer.datenschutz": "Datenschutz",
     "footer.agb": "AGB",
     "footer.copyright": "Alle Rechte vorbehalten.",
-    "footer.based-in": "Sitz in Zug, Schweiz",
-    "footer.desc": "Eine unparteiische, faktenbasierte Denkfabrik für die Sicherheit und Resilienz kritischer Infrastrukturen in der D-A-CH-Region.",
+    "footer.based-in": "Sitz in Zug, Schweiz · Globale Reichweite",
+    "footer.desc": "Unabhängige, globale Analysen zu Sicherheit und Resilienz — verwurzelt in der Schweizer Neutralität.",
   },
   fr: {
     // Navigation
@@ -282,13 +282,13 @@ const strings: Record<Lang, Record<string, string>> = {
     "nav.focus-areas": "Axes de recherche",
     "nav.approach": "Approche",
     "nav.contact": "Contact",
-    "nav.member-access": "Accès membres",
+    "nav.member-access": "Portail membres",
 
     // Hero
-    "hero.tag": "Laboratoire d'idées D-A-CH",
-    "hero.title.1": "Sécurité & Résilience",
-    "hero.title.2": "pour les Infrastructures Critiques",
-    "hero.subtitle": "Analyses indépendantes et factuelles sur les défis de sécurité et de résilience les plus pressants dans la région D-A-CH.",
+    "hero.tag": "Think tank indépendant · Basé en Suisse",
+    "hero.title.1": "Renseignement de sécurité mondial.",
+    "hero.title.2": "Indépendance suisse.",
+    "hero.subtitle": "Des transitions énergétiques et de la gouvernance de l'IA aux risques géopolitiques et à la résilience sociétale — SRC fournit des analyses non partisanes, validées par des experts, auxquelles les décideurs du monde entier font confiance.",
     "hero.cta.reports": "Accéder aux rapports",
     "hero.cta.approach": "Notre approche",
 
@@ -404,8 +404,8 @@ const strings: Record<Lang, Record<string, string>> = {
     "footer.datenschutz": "Protection des données",
     "footer.agb": "CGV",
     "footer.copyright": "Tous droits réservés.",
-    "footer.based-in": "Basé à Zoug, Suisse",
-    "footer.desc": "Un laboratoire d'idées non partisan et factuel pour la sécurité et la résilience des infrastructures critiques dans la région D-A-CH.",
+    "footer.based-in": "Basé à Zoug, Suisse · Portée mondiale",
+    "footer.desc": "Analyses indépendantes et mondiales sur la sécurité et la résilience — ancrées dans la neutralité suisse.",
   },
   it: {
     // Navigation
@@ -415,13 +415,13 @@ const strings: Record<Lang, Record<string, string>> = {
     "nav.focus-areas": "Aree tematiche",
     "nav.approach": "Approccio",
     "nav.contact": "Contatto",
-    "nav.member-access": "Accesso membri",
+    "nav.member-access": "Portale membri",
 
     // Hero
-    "hero.tag": "Think tank D-A-CH",
-    "hero.title.1": "Sicurezza & Resilienza",
-    "hero.title.2": "per le Infrastrutture Critiche",
-    "hero.subtitle": "Analisi indipendenti e basate sui fatti sulle sfide più urgenti per la sicurezza e la resilienza nella regione D-A-CH.",
+    "hero.tag": "Think tank indipendente · Con sede in Svizzera",
+    "hero.title.1": "Intelligence globale sulla sicurezza.",
+    "hero.title.2": "Indipendenza svizzera.",
+    "hero.subtitle": "Dalle transizioni energetiche e dalla governance dell'IA ai rischi geopolitici e alla resilienza sociale — SRC fornisce analisi non partigiane, validate da esperti, di cui i decisori di tutto il mondo si fidano.",
     "hero.cta.reports": "Accedi ai rapporti",
     "hero.cta.approach": "Il nostro approccio",
 
@@ -537,8 +537,8 @@ const strings: Record<Lang, Record<string, string>> = {
     "footer.datenschutz": "Protezione dei dati",
     "footer.agb": "CGC",
     "footer.copyright": "Tutti i diritti riservati.",
-    "footer.based-in": "Con sede a Zugo, Svizzera",
-    "footer.desc": "Un think tank non partigiano e basato sui fatti per la sicurezza e la resilienza delle infrastrutture critiche nella regione D-A-CH.",
+    "footer.based-in": "Con sede a Zugo, Svizzera · Portata globale",
+    "footer.desc": "Analisi indipendenti e globali su sicurezza e resilienza — radicate nella neutralità svizzera.",
   },
 };
 
