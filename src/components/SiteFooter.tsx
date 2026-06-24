@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 export function SiteFooter() {
   return (
@@ -83,13 +84,14 @@ export function SiteFooter() {
         <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
           <span>&copy; {new Date().getFullYear()} SRC — Security & Resilience Counsel. All rights reserved.</span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 bg-[#E8272C] rounded-sm flex items-center justify-center">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <rect x="3.5" y="1" width="3" height="8" rx="0.3" fill="white" />
-                <rect x="1" y="3.5" width="8" height="3" rx="0.3" fill="white" />
-              </svg>
-            </span>
-            Based in Switzerland
+            <Image
+              src="/src-logo.png"
+              alt=""
+              width={14}
+              height={14}
+              className="rounded-full"
+            />
+            Based in Zug, Switzerland
           </span>
         </div>
       </div>

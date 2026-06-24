@@ -51,40 +51,10 @@ export function ContactView() {
 
             <div className="space-y-5 mb-8">
               <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-primary mb-0.5">Location</h4>
-                  <p className="text-sm text-muted-foreground">
-                    SRC — Security & Resilience Counsel<br />
-                    Zurich, Switzerland
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="text-xs font-bold text-primary mb-0.5">Email</h4>
-                  <p className="text-sm text-muted-foreground">contact@src-counsel.ch</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Phone className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-primary mb-0.5">Phone</h4>
-                  <p className="text-sm text-muted-foreground">+41 44 xxx xx xx</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Clock className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-primary mb-0.5">Office Hours</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Monday – Friday<br />
-                    08:00 – 17:30 CET
-                  </p>
+                  <p className="text-sm text-muted-foreground">info@src.guide</p>
                 </div>
               </div>
             </div>
@@ -94,9 +64,9 @@ export function ContactView() {
               <SwissCrossLogo size={120} className="opacity-[0.06] absolute" />
               <div className="relative text-center">
                 <SwissCrossLogo size={28} className="mx-auto mb-3 opacity-40" />
-                <p className="text-xs font-medium text-muted-foreground">Zurich, Switzerland</p>
+                <p className="text-xs font-medium text-muted-foreground">SRC — Security & Resilience Counsel</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Security & Resilience Counsel
+                  Zug, Switzerland
                 </p>
               </div>
             </div>
