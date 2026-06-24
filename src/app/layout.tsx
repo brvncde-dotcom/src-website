@@ -4,6 +4,7 @@ import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SiteShell } from "@/components/SiteShell";
+import { LangProvider } from "@/components/LangProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,7 +57,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <SiteShell>{children}</SiteShell>
+        <LangProvider>
+          <SiteShell>{children}</SiteShell>
+        </LangProvider>
         <Toaster />
       </body>
     </html>

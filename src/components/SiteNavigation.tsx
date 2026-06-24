@@ -1,28 +1,54 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight } from "lucide-react";
+import { X, Menu, ArrowRight, Globe } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useLang } from "./LangProvider";
+import { LANG_LABELS, type Lang } from "@/lib/i18n";
 
 export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact";
 
-const NAV: { key: PageKey; label: string }[] = [
-  { key: "home", label: "Home" },
-  { key: "reports", label: "Reports" },
-  { key: "opinions", label: "Opinions" },
-  { key: "focus-areas", label: "Focus Areas" },
-  { key: "approach", label: "Approach" },
-  { key: "contact", label: "Contact" },
+const NAV_KEYS: { key: PageKey; labelKey: string }[] = [
+  { key: "home", labelKey: "nav.home" },
+  { key: "reports", labelKey: "nav.reports" },
+  { key: "opinions", labelKey: "nav.opinions" },
+  { key: "focus-areas", labelKey: "nav.focus-areas" },
+  { key: "approach", labelKey: "nav.approach" },
+  { key: "contact", labelKey: "nav.contact" },
 ];
+
+const ALL_LANGS: Lang[] = ["en", "de", "fr", "it"];
 
 interface Props {
   currentPage: PageKey;
   onNavigate: (page: PageKey) => void;
 }
 
+function LangSwitcher() {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="flex items-center gap-0.5 border border-border rounded-sm overflow-hidden">
+      {ALL_LANGS.map((l) => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          className={`px-1.5 py-1 text-[10px] font-bold tracking-wide transition-colors ${
+            lang === l
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+          }`}
+        >
+          {LANG_LABELS[l]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t: tr } = useLang();
 
   const handleNav = (key: PageKey) => {
     onNavigate(key);
@@ -33,7 +59,6 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-border">
-        {/* Swiss red top stripe */}
         <div className="h-[3px] bg-[#E8272C]" />
 
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,7 +85,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
 
             {/* Desktop nav */}
             <div className="hidden lg:flex items-center gap-1">
-              {NAV.map((item) => (
+              {NAV_KEYS.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -70,20 +95,23 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {item.label}
+                  {tr(item.labelKey)}
                 </button>
               ))}
             </div>
 
-            {/* CTA + Mobile toggle */}
-            <div className="flex items-center gap-3">
+            {/* Lang switcher + CTA + Mobile toggle */}
+            <div className="flex items-center gap-2">
+              <div className="hidden md:block">
+                <LangSwitcher />
+              </div>
               <Button
                 size="sm"
                 variant="outline"
                 className="hidden sm:flex items-center gap-2 text-xs tracking-wide"
                 onClick={() => handleNav("reports")}
               >
-                Member Access
+                {tr("nav.member-access")}
                 <ArrowRight className="w-3 h-3" />
               </Button>
               <button
@@ -101,7 +129,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         {mobileOpen && (
           <div className="lg:hidden border-t border-border bg-white">
             <div className="px-4 py-3 space-y-1">
-              {NAV.map((item) => (
+              {NAV_KEYS.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -111,17 +139,20 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {item.label}
+                  {tr(item.labelKey)}
                 </button>
               ))}
-              <div className="pt-2 border-t border-border">
+              <div className="pt-3 border-t border-border">
+                <div className="mb-2">
+                  <LangSwitcher />
+                </div>
                 <Button
                   size="sm"
                   variant="outline"
                   className="w-full flex items-center justify-center gap-2 text-xs"
                   onClick={() => handleNav("reports")}
                 >
-                  Member Access
+                  {tr("nav.member-access")}
                   <ArrowRight className="w-3 h-3" />
                 </Button>
               </div>
