@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SiteNavigation, type PageKey } from "@/components/SiteNavigation";
+import { SiteFooter } from "@/components/SiteFooter";
 import { HomeView } from "@/components/HomeView";
 import { ReportsView } from "@/components/ReportsView";
 import { OpinionsView } from "@/components/OpinionsView";
@@ -42,6 +43,7 @@ export default function Page() {
     <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
       <SiteNavigation />
       <PageRouter page={currentPage} />
+      <SiteFooter />
     </NavigationProvider>
   );
 }
