@@ -63,7 +63,6 @@ export function SiteFooter() {
             <ul className="space-y-2.5 text-sm text-white/60">
               <li className="hover:text-white transition-colors cursor-pointer">About SRC</li>
               <li className="hover:text-white transition-colors cursor-pointer">Our Approach</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Expert Panel</li>
               <li className="hover:text-white transition-colors cursor-pointer">Opinions</li>
               <li className="hover:text-white transition-colors cursor-pointer">Contact</li>
             </ul>

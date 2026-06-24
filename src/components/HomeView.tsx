@@ -217,14 +217,6 @@ export function HomeView({ onNavigate }: Props) {
             >
               Full Methodology <ArrowRight className="w-3.5 h-3.5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs gap-1.5"
-              onClick={() => onNavigate("experts")}
-            >
-              Expert Panel <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
           </div>
         </div>
       </section>

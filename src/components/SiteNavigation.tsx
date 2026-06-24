@@ -5,7 +5,7 @@ import { X, Menu, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "experts" | "contact";
+export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact";
 
 const NAV: { key: PageKey; label: string }[] = [
   { key: "home", label: "Home" },
@@ -13,7 +13,6 @@ const NAV: { key: PageKey; label: string }[] = [
   { key: "opinions", label: "Opinions" },
   { key: "focus-areas", label: "Focus Areas" },
   { key: "approach", label: "Approach" },
-  { key: "experts", label: "Experts" },
   { key: "contact", label: "Contact" },
 ];
 
