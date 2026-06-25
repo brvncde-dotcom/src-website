@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight, Globe } from "lucide-react";
-import Image from "next/image";
+import { X, Menu, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLang } from "./LangProvider";
 import { LANG_LABELS, type Lang } from "@/lib/i18n";
@@ -65,9 +64,9 @@ export function SiteNavigation() {
               onClick={() => handleNav("home")}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <Image
-                src="/src-logo.png"
-                alt="SRC Logo"
+              <img
+                src="/src-symbol.svg"
+                alt="SRC"
                 width={36}
                 height={36}
                 className="rounded-full"

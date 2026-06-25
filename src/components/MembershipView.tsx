@@ -176,6 +176,7 @@ function TierCard({ tierKey, annual }: { tierKey: TierKey; annual: boolean }) {
 
   const price = getPrice();
   const isAnnualObj = typeof price === "object";
+  const priceStr = isAnnualObj ? "" : (price as string);
 
   return (
     <div
@@ -229,11 +230,11 @@ function TierCard({ tierKey, annual }: { tierKey: TierKey; annual: boolean }) {
         {/* Price block */}
         {tierKey === "free" ? (
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-4xl font-bold tracking-tight">{price}</span>
+            <span className="text-4xl font-bold tracking-tight">{priceStr}</span>
           </div>
         ) : tierKey === "expert" ? (
           <div className="mt-2">
-            <span className="text-4xl font-bold tracking-tight">{price}</span>
+            <span className="text-4xl font-bold tracking-tight">{priceStr}</span>
             <p className={`text-[11px] mt-2 ${isDark ? "text-white/35" : "text-muted-foreground/60"}`}>
               {tr(`membership.price.expert.annual`)}
             </p>
@@ -241,7 +242,7 @@ function TierCard({ tierKey, annual }: { tierKey: TierKey; annual: boolean }) {
         ) : (
           <div className="mt-2">
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold tracking-tight">{isAnnualObj ? price.monthly : price}</span>
+              <span className="text-4xl font-bold tracking-tight">{isAnnualObj ? (price as { monthly: string }).monthly : priceStr}</span>
               <span className={`text-sm ${isDark ? "text-white/40" : "text-muted-foreground"}`}>
                 {isAnnualObj ? (price as { period: string }).period : tr(`membership.price.${tierKey}.period`)}
               </span>
