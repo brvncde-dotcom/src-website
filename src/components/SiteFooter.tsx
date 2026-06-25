@@ -35,12 +35,12 @@ export function SiteFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 border-b border-white/10">
           <div className="lg:col-span-1">
-            <button onClick={() => navigate("home")} className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity">
-              <img src="/src-symbol.svg" alt="SRC" width={32} height={32} className="rounded-full" />
-              <div>
-                <div className="text-sm font-bold tracking-[0.15em]">SRC</div>
-                <div className="text-[10px] tracking-widest text-white/50 uppercase">Security & Resilience Counsel</div>
-              </div>
+            <button onClick={() => navigate("home")} className="mb-4 hover:opacity-80 transition-opacity">
+              <img
+                src="/src-logo-full.svg"
+                alt="SRC — Security & Resilience Counsel"
+                className="h-8 sm:h-10 w-auto brightness-0 invert"
+              />
             </button>
             <p className="text-sm text-white/60 leading-relaxed">{tr("footer.desc")}</p>
           </div>
