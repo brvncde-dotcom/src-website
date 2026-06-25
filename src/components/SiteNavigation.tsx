@@ -8,7 +8,7 @@ import { useLang } from "./LangProvider";
 import { LANG_LABELS, type Lang } from "@/lib/i18n";
 import { useNavigation } from "./NavigationProvider";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact" | "impressum" | "datenschutz" | "agb";
+export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact" | "membership" | "impressum" | "datenschutz" | "agb";
 
 const NAV_KEYS: { key: PageKey; labelKey: string }[] = [
   { key: "home", labelKey: "nav.home" },
@@ -16,6 +16,7 @@ const NAV_KEYS: { key: PageKey; labelKey: string }[] = [
   { key: "opinions", labelKey: "nav.opinions" },
   { key: "focus-areas", labelKey: "nav.focus-areas" },
   { key: "approach", labelKey: "nav.approach" },
+  { key: "membership", labelKey: "nav.membership" },
   { key: "contact", labelKey: "nav.contact" },
 ];
 

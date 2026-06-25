@@ -9,6 +9,7 @@ import { OpinionsView } from "@/components/OpinionsView";
 import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
+import { MembershipView } from "@/components/MembershipView";
 import { LegalView } from "@/components/LegalView";
 import { NavigationProvider } from "@/components/NavigationProvider";
 
@@ -31,6 +32,8 @@ function PageRouter({ page }: { page: PageKey }) {
     return <ApproachView />;
   case "contact":
     return <ContactView />;
+  case "membership":
+    return <MembershipView />;
   default:
     return <HomeView />;
   }
