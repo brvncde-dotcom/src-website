@@ -120,7 +120,7 @@ const strings: Record<Lang, Record<string, string>> = {
     "legal.agb.body": "The use of this website is governed by Swiss law. All content, including analyses and publications, is protected by copyright. Reproduction or distribution without prior written consent is prohibited.",
     "footer.copyright": "All rights reserved.",
     "footer.based-in": "Based in Zug, Switzerland \\u00b7 Global Scope",
-    "footer.desc": "Independent, global analysis on security and resilience \— grounded in Swiss neutrality.",
+    "footer.desc": "Independent, global analysis on security and resilience — grounded in Swiss neutrality.",
     "approach.hero.tag": "Methodology",
     "approach.hero.title.1": "AI-Augmented Analysis,",
     "approach.hero.title.2": "Human-Validated Insight",

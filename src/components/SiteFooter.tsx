@@ -39,7 +39,7 @@ export function SiteFooter() {
               <img
                 src="/src-logo-full.svg"
                 alt="SRC — Security & Resilience Counsel"
-                className="h-8 sm:h-10 w-auto brightness-0 invert"
+                className="h-10 sm:h-12 w-auto brightness-0 invert"
               />
             </button>
             <p className="text-sm text-white/60 leading-relaxed">{tr("footer.desc")}</p>
