@@ -37,9 +37,9 @@ export function SiteFooter() {
           <div className="lg:col-span-1">
             <button onClick={() => navigate("home")} className="mb-4 hover:opacity-80 transition-opacity">
               <img
-                src="/src-logo-full.svg"
+                src="/src-logo-full-light.svg"
                 alt="SRC — Security & Resilience Counsel"
-                className="h-10 sm:h-12 w-auto brightness-0 invert"
+                className="h-10 sm:h-12 w-auto flex-shrink-0"
               />
             </button>
             <p className="text-sm text-white/60 leading-relaxed">{tr("footer.desc")}</p>

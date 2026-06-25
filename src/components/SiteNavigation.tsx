@@ -67,7 +67,7 @@ export function SiteNavigation() {
               <img
                 src="/src-logo-full.svg"
                 alt="SRC — Security & Resilience Counsel"
-                className="h-8 sm:h-9 w-auto"
+                className="h-10 sm:h-11 w-auto flex-shrink-0"
               />
             </button>
 
