@@ -1,5 +1,13 @@
 {
   "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "src-advisory\\.ch" }],
+      "destination": "https://www.src-advisory.ch/$1",
+      "permanent": true
+    }
+  ],
   "git": {
     "deploymentEnabled": true
   },
