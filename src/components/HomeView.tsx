@@ -52,12 +52,6 @@ export function HomeView() {
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
           <div className="max-w-3xl">
-            {/* Full SRC Logo */}
-            <img
-              src="/src-logo-full.svg"
-              alt="SRC — Security & Resilience Counsel"
-              className="h-12 sm:h-14 lg:h-16 w-auto mb-8 brightness-0 invert opacity-90"
-            />
             <div className="flex items-center gap-3 mb-8">
               <div className="h-px w-10 bg-[#E8272C]" />
               <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/50">{tr("hero.tag")}</span>

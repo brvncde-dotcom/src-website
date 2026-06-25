@@ -65,18 +65,10 @@ export function SiteNavigation() {
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <img
-                src="/src-symbol.svg"
-                alt="SRC"
-                width={36}
-                height={36}
-                className="rounded-full"
+                src="/src-logo-full.svg"
+                alt="SRC — Security & Resilience Counsel"
+                className="h-8 sm:h-9 w-auto"
               />
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-bold tracking-[0.15em] text-primary">SRC</span>
-                <span className="text-[10px] tracking-[0.08em] text-muted-foreground hidden sm:block">
-                  Security & Resilience Counsel
-                </span>
-              </div>
             </button>
 
             {/* Desktop nav */}
