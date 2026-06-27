@@ -3,58 +3,38 @@
 import { useState } from "react";
 import { X, Menu, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLang } from "./LangProvider";
-import { LANG_LABELS, type Lang } from "@/lib/i18n";
-import { useNavigation } from "./NavigationProvider";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "contact" | "membership" | "impressum" | "datenschutz" | "agb";
+export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "experts" | "membership" | "contact";
 
-const NAV_KEYS: { key: PageKey; labelKey: string }[] = [
-  { key: "home", labelKey: "nav.home" },
-  { key: "reports", labelKey: "nav.reports" },
-  { key: "opinions", labelKey: "nav.opinions" },
-  { key: "focus-areas", labelKey: "nav.focus-areas" },
-  { key: "approach", labelKey: "nav.approach" },
-  { key: "membership", labelKey: "nav.membership" },
-  { key: "contact", labelKey: "nav.contact" },
+const NAV: { key: PageKey; label: string }[] = [
+  { key: "home", label: "Home" },
+  { key: "reports", label: "Reports" },
+  { key: "opinions", label: "Opinions" },
+  { key: "focus-areas", label: "Focus Areas" },
+  { key: "approach", label: "Approach" },
+  { key: "experts", label: "Experts" },
+  { key: "membership", label: "Membership" },
+  { key: "contact", label: "Contact" },
 ];
 
-const ALL_LANGS: Lang[] = ["en", "de", "fr", "it"];
-
-function LangSwitcher() {
-  const { lang, setLang } = useLang();
-  return (
-    <div className="flex items-center gap-0.5 border border-border rounded-sm overflow-hidden">
-      {ALL_LANGS.map((l) => (
-        <button
-          key={l}
-          onClick={() => setLang(l)}
-          className={`px-1.5 py-1 text-[10px] font-bold tracking-wide transition-colors ${
-            lang === l
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
-          }`}
-        >
-          {LANG_LABELS[l]}
-        </button>
-      ))}
-    </div>
-  );
+interface Props {
+  currentPage: PageKey;
+  onNavigate: (page: PageKey) => void;
 }
 
-export function SiteNavigation() {
+export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { t: tr } = useLang();
-  const { currentPage, navigate } = useNavigation();
 
   const handleNav = (key: PageKey) => {
-    navigate(key);
+    onNavigate(key);
     setMobileOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-border">
+        {/* Swiss red top stripe */}
         <div className="h-[3px] bg-[#E8272C]" />
 
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,16 +44,17 @@ export function SiteNavigation() {
               onClick={() => handleNav("home")}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <img
-                src="/src-logo-full.svg"
-                alt="SRC — Security & Resilience Counsel"
-                className="h-10 sm:h-11 w-auto flex-shrink-0"
-              />
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-bold tracking-[0.15em] text-primary">SRC</span>
+                <span className="text-[10px] tracking-[0.08em] text-muted-foreground hidden sm:block">
+                  Security & Resilience Counsel
+                </span>
+              </div>
             </button>
 
             {/* Desktop nav */}
             <div className="hidden lg:flex items-center gap-1">
-              {NAV_KEYS.map((item) => (
+              {NAV.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -83,23 +64,20 @@ export function SiteNavigation() {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {tr(item.labelKey)}
+                  {item.label}
                 </button>
               ))}
             </div>
 
-            {/* Lang switcher + CTA + Mobile toggle */}
-            <div className="flex items-center gap-2">
-              <div className="hidden md:block">
-                <LangSwitcher />
-              </div>
+            {/* CTA + Mobile toggle */}
+            <div className="flex items-center gap-3">
               <Button
                 size="sm"
                 variant="outline"
                 className="hidden sm:flex items-center gap-2 text-xs tracking-wide"
                 onClick={() => handleNav("reports")}
               >
-                {tr("nav.member-access")}
+                Member Access
                 <ArrowRight className="w-3 h-3" />
               </Button>
               <button
@@ -117,7 +95,7 @@ export function SiteNavigation() {
         {mobileOpen && (
           <div className="lg:hidden border-t border-border bg-white">
             <div className="px-4 py-3 space-y-1">
-              {NAV_KEYS.map((item) => (
+              {NAV.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -127,20 +105,17 @@ export function SiteNavigation() {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {tr(item.labelKey)}
+                  {item.label}
                 </button>
               ))}
-              <div className="pt-3 border-t border-border">
-                <div className="mb-2">
-                  <LangSwitcher />
-                </div>
+              <div className="pt-2 border-t border-border">
                 <Button
                   size="sm"
                   variant="outline"
                   className="w-full flex items-center justify-center gap-2 text-xs"
                   onClick={() => handleNav("reports")}
                 >
-                  {tr("nav.member-access")}
+                  Member Access
                   <ArrowRight className="w-3 h-3" />
                 </Button>
               </div>
