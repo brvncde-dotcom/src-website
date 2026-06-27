@@ -510,7 +510,7 @@ export function MembershipView() {
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 hover:text-white"
+                className="border-white/20 text-[#0A2540] bg-white hover:bg-white/90 hover:text-[#0A2540]"
               >
                 Start Free Trial
               </Button>

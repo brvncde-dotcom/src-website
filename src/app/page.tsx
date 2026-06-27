@@ -7,7 +7,6 @@ import { ReportsView } from "@/components/ReportsView";
 import { OpinionsView } from "@/components/OpinionsView";
 import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
-import { ExpertsView } from "@/components/ExpertsView";
 import { ContactView } from "@/components/ContactView";
 import { MembershipView } from "@/components/MembershipView";
 
@@ -23,8 +22,6 @@ function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageK
       return <FocusAreasView />;
     case "approach":
       return <ApproachView />;
-    case "experts":
-      return <ExpertsView />;
     case "membership":
       return <MembershipView />;
     case "contact":

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { X, Menu, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "experts" | "membership" | "contact";
+export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "membership" | "contact";
 
 const NAV: { key: PageKey; label: string }[] = [
   { key: "home", label: "Home" },
@@ -12,7 +13,6 @@ const NAV: { key: PageKey; label: string }[] = [
   { key: "opinions", label: "Opinions" },
   { key: "focus-areas", label: "Focus Areas" },
   { key: "approach", label: "Approach" },
-  { key: "experts", label: "Experts" },
   { key: "membership", label: "Membership" },
   { key: "contact", label: "Contact" },
 ];
@@ -42,14 +42,9 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
             {/* Logo */}
             <button
               onClick={() => handleNav("home")}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-bold tracking-[0.15em] text-primary">SRC</span>
-                <span className="text-[10px] tracking-[0.08em] text-muted-foreground hidden sm:block">
-                  Security & Resilience Counsel
-                </span>
-              </div>
+              <Image src="/src-logo-full.svg" alt="SRC — Security & Resilience Counsel" width={140} height={28} className="h-7 w-auto" />
             </button>
 
             {/* Desktop nav */}
