@@ -1,0 +1,1044 @@
+     1→# SRC Advisory Membership Model: Comprehensive Requirements Analysis
+     2→
+     3→## Document Information
+     4→- **Project**: SRC Advisory — Membership Model Redesign
+     5→- **Client**: Security & Resilience Counsel (SRC), Zug, Switzerland
+     6→- **Date**: July 2026
+     7→- **Document Type**: Requirements Analysis
+     8→- **Research Dimensions**: 12 (Think tanks, intelligence services, premium media, pricing psychology, expert access, AI video, newsletters, corporate membership, technical platform)
+     9→
+    10→---
+    11→
+    12→# Part I: Explicit Requirements Extraction
+    13→
+    14→## 1.1 User Query Decomposition
+    15→
+    16→### Core Mandate
+    17→> "Introduce several member types: free, basic, premium, expert"
+    18→
+    19→| Requirement ID | Source | Requirement | Priority |
+    20→|---|---|---|---|
+    21→| R-001 | Explicit | Implement 4-tier membership: Free, Basic, Premium, Expert | Must-Have |
+    22→| R-002 | Explicit | Opinions must be free for all registered free users | Must-Have |
+    23→| R-003 | Explicit | Basic Reports must be free for all registered free users | Must-Have |
+    24→| R-004 | Explicit | "More" content tier for next member classes above Free | Must-Have |
+    25→| R-005 | Explicit | Expert tier: Video calls participation | Must-Have |
+    26→| R-006 | Explicit | Expert tier: Exclusive Briefings access | Must-Have |
+    27→| R-007 | Explicit | Expert tier: Premium content access | Must-Have |
+    28→| R-008 | Explicit | Expert tier: Early content access | Must-Have |
+    29→| R-009 | Explicit | Expert tier: Breaking news (super important) | Must-Have |
+    30→| R-010 | Explicit | vAvatar — Video Section with avatar-based video content | Must-Have |
+    31→| R-011 | Explicit | Expert Interviews section | Must-Have |
+    32→| R-012 | Explicit | Studies section (deeper analytical products) | Must-Have |
+    33→| R-013 | Explicit | Research world's leading think-tanks, media for best practice | Must-Have |
+    34→| R-014 | Explicit | Build perfect model aligned to SRC purpose | Must-Have |
+    35→
+    36→### Content Gating Specified in Query
+    37→
+    38→```
+    39→Tier      | Opinions | Reports     | Exclusive Briefings | Studies | Video (vAvatar) | Interviews | Video Calls | Early Access | Breaking News
+    40→----------|----------|-------------|---------------------|---------|-----------------|------------|-------------|--------------|--------------
+    41→Free      |   YES    | Base Version|         NO          |   NO    |       NO        |    NO      |     NO      |     NO       |      NO
+    42→Basic     |   YES    | MORE content|         NO          |   NO    |   Limited       |    NO      |     NO      |     NO       |      NO
+    43→Premium   |   YES    | MORE content|         YES         |   YES   |       YES       |    YES     |     NO      |     NO       |      NO
+    44→Expert    |   YES    | FULL access |         YES         |   YES   |       YES       |    YES     |     YES     |     YES      |      YES
+    45→```
+    46→
+    47→---
+    48→
+    49→## 1.2 SRC Context Requirements
+    50→
+    51→| Requirement ID | Source | Requirement | Priority |
+    52→|---|---|---|---|
+    53→| R-015 | Context | Swiss-based (Zug) — pricing in CHF | Must-Have |
+    54→| R-016 | Context | Independent think tank positioning | Must-Have |
+    55→| R-017 | Context | Non-partisan, Swiss neutrality principles | Must-Have |
+    56→| R-018 | Context | Focus: Digital Power & AI, Geopolitics & Hard Security | Must-Have |
+    57→| R-019 | Context | AI-Augmented Speed + Expert-Validated Rigour methodology | Must-Have |
+    58→| R-020 | Context | 6 Focus Areas: Digital Power & AI; Geopolitics & Hard Security; Energy & Resources; Climate, Environment & Food; Economy & Competitiveness; Society, Migration & Institutions | Must-Have |
+    59→| R-021 | Context | Multilingual support (EN/DE/FR/IT) | Must-Have |
+    60→| R-022 | Context | Member Portal already exists — requires feature integration | Must-Have |
+    61→| R-023 | Context | 10-day free trial already offered — must be redesigned into tiered model | Must-Have |
+    62→| R-024 | Context | Currently has 19+ published reports across all pillars | Nice-to-Have |
+    63→| R-025 | Context | Must maintain editorial independence from corporate influence | Must-Have |
+    64→
+    65→---
+    66→
+    67→# Part II: Implicit Requirements Extraction
+    68→
+    69→## 2.1 From Competitive Research — Think Tank Freemium Models
+    70→
+    71→### 2.1.1 Council on Foreign Relations (CFR) [^133^]
+    72→| Implicit Requirement | Evidence | Priority |
+    73→|---|---|---|
+    74→| R-026: Individual life membership with nomination process signals prestige tiering | Life/Term membership distinction at $100K+ Gold corporate level | Should-Have |
+    75→| R-026a: Corporate membership at 3 levels (Gold $100K, Silver $75K, Bronze $50K) | Three-tier corporate model for organizational clients | Must-Have |
+    76→| R-027: ~1,000 events annually — event access as tier differentiator | "Convening nearly one thousand events annually" | Should-Have |
+    77→| R-028: CEO Summit and exclusive dinners for top-tier members | "Companies at top levels access exclusive CEO events" | Should-Have |
+    78→| R-029: Term membership (age 30-36) as young professional pipeline | "Stephen M. Kellen Term Member Program" — 5-year fixed term | Should-Have |
+    79→
+    80→### 2.1.2 Chatham House [^29^][^33^]
+    81→| Implicit Requirement | Evidence | Priority |
+    82→|---|---|---|
+    83→| R-030: Individual membership at GBP 195-345/year — price anchoring at mid-tier | Full: GBP 345/year + GBP 50 join fee; Associate: GBP 195/year + GBP 50 | Must-Have |
+    84→| R-031: "Under 30" concession tier at GBP 220 — young professional strategy | Same benefits at 36% discount for under-30s | Should-Have |
+    85→| R-032: Student tier at GBP 190 — no joining fee | Full-time student discount eliminates barrier | Should-Have |
+    86→| R-033: Major Corporate tier with risk briefings under Chatham House Rule | "Regular briefings on emerging geopolitical risk, held under Chatham House Rule" | Must-Have |
+    87→| R-034: 120+ on-record events plus flagship conferences | Invitations to major policy speeches, Q&As with heads of state | Should-Have |
+    88→| R-035: Virtual AND in-person event access as separate benefits | Full: 100 in-person events + all online; Associate: online only | Should-Have |
+    89→| R-036: eLibrary with 2,000+ journals as content asset | Access to thousands of world newspapers and journals | Should-Have |
+    90→
+    91→### 2.1.3 Brookings Institution
+    92→| Implicit Requirement | Evidence | Priority |
+    93→|---|---|---|
+    94→| R-037: Free content strategy — 85%+ of content publicly accessible | Brookings makes vast majority free to maintain policy influence | Must-Have |
+    95→| R-038: Named sponsorships for research programs | Corporate funding through program sponsorship | Nice-to-Have |
+    96→| R-039: Annual reports as prestige publications | Flagship publications drive premium perception | Should-Have |
+    97→
+    98→### 2.1.4 CSIS (Center for Strategic and International Studies)
+    99→| Implicit Requirement | Evidence | Priority |
+   100→|---|---|---|
+   101→| R-040: Commission work as premium/B2B offering | CSIS commissions research for specific clients | Should-Have |
+   102→| R-041: Priority access to events for "Chairman's Circle" members | Inner-circle tiering for highest donors | Should-Have |
+   103→
+   104→### 2.1.5 IISS (International Institute for Strategic Studies) [^31^]
+   105→| Implicit Requirement | Evidence | Priority |
+   106→|---|---|---|
+   107→| R-042: Fellowship tier for distinguished professionals | Fellowship conferred upon Advisory Council approval | Should-Have |
+   108→| R-043: Student membership as pipeline tier | Reduced-rate student tier for pipeline building | Should-Have |
+   109→
+   110→---
+   111→
+   112→## 2.2 From Intelligence Service Research
+   113→
+   114→### 2.2.1 Oxford Analytica [^79^][^121^]
+   115→| Implicit Requirement | Evidence | Priority |
+   116→|---|---|---|
+   117→| R-044: Annual subscription $10,000-$20,000 for enterprise clients | "Standard annual subscriptions span $10,000 to $20,000" | Reference |
+   118→| R-045: Qualitative geopolitical forecasting as premium product | "Exceptional academic rigor; forward-looking scenario analyses" | Must-Have |
+   119→| R-046: Bespoke consulting services above subscription tier | Consulting scales above standard subscription pricing | Should-Have |
+   120→| R-047: Decision-oriented outputs (briefings, scenarios, strategic assessments) | Executive and risk committee workflow integration | Must-Have |
+   121→
+   122→### 2.2.2 RANE/Stratfor Model
+   123→| Implicit Requirement | Evidence | Priority |
+   124→|---|---|---|
+   125→| R-048: Risk intelligence platform with tiered access | Stratfor's core model: Free briefs → Paid analysis → Enterprise risk intelligence | Must-Have |
+   126→| R-049: Security intelligence feeds as real-time premium product | Breaking news and threat alerts as top-tier differentiator | Must-Have |
+   127→| R-050: Client advisory services at enterprise level | Direct analyst access as highest-tier benefit | Must-Have |
+   128→
+   129→---
+   130→
+   131→## 2.3 From Premium Media Paywall Research
+   132→
+   133→### 2.3.1 Financial Times [^1071^][^48^]
+   134→| Implicit Requirement | Evidence | Priority |
+   135→|---|---|---|
+   136→| R-051: Premium Digital at $75/month — high-anchor pricing | "Complete coverage $75 per month. Complete digital access on any device" | Reference |
+   137→| R-052: 50% discounted first-year pricing (GBP 159 vs GBP 319) | Trial discount as conversion strategy | Should-Have |
+   138→| R-053: Hard paywall model — all content locked after limited preview | Hard paywall combined with registration wall | Reference |
+   139→
+   140→### 2.3.2 The Economist [^52^]
+   141→| Implicit Requirement | Evidence | Priority |
+   142→|---|---|---|
+   143→| R-054: First month free trial for monthly plan | "Monthly: First month free" — reduces trial friction | Should-Have |
+   144→| R-055: Annual save messaging (Save GBP 83.70) | Price framing showing savings vs monthly | Should-Have |
+   145→| R-056: Bundled value-adds (NYT complimentary access) | "Includes complimentary access to The New York Times for a year" | Should-Have |
+   146→| R-057: Podcast and narrated stories as format differentiation | "All podcasts, narrated stories and exclusive newsletters" | Should-Have |
+   147→| R-058: Digital edition archive access (1997-today) | Deep archive as retention asset | Should-Have |
+   148→
+   149→### 2.3.3 Foreign Affairs (CFR) [^226^][^143^]
+   150→| Implicit Requirement | Evidence | Priority |
+   151→|---|---|---|
+   152→| R-059: Three subscription tiers: Digital / All Access / Print | Digital at $39.99; All Access at $44.99-$56.99 | Must-Have |
+   153→| R-060: 3 free articles for new users before paywall | Free preview as acquisition tool | Must-Have |
+   154→| R-061: Student discount tier | "Unlimited digital access at a special discount for students" | Should-Have |
+   155→| R-062: Group/institutional subscription plans | "Foreign Affairs develops unique group subscription plans" | Must-Have |
+   156→| R-063: Audio format (narrated articles) as premium feature | "Six digital issues available in Audio, PDF, and other digital formats" | Must-Have |
+   157→| R-064: Archive access as retention driver | "Over a century of archives" — 1922 to present | Should-Have |
+   158→| R-065: Subscriber-only newsletters as engagement tool | Regular newsletters to maintain touchpoint | Must-Have |
+   159→
+   160→### 2.3.4 Foreign Policy [^1073^]
+   161→| Implicit Requirement | Evidence | Priority |
+   162→|---|---|---|
+   163→| R-066: Quarterly trial at 67% off ($19.99 for 90 days) | Aggressive trial pricing to reduce friction | Should-Have |
+   164→| R-067: FP Insider tier — ad-free + exclusive content | Premium tier with experiential benefits | Should-Have |
+   165→
+   166→---
+   167→
+   168→## 2.4 From Pricing Psychology Research [^749^][^750^][^318^][^1079^]
+   169→
+   170→| Implicit Requirement | Evidence | Priority |
+   171→|---|---|---|
+   172→| R-068: CHF charm pricing (.90/.95 endings) — CHF 99.95 vs CHF 100 | "CHF 99.– instead of CHF 100.– makes an offer more attractive" | Must-Have |
+   173→| R-069: Three-tier anchoring: Premium at CHF 299 makes CHF 149 look attractive | "Displaying premium at CHF 299.– first makes CHF 149.– more attractive" | Should-Have |
+   174→| R-070: "Recommended" or "Most Popular" badge on preferred tier | Visual highlighting guides choice to target tier | Must-Have |
+   175→| R-071: Bilingual pricing display (fr-CH and en-CH formatting) | Swiss market requires both French and English pricing display | Must-Have |
+   176→| R-072: Price anchoring — show highest price first | "When we use the principle of a price anchor, we should show the anchor first" | Should-Have |
+   177→| R-073: Value framing — show savings vs monthly for annual plans | Headspace model: annual displayed as "best value" | Should-Have |
+   178→| R-074: Clear pricing comparison table on signup page | "Clear pricing communication and well-structured displays can increase conversions by 30%" | Must-Have |
+   179→| R-075: Avoid charging for previously free content (Bawa & Shoemaker) | "Avoid charging for things which customers received for free previously" | Must-Have |
+   180→
+   181→---
+   182→
+   183→## 2.5 From Freemium Model Best Practices [^235^][^1076^][^1077^][^237^]
+   184→
+   185→| Implicit Requirement | Evidence | Priority |
+   186→|---|---|---|
+   187→| R-076: Free tier must deliver genuine value while leaving clear gap | "The free version should be useful enough that users develop a habit" | Must-Have |
+   188→| R-077: Conversion rate target: 2-5% average, 6-8% strong | "Freemium conversion rate of 2-5% is considered average" | Reference |
+   189→| R-078: Hybrid model combining freemium + free trial | "Many successful businesses use a hybrid approach" | Should-Have |
+   190→| R-079: Key ROI Feature — identify and drive users to most valuable feature | Spotify model: drive users to key activation feature | Should-Have |
+   191→| R-080: Gate "next step" features, not core value | Spotify: free gets all music, but no offline/shuffle control | Must-Have |
+   192→| R-081: Make premium features visible to free users (show what they miss) | "Don't hide the pro features from users. Make sure they know what they could get" | Must-Have |
+   193→| R-082: Referral/viral loop for acquisition | Referral program to incentivize users to promote | Nice-to-Have |
+   194→| R-083: Free tier as marketing channel — monetize via ads if large enough | "You can also monetise a free audience if it's large enough" | Nice-to-Have |
+   195→
+   196→---
+   197→
+   198→# Part III: Deliverables Requirements Specification
+   199→
+   200→## 3.1 Deliverable 1: 4-Tier Membership Model (Free → Basic → Premium → Expert)
+   201→
+   202→### Hierarchical Structure
+   203→
+   204→```
+   205→H1: SRC Membership Architecture
+   206→  H2: FREE TIER — "Registered Member" (Acquisition)
+   207→    H3: Price: CHF 0 (registration required)
+   208→    H3: Content Access
+   209→      H4: All Opinions — full access, no restrictions [R-002]
+   210→      H4: Reports — Base Version only (abstract + key findings, ~20% of content) [R-003]
+   211→      H4: Monthly newsletter (general edition) [R-065]
+   212→      H4: 3 free report previews per month (paywall preview) [R-060]
+   213→    H3: Platform Features
+   214→      H4: Member Portal access (basic)
+   215→      H4: Save/bookmark articles
+   216→      H4: Comment on Opinions (community engagement)
+   217→      H4: Topic preference settings
+   218→    H3: Trial Conversion Mechanism
+   219→      H4: 10-day free trial of Premium features (existing mechanism redesign) [R-023]
+   220→      H4: "Upgrade to see full report" paywall triggers on premium content
+   221→      H4: Weekly email showing what was missed (gated content digest)
+   222→
+   223→  H2: BASIC TIER — "Core Member" (Engagement)
+   224→    H3: Price: CHF 29.90/month or CHF 299/year (1 month free with annual) [R-068]
+   225→    H3: Content Access
+   226→      H4: All Opinions — full access [R-002]
+   227→      H4: Reports — MORE content (executive summary + analysis section, ~60% of content) [R-004]
+   228→      H4: Monthly newsletter (expanded edition with data visualizations)
+   229→      H4: Weekly briefings digest (email roundups)
+   230→    H3: Platform Features
+   231→      H4: All Free tier features
+   232→      H4: Download reports (PDF)
+   233→      H4: Full-text search across all content
+   234→      H4: Custom alert keywords (up to 3 topics)
+   235→      H4: Mobile app access (if available)
+   236→    H3: Upgrade Triggers
+   237→      H4: Studies content locked behind "Upgrade to Premium" gate
+   238→      H4: Video sections show 30-sec previews only
+   239→      H4: Briefings listed but locked
+   240→
+   241→  H2: PREMIUM TIER — "Intelligence Member" (Retention)
+   242→    H3: Price: CHF 79.90/month or CHF 799/year (2 months free with annual) [R-068]
+   243→    H3: Content Access
+   244→      H4: All Opinions — full access [R-002]
+   245→      H4: Reports — FULL access (complete reports + methodology + data annexes) [R-004]
+   246→      H4: Exclusive Briefings — full access [R-006]
+   247→      H4: Studies — full access (deep-dive analytical products) [R-011]
+   248→      H4: Video Section (vAvatar) — full access with AI-generated expert video content [R-010]
+   249→      H4: Interviews — expert interviews with transcripts [R-011]
+   250→      H4: Premium newsletter (exclusive analysis + forecasts)
+   251→      H4: 6-month content archive (rolling access)
+   252→    H3: Platform Features
+   253→      H4: All Basic tier features
+   254→      H4: Custom alert keywords (unlimited)
+   255→      H4: Report download with data annexes (Excel/CSV)
+   256→      H4: Share reports (limited team sharing links)
+   257→      H4: Personal research dashboard
+   258→      H4: Weekly video briefing digest (vAvatar highlights)
+   259→    H3: Event & Community Access
+   260→      H4: Access to monthly virtual briefings (viewer-only)
+   261→      H4: Priority registration for public events
+   262→      H4: Access to member discussion forums
+   263→
+   264→  H2: EXPERT TIER — "Strategic Partner" (High-Value)
+   265→    H3: Price: CHF 299/month or CHF 2,999/year (2 months free + exclusive benefits) [R-068]
+   266→    H3: Content Access
+   267→      H4: ALL content from Premium tier
+   268→      H4: Early Access — reports and briefings 48-72 hours before general release [R-008]
+   269→      H4: Breaking News Alerts — real-time intelligence alerts for critical developments [R-009]
+   270→      H4: Premium content not available to lower tiers [R-007]
+   271→      H4: Full content archive (no time limit)
+   272→      H4: Bespoke research requests (limited per year)
+   273→    H3: Direct Expert Access
+   274→      H4: Video Calls — quarterly 1:1 video consultations with SRC analysts [R-005]
+   275→      H4: Exclusive Briefings — invitation-only monthly video briefings with Q&A [R-006]
+   276→      H4: Direct messaging channel to SRC expert panel
+   277→      H4: Annual strategy consultation session (half-day)
+   278→    H3: Event & Community Access
+   279→      H4: All Premium virtual briefing access + interactive Q&A participation
+   280→      H4: Invitation to in-person events (Zug/London/Geneva) under Chatham House Rule
+   281→      H4: Member directory access (networking with other Expert tier members)
+   282→      H4: Guest passes (2 per year) for events
+   283→    H3: Recognition & Status
+   284→      H4: "Strategic Partner" badge on Member Portal
+   285→      H4: Annual recognition in SRC Impact Report
+   286→      H4: Input on SRC research agenda (annual priority survey)
+   287→```
+   288→
+   289→---
+   290→
+   291→## 3.2 Deliverable 2: Content Gating Architecture
+   292→
+   293→### Hierarchical Structure
+   294→
+   295→```
+   296→H1: Content Gating Matrix
+   297→  H2: Opinions (All Tiers)
+   298→    H3: Free: Full text, no registration gate after initial signup
+   299→    H3: Rationale: Opinions as thought leadership and SEO acquisition channel [R-075]
+   300→    H3: Monetization: Contextual upgrade CTAs embedded in content, not paywall blocking
+   301→
+   302→  H2: Reports (Tiered Access)
+   303→    H3: Base Version (Free)
+   304→      H4: Abstract (250 words)
+   305→      H4: 3 Key Findings (bullet points)
+   306→      H4: "SRC Take" summary paragraph (100 words)
+   307→      H4: Full report locked — "Core Members see 60% more" upgrade prompt
+   308→    H3: Expanded Version (Basic)
+   309→      H4: Base Version content
+   310→      H4: Executive Summary (full)
+   311→      H4: Main Analysis section (excluding data annexes)
+   312→      H4: Key charts and visualizations
+   313→      H4: Methodology note
+   314→      H4: Studies content locked — "Intelligence Members get full studies access"
+   315→    H3: Complete Version (Premium+)
+   316→      H4: Expanded Version content
+   317→      H4: Data Annexes (Excel downloads)
+   318→      H4: Full Methodology
+   319→      H4: Expert interview transcripts (where applicable)
+   320→      H4: Related reading recommendations (AI-curated)
+   321→
+   322→  H2: Studies (Premium+)
+   323→    H3: Free/Basic: Title + abstract only (teaser)
+   324→    H3: Premium: Full study access (5,000-15,000 word deep analysis)
+   325→    H3: Expert: Studies + raw data + supplementary research materials
+   326→
+   327→  H2: Exclusive Briefings (Premium+)
+   328→    H3: Free/Basic: Title + 2-sentence summary only
+   329→    H3: Premium: Full briefing text + audio narration
+   330→    H3: Expert: Full briefing + live video briefing participation + Q&A archive
+   331→
+   332→  H2: Video Section — vAvatar (Premium+)
+   333→    H3: Free/Basic: 30-second preview clips only (upgrade prompt at end)
+   334→    H3: Premium: Full vAvatar videos (AI-generated expert avatars delivering analysis)
+   335→    H3: Expert: Full videos + request custom vAvatar briefings (limited)
+   336→    H3: Content Types:
+   337→      H4: Weekly vAvatar Briefing (Monday morning geopolitical roundup)
+   338→      H4: Breaking vAvatar Alert (critical event analysis within 4 hours)
+   339→      H4: vAvatar Deep Dive (thematic video analysis, 10-15 minutes)
+   340→      H4: vAvatar Interview (simulated expert dialogues on key topics)
+   341→
+   342→  H2: Interviews (Premium+)
+   343→    H3: Free/Basic: Excerpt transcript (200 words) + audio clip (2 minutes)
+   344→    H3: Premium: Full interview transcript + full audio + video (if recorded)
+   345→    H3: Expert: Full interview + opportunity to suggest future interview subjects
+   346→
+   347→  H2: Breaking News / Early Access (Expert Only)
+   348→    H3: Free/Basic/Premium: Standard publication schedule
+   349→    H3: Expert: 48-72 hour early access to all reports and briefings [R-008]
+   350→    H3: Expert: Real-time Breaking News alerts via push notification + email + SMS [R-009]
+   351→    H3: Expert: Weekly "Week Ahead" preview briefings (Sunday evening)
+   352→
+   353→  H2: Video Calls (Expert Only)
+   354→    H3: Quarterly 1:1 video consultation with SRC analyst (30 minutes) [R-005]
+   355→    H3: Monthly Expert Briefing (group video call, 60 minutes, Chatham House Rule) [R-006]
+   356→    H3: Annual half-day strategy session (in-person in Zug or virtual)
+   357→```
+   358→
+   359→---
+   360→
+   361→## 3.3 Deliverable 3: Pricing Structure with CHF Pricing
+   362→
+   363→### Hierarchical Structure
+   364→
+   365→```
+   366→H1: Pricing Architecture
+   367→  H2: Individual Membership Pricing
+   368→    H3: Free Tier
+   369→      H4: Price: CHF 0 (registration required)
+   370→      H4: No payment method required
+   371→      H4: No time limit (permanent free access)
+   372→      H4: Positioning: "Start exploring SRC intelligence"
+   373→
+   374→    H3: Basic — "Core Member"
+   375→      H4: Monthly: CHF 29.90/month [R-068]
+   376→      H4: Annual: CHF 299/year (equivalent to ~CHF 24.90/month, 17% savings) [R-068]
+   377→      H4: First month: 50% off (CHF 14.95) for new subscribers
+   378→      H4: Positioning: "Deeper analysis for engaged professionals"
+   379→      H4: Price anchor: ~1 coffee per day in Switzerland
+   380→
+   381→    H3: Premium — "Intelligence Member"
+   382→      H4: Monthly: CHF 79.90/month [R-068]
+   383→      H4: Annual: CHF 799/year (equivalent to ~CHF 66.60/month, 17% savings)
+   384→      H4: Trial: 10-day free trial (existing mechanism preserved) [R-023]
+   385→      H4: Annual bonus: 2 months free + exclusive annual report
+   386→      H4: Positioning: "Complete intelligence for decision-makers"
+   387→      H4: Price anchor: Less than The Economist (CHF 279/year) for specialized intelligence
+   388→      H4: RECOMMENDED tier (visual badge) [R-070]
+   389→
+   390→    H3: Expert — "Strategic Partner"
+   391→      H4: Monthly: CHF 299/month [R-068]
+   392→      H4: Annual: CHF 2,999/year (equivalent to ~CHF 249.90/month, 16% savings)
+   393→      H4: Application: Invitation or application with vetting (preserves exclusivity) [R-026]
+   394→      H4: Onboarding: Personal onboarding call with SRC team
+   395→      H4: Positioning: "Direct access to SRC's expert network"
+   396→      H4: Price reference: 70% below Oxford Analytica ($10K-$20K/year) [^79^]
+   397→
+   398→  H2: Special Pricing Categories
+   399→    H3: Student Tier
+   400→      H4: Price: CHF 99/year (67% off Basic) [R-032]
+   401→      H4: Access: Equivalent to Basic tier
+   402→      H4: Eligibility: Full-time students with .edu/academic email
+   403→      H4: Duration: Maximum 4 years (requires annual verification)
+   404→
+   405→    H3: Young Professional (Under 30)
+   406→      H4: Price: CHF 199/year (33% off Basic) [R-031]
+   407→      H4: Access: Equivalent to Basic tier
+   408→      H4: Eligibility: Age verification at signup
+   409→      H4: Upgrade path: Auto-renews at full Basic price after age 30
+   410→
+   411→    H3: Startup/SME Tier
+   412→      H4: Price: CHF 499/year (37% off Premium) [R-031]
+   413→      H4: Access: Equivalent to Premium tier for 1-3 person teams
+   414→      H4: Eligibility: Companies with <50 employees
+   415→      H4: Requires company email domain verification
+   416→
+   417→  H2: Pricing Psychology Implementation [^749^][^750^][^1079^]
+   418→    H3: Charm Pricing
+   419→      H4: All prices end in .90 (Swiss professional services convention) [R-068]
+   420→      H4: Annual prices: CHF 299, CHF 799, CHF 2,999 (left-digit effect)
+   421→    H3: Anchoring Strategy
+   422→      H4: Display Expert tier first (CHF 299/month) → Premium looks attractive [R-072]
+   423→      H4: Show "Value" comparison: Oxford Analytica starts at $10K/year vs SRC Expert at CHF 2,999
+   424→      H4: Monthly prices shown smaller, annual prices prominently displayed with "SAVE X%" badge
+   425→    H3: Decoy Effect
+   426→      H4: Position Premium as the clear value choice between Basic and Expert
+   427→      H4: Basic: "Good"; Premium: "Best Value" (badge); Expert: "Most Comprehensive"
+   428→    H3: Framing
+   429→      H4: Daily cost framing: Premium = "Less than CHF 2.70/day" (cheaper than a coffee)
+   430→      H4: Perception anchoring: "Complete intelligence suite for less than a daily espresso"
+   431→```
+   432→
+   433→---
+   434→
+   435→## 3.4 Deliverable 4: Feature Matrix per Tier
+   436→
+   437→### Required Table
+   438→
+   439→```
+   440→H1: Feature Comparison Matrix (Table: src_feature_matrix)
+   441→
+   442→| Feature Category | Feature | Free | Basic | Premium | Expert |
+   443→|---|---|---|---|---|---|
+   444→| CONTENT | Opinions (Full Text) | YES | YES | YES | YES |
+   445→| CONTENT | Reports — Base Version (Abstract + Key Findings) | YES | YES | YES | YES |
+   446→| CONTENT | Reports — Expanded (Executive Summary + Analysis) | NO | YES | YES | YES |
+   447→| CONTENT | Reports — Complete (+ Data Annexes, Methodology) | NO | NO | YES | YES |
+   448→| CONTENT | Studies (Deep-Dive Analysis) | NO | NO | YES | YES |
+   449→| CONTENT | Exclusive Briefings (Text) | NO | NO | YES | YES |
+   450→| CONTENT | Video Section (vAvatar) — Full Access | NO | NO | YES | YES |
+   451→| CONTENT | Expert Interviews (Full Transcript + Audio/Video) | NO | NO | YES | YES |
+   452→| CONTENT | Content Archive Access | 30 days | 90 days | 6 months | Unlimited |
+   453→| CONTENT | Early Access (48-72h before release) | NO | NO | NO | YES |
+   454→| CONTENT | Breaking News Alerts | NO | NO | NO | YES |
+   455→| CONTENT | Bespoke Research Requests | NO | NO | NO | YES (4/year) |
+   456→| PLATFORM | Member Portal Access | Basic | Standard | Advanced | Bespoke |
+   457→| PLATFORM | Save/Bookmark Content | YES | YES | YES | YES |
+   458→| PLATFORM | Comment on Content | YES | YES | YES | YES |
+   459→| PLATFORM | Full-Text Search | Limited | YES | YES | YES |
+   460→| PLATFORM | PDF Report Download | NO | YES | YES | YES |
+   461→| PLATFORM | Data Annex Download (Excel/CSV) | NO | NO | YES | YES |
+   462→| PLATFORM | Custom Alert Keywords | 1 topic | 3 topics | Unlimited | Unlimited + Priority |
+   463→| PLATFORM | Mobile App Access | NO | YES | YES | YES |
+   464→| PLATFORM | Research Dashboard | NO | NO | YES | YES (Customized) |
+   465→| PLATFORM | Share Reports (Team Links) | NO | NO | YES (5/month) | YES (Unlimited) |
+   466→| EXPERT ACCESS | Monthly Video Briefings (Viewer) | NO | NO | YES | YES + Interactive Q&A |
+   467→| EXPERT ACCESS | Quarterly 1:1 Video Call | NO | NO | NO | YES (30 min) |
+   468→| EXPERT ACCESS | Direct Analyst Messaging | NO | NO | NO | YES |
+   469→| EXPERT ACCESS | Annual Strategy Session | NO | NO | NO | YES (Half-day) |
+   470→| EXPERT ACCESS | Input on Research Agenda | NO | NO | NO | YES |
+   471→| COMMUNITY | Member Discussion Forums | NO | NO | YES | YES |
+   472→| COMMUNITY | Member Directory Access | NO | NO | NO | YES |
+   473→| COMMUNITY | Event Guest Passes | NO | NO | NO | YES (2/year) |
+   474→| EVENTS | Public Event Registration | Standard | Priority | Priority | VIP |
+   475→| EVENTS | Virtual Briefings | NO | NO | YES | YES + Q&A |
+   476→| EVENTS | In-Person Events (Chatham House Rule) | NO | NO | NO | YES |
+   477→| RECOGNITION | Profile Badge | — | Core | Intelligence | Strategic Partner |
+   478→| RECOGNITION | Annual Impact Report Mention | NO | NO | NO | YES |
+   479→| NEWSLETTER | General Newsletter | YES | YES | YES | YES |
+   480→| NEWSLETTER | Expanded Newsletter | NO | YES | YES | YES |
+   481→| NEWSLETTER | Premium Analysis Newsletter | NO | NO | YES | YES |
+   482→| NEWSLETTER | Breaking News Alerts | NO | NO | NO | YES |
+   483→| NEWSLETTER | Week Ahead Preview | NO | NO | NO | YES |
+   484→```
+   485→
+   486→---
+   487→
+   488→## 3.5 Deliverable 5: Expert Tier Deep Specification
+   489→
+   490→### Hierarchical Structure
+   491→
+   492→```
+   493→H1: Expert Tier — "Strategic Partner" Detailed Specification
+   494→  H2: Value Proposition
+   495→    H3: Positioning: "Not just content — direct access to the SRC expert network"
+   496→    H3: Target audience: C-suite executives, government officials, institutional investors, risk managers, senior policy advisors
+   497→    H3: Core promise: "Your personal intelligence partnership"
+   498→
+   499→  H2: Video Calls Architecture
+   500→    H3: Quarterly 1:1 Analyst Consultation [R-005]
+   501→      H4: Format: 30-minute video call (Zoom/Teams, or in-person in Zug)
+   502→      H4: Scheduling: Self-service booking with 3-day advance requirement
+   503→      H4: Preparation: Pre-call questionnaire to maximize value
+   504→      H4: Follow-up: Written summary of key points within 48 hours
+   505→      H4: Topics: Client's choice — can cover any SRC focus area
+   506→      H4: Rollover: Unused calls expire quarterly (no accumulation)
+   507→    H3: Monthly Expert Briefing (Group) [R-006]
+   508→      H4: Format: 60-minute video conference, Chatham House Rule
+   509→      H4: Schedule: First Tuesday of each month, 16:00 CET
+   510→      H4: Content: "Behind the Analysis" — SRC analysts discuss current developments not yet published
+   511→      H4: Q&A: 20-minute interactive Q&A session
+   512→      H4: Recording: Available to Expert tier members within 24 hours
+   513→      H4: Attendance: Maximum 25 participants per session (intimacy preserved)
+   514→    H3: Annual Strategy Session
+   515→      H4: Format: Half-day (4 hours) in Zug or virtual
+   516→      H4: Content: Bespoke strategic intelligence assessment for member's organization
+   517→      H4: Deliverable: Written strategic memo within 5 business days
+   518→      H4: Scheduling: Coordinated 4-6 weeks in advance
+   519→
+   520→  H2: Content Differentiation
+   521→    H3: Early Access Protocol [R-008]
+   522→      H4: All reports available 48-72 hours before lower tiers
+   523→      H4: Exclusive "Week Ahead" Sunday evening preview briefing
+   524→      H4: Quarterly "Pipeline Preview" — upcoming research agenda preview
+   525→    H3: Breaking News Alerts [R-009]
+   526→      H4: Channel: Push notification (app) + email + optional SMS
+   527→      H4: Speed: Within 2 hours of critical development
+   528→      H4: Content: Initial assessment + "what to watch" guidance
+   529→      H4: Follow-up: Full analysis within 24 hours
+   530→      H4: Definition of "Breaking": Geopolitical crises, security incidents, major policy shifts, market-moving events
+   531→    H3: Bespoke Research
+   532→      H4: Allocation: 4 requests per year (quarterly)
+   533→      H4: Scope: Single-issue analysis (up to 2,000 words)
+   534→      H4: Turnaround: 10 business days
+   535→      H4: Format: Written memo + optional 15-min follow-up call
+   536→      H4: Limitations: Not for consulting engagements; research scope only
+   537→
+   538→  H2: Community & Recognition
+   539→    H3: "Strategic Partner" Digital Badge
+   540→    H3: Annual SRC Impact Report acknowledgment (optional, opt-in)
+   541→    H3: Research Agenda Input — annual priority-setting survey
+   542→    H3: Member Directory — opt-in networking with other Expert members
+   543→    H3: 2 Annual Event Guest Passes for colleagues/associates
+   544→    H3: Invitation to Annual SRC Expert Gathering (in-person, Zug)
+   545→
+   546→  H2: Onboarding & Service
+   547→    H3: Personal onboarding call (30 min) within 5 days of signup
+   548→    H3: Dedicated account manager (email response within 4 hours)
+   549→    H3: Quarterly check-in emails
+   550→    H3: Annual membership review and feedback session
+   551→```
+   552→
+   553→---
+   554→
+   555→## 3.6 Deliverable 6: vAvatar Video Section Strategy
+   556→
+   557→### Hierarchical Structure
+   558→
+   559→```
+   560→H1: vAvatar Video Section — AI-Powered Video Intelligence
+   561→  H2: Concept Definition
+   562→    H3: "vAvatar" = AI-generated expert avatar delivering SRC analysis in video format
+   563→    H3: Value proposition: "Expert intelligence, delivered as a briefing"
+   564→    H3: Differentiation: First think tank to offer AI-augmented video intelligence at scale
+   565→    H3: Technology: AI avatar generation (e.g., Synthesia, HeyGen) + SRC expert scripts
+   566→    H3: Quality standard: "Expert-validated scripts, AI-delivered presentation"
+   567→
+   568→  H2: vAvatar Content Types
+   569→    H3: vAvatar Weekly Briefing
+   570→      H4: Frequency: Every Monday, 08:00 CET
+   571→      H4: Duration: 8-12 minutes
+   572→      H4: Content: Weekend geopolitical developments + week ahead preview
+   573→      H4: Format: Single avatar, desk setup, with key visual overlays
+   574→      H4: Access: Premium + Expert tiers
+   575→    H3: vAvatar Breaking Alert
+   576→      H4: Frequency: As needed (target: <5 per month)
+   577→      H4: Duration: 3-5 minutes
+   578→      H4: Content: Critical event analysis within 4 hours of occurrence
+   579→      H4: Format: Single avatar, urgent visual treatment
+   580→      H4: Access: Expert tier only (first 24 hours); Premium after 24h
+   581→    H3: vAvatar Deep Dive
+   582→      H4: Frequency: Bi-weekly
+   583→      H4: Duration: 15-20 minutes
+   584→      H4: Content: Thematic analysis (e.g., "AI Governance in 2026", "D-A-CH Energy Security")
+   585→      H4: Format: Single or dual avatar (simulated expert dialogue)
+   586→      H4: Access: Premium + Expert tiers
+   587→    H3: vAvatar Interview
+   588→      H4: Frequency: Monthly
+   589→      H4: Duration: 20-30 minutes
+   590→      H4: Content: Simulated expert dialogue on major topics
+   591→      H4: Format: Two avatars in conversation format (interviewer + expert)
+   592→      H4: Access: Premium + Expert tiers
+   593→    H3: vAvatar Expert Exclusive (Expert Tier)
+   594→      H4: Frequency: Monthly
+   595→      H4: Duration: 30-45 minutes
+   596→      H4: Content: Live-recorded expert briefing with real SRC analysts (not avatar)
+   597→      H4: Format: Real expert panel discussion
+   598→      H4: Access: Expert tier only
+   599→
+   600→  H2: Technical Implementation
+   601→    H3: Video delivery: HLS streaming for adaptive quality
+   602→    H3: Platform integration: Embedded in Member Portal + mobile app
+   603→    H3: Transcripts: AI-generated, human-reviewed, available as text
+   604→    H3: Subtitles: EN/DE/FR/IT (AI translation, expert-reviewed for key content)
+   605→    H3: Download: Premium+ tiers can download for offline viewing
+   606→    H3: Search: Video transcripts fully searchable
+   607→
+   608→  H2: Production Workflow
+   609→    H3: Script: SRC analyst writes briefing script (2-3 hours)
+   610→    H3: Review: Second analyst validates (1 hour)
+   611→    H3: Avatar generation: AI platform renders video (15-30 min processing)
+   612→    H3: Post-production: Add visuals, lower thirds, branding (1 hour)
+   613→    H3: Quality check: Final review and publish (30 min)
+   614→    H3: Total turnaround: 6-8 hours from script to publish
+   615→
+   616→  H2: Free Tier Preview Strategy [R-081]
+   617→    H3: All vAvatar videos show 30-second preview clip
+   618→    H3: At end of preview: "Intelligence Members get the full briefing — upgrade now"
+   619→    H3: Preview clips distributed on social media as acquisition content
+   620→    H3: YouTube/LinkedIn presence for SEO and brand awareness
+   621→```
+   622→
+   623→---
+   624→
+   625→## 3.7 Deliverable 7: Conversion Funnel Design
+   626→
+   627→### Hierarchical Structure
+   628→
+   629→```
+   630→H1: Membership Conversion Funnel
+   631→  H2: Funnel Architecture
+   632→    H3: Stage 1: Awareness (Free Content → Registration)
+   633→      H4: Channel 1: Opinions (free, SEO-optimized, shareable)
+   634→      H4: Channel 2: Social media distribution of vAvatar previews
+   635→      H4: Channel 3: Newsletter (free tier, weekly digest)
+   636→      H4: Channel 4: Events (public, with upgrade messaging)
+   637→      H4: Conversion action: Free registration (email capture)
+   638→      H4: Target: 10,000+ registered free members within 12 months
+   639→
+   640→    H3: Stage 2: Activation (Free → Trial)
+   641→      H4: Mechanism: 10-day free Premium trial [R-023]
+   642→      H4: Trigger 1: After reading 3 report abstracts → "Start trial to unlock"
+   643→      H4: Trigger 2: Weekly "What You Missed" email showing gated content
+   644→      H4: Trigger 3: Contextual upgrade prompts at content paywalls [R-080]
+   645→      H4: Trial experience: Full Premium access for 10 days
+   646→      H4: Target: 20%+ trial start rate from active free users
+   647→
+   648→    H3: Stage 3: Conversion (Trial → Paid)
+   649→      H4: Day 3: Onboarding email highlighting key Premium features
+   650→      H4: Day 7: "Key ROI Feature" email — drive to most valuable content [R-079]
+   651→      H4: Day 9: Urgency email — "2 days left, don't lose access"
+   652→      H4: Day 10: Final conversion email + 20% first-month discount offer
+   653→      H4: Post-trial: Downgrade to free (retain, re-engage later)
+   654→      H4: Target: 5-8% trial-to-Premium conversion rate [R-077]
+   655→
+   656→    H3: Stage 4: Expansion (Premium → Expert)
+   657→      H4: Trigger: Power user identification (high engagement, multiple logins/week)
+   658→      H4: Outreach: Personalized email from SRC team
+   659→      H4: Offer: "Upgrade to Strategic Partner" with consultation call offer
+   660→      H4: Incentive: First month 50% off Expert tier
+   661→      H4: Vetting: Application review for Expert tier exclusivity
+   662→      H4: Target: 5-10% of Premium members upgrade to Expert within 12 months
+   663→
+   664→    H3: Stage 5: Retention (All Tiers)
+   665→      H4: Weekly content newsletter (maintains engagement)
+   666→      H4: Monthly "New This Month" digest
+   667→      H4: Quarterly member survey (feedback loop)
+   668→      H4: Annual usage report ("You accessed X reports this year")
+   669→      H4: Churn prevention: Exit survey + retention offer for canceling members
+   670→      H4: Target: <5% monthly churn for Premium, <2% for Expert
+   671→
+   672→  H2: Upgrade Trigger Design [^235^][^239^]
+   673→    H3: Feature Gates (visible but locked)
+   674→      H4: Free user sees "Studies" section with titles and 2-sentence summaries
+   675→      H4: "Upgrade to Intelligence Member for full access" — clear CTA
+   676→      H4: "See what Premium members accessed this week" — social proof [R-081]
+   677→    H3: Usage Limit Gates
+   678→      H4: Free: 3 report previews per month (counter shown)
+   679→      H4: Basic: 5 briefing views per month (soft limit with upgrade prompt)
+   680→    H3: Quality Gates
+   681→      H4: Free report: Abstract only, "Intelligence Members see the full analysis"
+   682→      H4: vAvatar: 30-sec preview, "Watch the full briefing as a Premium member"
+   683→    H3: Time Gates
+   684→      H4: Early access: Expert gets it now, others wait 48-72 hours
+   685→      H4: Breaking news: Expert gets real-time alert, others get next-day summary
+   686→
+   687→  H2: Email Campaign Sequences
+   688→    H3: Free → Basic Sequence
+   689→      H4: Day 0: Welcome email + "Here's what you can access" + "See what Basic gets you"
+   690→      H4: Day 3: "Most popular report this week" (with abstract + upgrade CTA)
+   691→      H4: Day 7: "Your free preview limit reset" + vAvatar preview
+   692→      H4: Day 14: "Join 2,000+ Core Members" (social proof) + 50% off first month
+   693→      H4: Day 30: Monthly digest + upgrade offer
+   694→      H4: Ongoing: Weekly content digest with upgrade CTAs
+   695→    H3: Basic → Premium Sequence
+   696→      H4: Day 0 (post-upgrade): Welcome to Core Member + orientation guide
+   697→      H4: Day 7: "Unlock your first Study" — drive to Premium-gated content
+   698→      H4: Day 14: "Watch your first vAvatar briefing" — video content highlight
+   699→      H4: Monthly: "This month as a Basic member" usage summary + Premium preview
+   700→      H4: Trigger: After 5+ "upgrade to see more" clicks → targeted Premium offer
+   701→    H3: Premium → Expert Sequence
+   702→      H4: Trigger: High engagement (top 10% of Premium users by session count)
+   703→      H4: Personal email from SRC Director: "You've been our most engaged member..."
+   704→      H4: Offer: Complimentary Expert consultation call (value demonstration)
+   705→      H4: Follow-up: Post-call upgrade offer with first-month discount
+   706→```
+   707→
+   708→---
+   709→
+   710→## 3.8 Deliverable 8: Corporate Membership Architecture
+   711→
+   712→### Hierarchical Structure
+   713→
+   714→```
+   715→H1: Corporate & Institutional Membership
+   716→  H2: Rationale
+   717→    H3: Corporate clients represent 60-70% of think tank revenue (CFR, Chatham House model) [^133^][^418^]
+   718→    H3: B2B subscription model offers higher LTV and lower churn than individual
+   719→    H3: Swiss corporate base (Zug = crypto/tech hub) represents strategic opportunity
+   720→    H3: Chatham House corporate members include BP, Apple, McKinsey, UBS [^418^]
+   721→    H3: CFR corporate program: 120+ companies across all sectors [^133^]
+   722→
+   723→  H2: Corporate Tier Structure
+   724→    H3: Tier 1: "Corporate Standard" — CHF 4,900/year
+   725→      H4: Seats: 5 individual user accounts
+   726→      H4: Content: Equivalent to Premium tier for all users
+   727→      H4: Admin dashboard: User management, usage analytics
+   728→      H4: Shared briefings: Company-specific executive summaries (quarterly)
+   729→      H4: Event access: 2 seats at SRC in-person events
+   730→      H4: Positioning: "Intelligence for your team"
+   731→
+   732→    H3: Tier 2: "Corporate Premium" — CHF 9,900/year
+   733→      H4: Seats: 15 individual user accounts
+   734→      H4: Content: Equivalent to Expert tier for all users (except 1:1 calls)
+   735→      H4: Expert access: 2 quarterly 1:1 analyst consultations (for team leads)
+   736→      H4: Bespoke briefings: Monthly company-tailored intelligence brief (1,000 words)
+   737→      H4: Event access: 5 seats at SRC in-person events + VIP reception
+   738→      H4: Dedicated account manager
+   739→      H4: Annual team intelligence workshop (half-day, virtual)
+   740→      H4: Positioning: "Strategic intelligence partnership"
+   741→
+   742→    H3: Tier 3: "Corporate Strategic" — CHF 19,900/year
+   743→      H4: Seats: Unlimited user accounts
+   744→      H4: Content: Full Expert tier access for all users
+   745→      H4: Expert access: 6 quarterly 1:1 analyst consultations + annual in-person session
+   746→      H4: Bespoke research: Up to 6 custom research projects per year (2,000 words each)
+   747→      H4: Bespoke briefings: Weekly company-tailored intelligence brief
+   748→      H4: Event access: Unlimited seats + invitation to exclusive CEO/Board briefings
+   749→      H4: Co-branding: SRC logo on corporate materials ("In partnership with SRC")
+   750→      H4: Research collaboration: Input on SRC research agenda + joint publication opportunities
+   751→      H4: Annual Chatham House Rule dinner with SRC leadership (in-person, Zug)
+   752→      H4: Positioning: "Your embedded intelligence partner"
+   753→
+   754→  H2: Special Institutional Tiers
+   755→    H3: Academic Institution — CHF 2,900/year
+   756→      H4: Modelled on Chatham House Academic tier [^33^]
+   757→      H4: Seats: Unlimited campus-wide IP authentication
+   758→      H4: Content: Premium tier equivalent
+   759→      H4: Student discount: All enrolled students get 50% off individual membership
+   760→      H4: PhD candidates: Free individual membership (verification required)
+   761→      H4: Guest lectures: 2 SRC analyst guest lectures per year (virtual)
+   762→
+   763→    H3: Government/NGO — CHF 3,900/year
+   764→      H4: Modelled on Chatham House NGO tier [^33^]
+   765→      H4: Seats: 10 user accounts
+   766→      H4: Content: Premium tier equivalent
+   767→      H4: Event discount: 50% off all SRC conferences and events
+   768→      H4: Flexible pass: Any 1 person can attend events + bring guest (space permitting)
+   769→      H4: Policy briefings: Quarterly tailored briefings for public sector context
+   770→
+   771→  H2: Corporate Conversion Strategy
+   772→    H3: Bottom-up adoption: Individual users join, demonstrate value, then corporate license
+   773→    H3: Direct outreach: Targeted sales to C-suite and risk management teams
+   774→    H3: Pilot program: 30-day corporate trial with 3 seats
+   775→    H3: ROI calculator: "Compare to Oxford Analytica at $10K-$20K/year"
+   776→    H3: Case studies: Anonymous use cases from existing corporate clients
+   777→```
+   778→
+   779→---
+   780→
+   781→## 3.9 Deliverable 9: Implementation Roadmap
+   782→
+   783→### Hierarchical Structure
+   784→
+   785→```
+   786→H1: Implementation Roadmap
+   787→  H2: Phase 1: Foundation (Months 1-2)
+   788→    H3: Technical Infrastructure
+   789→      H4: M1-W1-2: Select and configure membership management platform (WordPress/Auth0/Stripe)
+   790→      H4: M1-W2-4: Implement tiered access control system (entitlements engine)
+   791→      H4: M1-W3-4: Build content gating logic (abstract vs. full content rules)
+   792→      H4: M1-W4: Set up Stripe payment processing with CHF support
+   793→      H4: M2-W1-2: Implement subscription management (upgrade/downgrade/cancel flows)
+   794→      H4: M2-W2-4: Build pricing page with psychological pricing display
+   795→      H4: M2-W3-4: Create member onboarding email sequences
+   796→    H3: Content Preparation
+   797→      H4: M1-W1-4: Audit existing 19 reports → classify for gating (Base/Expanded/Complete)
+   798→      H4: M1-W2-4: Write report abstracts for Base Version (free tier)
+   799→      H4: M2-W1-2: Create "upgrade" CTA copy and contextual messaging
+   800→      H4: M2-W2-4: Prepare first 2 Studies (Premium-gated content)
+   801→    H3: Free Tier Launch
+   802→      H4: M2-W4: Launch Free + Basic tiers (MVP)
+   803→
+   804→  H2: Phase 2: Premium Launch (Months 3-4)
+   805→    H3: Premium Tier Activation
+   806→      H4: M3-W1-2: Launch Premium tier with Studies + Briefings
+   807→      H4: M3-W2-3: Activate 10-day free trial mechanism
+   808→      H4: M3-W3-4: Launch Premium newsletter
+   809→      H4: M4-W1-2: Implement conversion analytics and A/B testing framework
+   810→    H3: vAvatar Video Section
+   811→      H4: M3-W1-2: Select AI avatar platform (Synthesia/HeyGen/D-ID)
+   812→      H4: M3-W2-4: Produce pilot vAvatar Weekly Briefing (test episode)
+   813→      H4: M4-W1-2: Launch vAvatar Weekly Briefing (Premium+)
+   814→      H4: M4-W2-4: Produce first 2 vAvatar Deep Dives
+   815→      H4: M4-W3-4: Launch vAvatar Interview pilot
+   816→
+   817→  H2: Phase 3: Expert & Corporate Tiers (Months 5-6)
+   818→    H3: Expert Tier Launch
+   819→      H4: M5-W1-2: Build Expert tier application and vetting workflow
+   820→      H4: M5-W2-3: Set up video call booking system (Calendly/integration)
+   821→      H4: M5-W3-4: Train SRC analysts on Expert consultation protocol
+   822→      H4: M5-W4: Launch Expert tier (invitation-only initially)
+   823→      H4: M6-W1-2: Implement Breaking News alert system (push + email + SMS)
+   824→      H4: M6-W2-4: Launch Early Access content pipeline (48-72h ahead)
+   825→    H3: Corporate Membership
+   826→      H4: M5-W1-2: Build corporate admin dashboard
+   827→      H4: M5-W2-3: Create corporate pricing page and application form
+   828→      H4: M6-W1-2: Launch Corporate Standard tier
+   829→      H4: M6-W2-4: Outreach to 20 target corporate prospects in Zug/Zurich
+   830→
+   831→  H2: Phase 4: Optimization (Months 7-12)
+   832→    H3: Growth & Iteration
+   833→      H4: M7-8: A/B test pricing page, email sequences, upgrade triggers
+   834→      H4: M7-9: Optimize vAvatar content based on engagement data
+   835→      H4: M8-10: Expand Studies library to 12+ deep-dive analyses
+   836→      H4: M9-12: Launch referral program for member acquisition
+   837→      H4: M10-12: Consider student/young professional tier expansion
+   838→    H3: Advanced Features
+   839→      H4: M7-9: Build member discussion forums
+   840→      H4: M8-10: Launch mobile app (iOS + Android)
+   841→      H4: M9-11: Implement AI-powered content recommendations
+   842→      H4: M10-12: Add content download/offline access features
+   843→
+   844→  H2: Success Metrics (KPIs)
+   845→    H3: Acquisition: 10,000 free registrations by Month 12
+   846→    H3: Conversion: 5-8% free-to-paid conversion rate
+   847→    H3: Revenue: CHF 500K ARR by Month 12
+   848→    H3: Retention: <5% monthly churn (Premium), <2% (Expert)
+   849→    H3: Engagement: 60%+ monthly active members
+   850→    H3: NPS: 50+ Net Promoter Score among paying members
+   851→```
+   852→
+   853→---
+   854→
+   855→## 3.10 Deliverable 10: Competitive Positioning
+   856→
+   857→### Hierarchical Structure
+   858→
+   859→```
+   860→H1: Competitive Positioning Analysis
+   861→  H2: Competitive Landscape Overview
+   862→    H3: Positioning Statement: "The world's most accessible expert-validated security intelligence — Swiss precision at Swiss pricing"
+   863→    H3: Differentiation: AI-Augmented Speed + Expert-Validated Rigour + Swiss Neutrality
+   864→    H3: Target segments: Individual professionals, corporate risk teams, government agencies, academic institutions
+   865→
+   866→  H2: Competitive Comparison Matrix (Table: src_competitive_positioning)
+   867→
+   868→| Dimension | SRC (Proposed) | Oxford Analytica | Stratfor/RANE | Chatham House | CFR |
+   869→|---|---|---|---|---|---|
+   870→| Individual Annual Price | CHF 0-2,999 | $10K-$20K | $2K-$5K | GBP 195-345 | $100K (corp) |
+   871→| Free Content Tier | YES (extensive) | NO | Limited | NO | NO |
+   872→| Breaking News Alerts | Expert tier | YES (enterprise) | YES | NO | NO |
+   873→| 1:1 Expert Access | Expert tier | YES (enterprise) | Limited | Events only | Events only |
+   874→| Video Content | vAvatar (AI) | NO | YES | Limited | YES |
+   875→| Swiss Neutrality | YES | NO | NO | NO | NO |
+   876→| AI-Augmented Research | YES | NO | YES | NO | NO |
+   877→| Early Access | Expert (48-72h) | YES | YES | NO | NO |
+   878→| Corporate Tiers | YES (CHF 4.9K-19.9K) | YES ($10K-$20K) | YES ($5K-$50K) | YES (GBP 5K+) | YES ($50K-$100K) |
+   879→| Content Archive | Unlimited (Expert) | YES | YES | YES (eLibrary) | YES |
+   880→| Multilingual | EN/DE/FR/IT | EN | EN | EN | EN |
+   881→| Focus Areas | 6 pillars | Broad | Broad | Broad | US-centric |
+   882→
+   883→  H2: Key Competitive Advantages
+   884→    H3: 1. Price Accessibility
+   885→      H4: Entry point at CHF 0 vs. competitors requiring payment
+   886→      H4: Full Premium at CHF 799/year vs. Oxford Analytica at $10K-$20K
+   887→      H4: Expert tier at CHF 2,999/year — 70-85% below comparable intelligence services
+   888→      H4: Positioning: "Democratizing expert intelligence"
+   889→    H3: 2. AI-Augmented Differentiation
+   890→      H4: vAvatar video section — unique in think tank space
+   891→      H4: AI research engine = faster coverage of breaking developments
+   892→      H4: "AI drafts are the starting point, never the final word" — trust signal
+   893→    H3: 3. Swiss Neutrality Premium
+   894→      H4: Non-partisan positioning in polarized information environment
+   895→      H4: Swiss base = trust, privacy, security associations
+   896→      H4: D-A-CH regional focus fills geographic gap in global think tank landscape
+   897→    H3: 4. Content Tiering Innovation
+   898→      H4: Reports with 3 access levels (Base/Expanded/Complete) — unique granularity
+   899→      H4: Free opinions as acquisition engine without paywall friction
+   900→      H4: Hybrid freemium + free trial model optimized for conversion
+   901→
+   902→  H2: Positioning Strategy
+   903→    H3: Against Oxford Analytica: "Same expert rigour, 80% less cost, plus AI video"
+   904→    H3: Against Stratfor/RANE: "Swiss neutrality, not US-centric; expert access at every tier"
+   905→    H3: Against Chatham House/CFR: "No paywall on opinions — intelligence for everyone"
+   906→    H3: Against Premium Media (FT/Economist): "Security-specialized intelligence, not general news"
+   907→    H3: Against Free Media: "Expert-validated, not algorithm-driven; AI-augmented, not AI-only"
+   908→
+   909→  H2: Risk Mitigation
+   910→    H3: Perception risk: Low price could signal low quality
+   911→      H4: Mitigation: Emphasize "expert-validated rigour" in all messaging
+   912→      H4: Mitigation: Show Oxford Analytica price as anchor ("CHF 2,999 vs. $20,000")
+   913→      H4: Mitigation: Expert tier application process maintains exclusivity
+   914→    H3: Free rider risk: Too much free content reduces conversion
+   915→      H4: Mitigation: Free = abstracts only, never full analysis [R-076][R-080]
+   916→      H4: Mitigation: Show what Premium members see ("5,000+ words of analysis behind this")
+   917→      H4: Target: 2-5% conversion is healthy for freemium model [R-077]
+   918→    H3: Expert tier exclusivity risk: Too many Expert members dilutes value
+   919→      H4: Mitigation: Application/vetting process for Expert tier
+   920→      H4: Mitigation: Cap Expert Briefings at 25 participants
+   921→      H4: Mitigation: Qualitative criteria for Expert acceptance
+   922→    H3: Content production risk: Need consistent output across tiers
+   923→      H4: Mitigation: AI-augmented production workflow
+   924→      H4: Mitigation: vAvatar reduces video production from days to hours
+   925→      H4: Mitigation: Quarterly content calendar with buffer
+   926→```
+   927→
+   928→---
+   929→
+   930→# Part IV: Technical Requirements
+   931→
+   932→## 4.1 Platform Architecture
+   933→
+   934→| Requirement ID | Requirement | Priority |
+   935→|---|---|---|
+   936→| T-001 | Tier-based access control (entitlements engine) | Must-Have |
+   937→| T-002 | Stripe payment processing with CHF currency support | Must-Have |
+   938→| T-003 | Subscription lifecycle management (upgrade/downgrade/cancel/renew) | Must-Have |
+   939→| T-004 | Content gating engine (abstract vs. full vs. locked) | Must-Have |
+   940→| T-005 | Video streaming infrastructure (HLS adaptive) | Must-Have |
+   941→| T-006 | AI avatar video generation integration | Must-Have |
+   942→| T-007 | Breaking news alert system (push + email + SMS) | Must-Have |
+   943→| T-008 | Member analytics and engagement tracking | Must-Have |
+   944→| T-009 | A/B testing framework for pricing and messaging | Should-Have |
+   945→| T-010 | Corporate admin dashboard with user management | Should-Have |
+   946→| T-011 | Mobile app (iOS + Android) for Premium+ tiers | Should-Have |
+   947→| T-012 | Content search with full-text indexing | Must-Have |
+   948→| T-013 | Newsletter engine with tier-based segmentation | Must-Have |
+   949→| T-014 | Member discussion forums | Should-Have |
+   950→| T-015 | Referral tracking system | Nice-to-Have |
+   951→| T-016 | CRM integration for Expert tier member management | Should-Have |
+   952→| T-017 | Calendly/video booking integration for Expert calls | Must-Have |
+   953→| T-018 | Multilingual support (EN/DE/FR/IT) for all member-facing content | Must-Have |
+   954→
+   955→## 4.2 Content Production Requirements
+   956→
+   957→| Requirement ID | Requirement | Frequency | Priority |
+   958→|---|---|---|---|
+   959→| C-001 | Opinions (free tier content) | 2-3 per week | Must-Have |
+   960→| C-002 | Reports — full versions (tiered access) | 2-3 per month | Must-Have |
+   961→| C-003 | Studies (deep-dive, Premium+) | 1-2 per month | Must-Have |
+   962→| C-004 | Exclusive Briefings (Premium+) | 2-3 per month | Must-Have |
+   963→| C-005 | vAvatar Weekly Briefing | Weekly (Monday) | Must-Have |
+   964→| C-006 | vAvatar Breaking Alert | As needed (<5/month) | Must-Have |
+   965→| C-007 | vAvatar Deep Dive | Bi-weekly | Must-Have |
+   966→| C-008 | vAvatar Interview | Monthly | Should-Have |
+   967→| C-009 | vAvatar Expert Exclusive (Expert tier) | Monthly | Should-Have |
+   968→| C-010 | Weekly newsletter (all tiers, tier-appropriate content) | Weekly | Must-Have |
+   969→| C-011 | Premium analysis newsletter | Weekly | Must-Have |
+   970→| C-012 | Breaking news alerts (Expert tier) | As needed | Must-Have |
+   971→| C-013 | Week Ahead preview (Expert tier) | Weekly (Sunday) | Should-Have |
+   972→
+   973→---
+   974→
+   975→# Part V: Summary of All Requirements
+   976→
+   977→## 5.1 Requirement Count Summary
+   978→
+   979→| Category | Count | Breakdown |
+   980→|---|---|---|
+   981→| Explicit Requirements | 25 | R-001 through R-025 |
+   982→| Implicit — Think Tank Models | 18 | R-026 through R-043 |
+   983→| Implicit — Intelligence Services | 6 | R-044 through R-050 |
+   984→| Implicit — Premium Media | 17 | R-051 through R-067 |
+   985→| Implicit — Pricing Psychology | 8 | R-068 through R-075 |
+   986→| Implicit — Freemium Best Practices | 7 | R-076 through R-083 |
+   987→| Technical Requirements | 18 | T-001 through T-018 |
+   988→| Content Requirements | 13 | C-001 through C-013 |
+   989→| **TOTAL** | **112** | |
+   990→
+   991→## 5.2 Deliverables Checklist
+   992→
+   993→| # | Deliverable | Status | Sections |
+   994→|---|---|---|---|
+   995→| 1 | 4-Tier Membership Model (Free→Basic→Premium→Expert) | Complete | 3.1 |
+   996→| 2 | Content Gating Architecture | Complete | 3.2 |
+   997→| 3 | Pricing Structure with CHF Pricing | Complete | 3.3 |
+   998→| 4 | Feature Matrix per Tier | Complete | 3.4 (Table) |
+   999→| 5 | Expert Tier Deep Specification | Complete | 3.5 |
+  1000→| 6 | vAvatar Video Section Strategy | Complete | 3.6 |
+  1001→| 7 | Conversion Funnel Design | Complete | 3.7 |
+  1002→| 8 | Corporate Membership Architecture | Complete | 3.8 |
+  1003→| 9 | Implementation Roadmap | Complete | 3.9 |
+  1004→| 10 | Competitive Positioning | Complete | 3.10 |
+  1005→
+  1006→## 5.3 Critical Success Factors
+  1007→
+  1008→1. **Free tier must deliver genuine value** — Opinions must be substantive enough to build habit, while leaving clear gap for paid tiers [R-076]
+  1009→2. **Price anchoring is critical** — Display Expert tier first to make Premium appear as clear value choice [R-072]
+  1010→3. **Premium is the revenue engine** — 70%+ of revenue will come from Premium tier; conversion optimization is paramount
+  1011→4. **Expert tier exclusivity must be preserved** — Application/vetting process maintains perceived value [R-026]
+  1012→5. **vAvatar is the differentiator** — First think tank with AI video intelligence; early mover advantage
+  1013→6. **Swiss neutrality is the trust signal** — All messaging must reinforce non-partisan positioning
+  1014→7. **Corporate tiers drive scale revenue** — Individual-to-corporate upgrade path must be frictionless
+  1015→8. **Content velocity must match tier promises** — Under-delivering on content breaks the model
+  1016→
+  1017→---
+  1018→
+  1019→## Sources Referenced
+  1020→
+  1021→| Source | Type | Key Insight |
+  1022→|---|---|---|
+  1023→| SRC Advisory (src-advisory.ch) | Primary | Current website structure, 6 focus areas, existing 10-day trial |
+  1024→| Council on Foreign Relations (cfr.org) [^133^] | Think Tank | $50K-$100K corporate tiers, ~1,000 events/year, CEO Summit |
+  1025→| Chatham House (chathamhouse.org) [^29^][^33^] | Think Tank | GBP 195-345 individual, 120+ events, eLibrary, corporate risk briefings |
+  1026→| Oxford Analytica [^79^][^121^] | Intelligence | $10K-$20K subscriptions, qualitative geopolitical forecasting |
+  1027→| Financial Times (ft.com) [^48^][^1071^] | Media | $75/month Premium, 50% first-year discount, hard paywall |
+  1028→| The Economist (economist.com) [^52^] | Media | GBP 279/year, first month free, bundled NYT access, audio features |
+  1029→| Foreign Affairs [^143^][^226^] | Media | $39.99 digital, 3 free articles, student discounts, group subscriptions |
+  1030→| Foreign Policy [^1073^] | Media | $149.99 annual, 67% off quarterly trial, FP Insider tier |
+  1031→| Psychological Pricing (ewm.swiss) [^749^] | Research | CHF charm pricing, anchoring, tiered pricing, 30% conversion lift |
+  1032→| Psychological Pricing (edana.ch) [^750^] | Research | Swiss UCA/PIO compliance, bilingual display, decoy pricing |
+  1033→| Freemium Best Practices (adapty.io) [^235^] | Research | Free tier value design, upgrade triggers, 2-5% conversion targets |
+  1034→| RevenueCat [^1076^][^1079^] | Research | Entitlements, paywall optimization, price anchoring principles |
+  1035→| IISS Ghana (iissgh.org) [^31^] | Think Tank | Fellowship tier, student membership, professional certification |
+  1036→| Wikipedia — CFR Members [^25^] | Reference | Corporate membership history, pricing tiers, nomination process |
+  1037→| INSA Online [^1072^] | Think Tank | $300 individual, $2,500-$6,250 corporate, student tier |
+  1038→| onthinktanks.org [^175^] | Research | Freemium model for think tanks, subscription strategies |
+  1039→| Wall Street Prep [^237^] | Research | Freemium conversion funnels, Spotify/LinkedIn case studies |
+  1040→
+  1041→---
+  1042→
+  1043→*Document prepared for SRC Advisory membership model implementation. All pricing subject to market validation and A/B testing.*
+  1044→

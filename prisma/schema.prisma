@@ -8,48 +8,186 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  passwordHash String?
-  trialStart   DateTime?
-  trialEnd     DateTime?
-  isMember     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String?
+  passwordHash         String?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  isMember             Boolean   @default(false)
+  currentTierId        String?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  role                 String    @default("member")
+  phone                String?
+  organization         String?
+  country              String?
+  languagePref         String    @default("en")
+  marketingConsent     Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  currentTier   Tier?          @relation("UserCurrentTier", fields: [currentTierId], references: [id])
+  subscriptions Subscription[]
+  contentShares ContentShare[]
+  savedContents SavedContent[]
+  accessGrants  AccessGrant[]
 }
 
 model Member {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  email     String   @unique
+  id         String   @id @default(cuid())
+  name       String
+  address    String
+  email      String   @unique
   profession String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Report {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   summary     String?
   content     String?
-  type        String   @default("Analysis")
+  type        String    @default("Analysis")
   section     String
-  status      String   @default("pending")
+  status      String    @default("pending")
   sourceRef   String?
-  language    String   @default("en")
+  language    String    @default("en")
   author      String?
   publishedAt DateTime?
   reviewedBy  String?
   reviewedAt  DateTime?
   reviewNote  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  contentShares ContentShare[]
+  savedContents SavedContent[]
+  accessGrants  AccessGrant[]
 
   @@unique([sourceRef, language])
   @@index([section])
   @@index([status])
   @@index([publishedAt])
   @@index([language])
+}
+
+model Tier {
+  id                     String   @id @default(cuid())
+  slug                   String   @unique
+  name                   String
+  description            String?
+  priceMonthlyChf        Decimal  @default(0) @db.Decimal(10, 2)
+  priceAnnualChf         Decimal  @default(0) @db.Decimal(10, 2)
+  maxReportsMonthly      Int?
+  archiveMonths          Int      @default(0)
+  hasPdfDownload         Boolean  @default(false)
+  hasEarlyAccess         Boolean  @default(false)
+  earlyAccessHours       Int      @default(0)
+  hasLiveCalls           Boolean  @default(false)
+  hasBreakingAlerts      Boolean  @default(false)
+  hasBespokeResearch     Boolean  @default(false)
+  bespokeRequestsPerYear Int      @default(0)
+  hasDedicatedManager    Boolean  @default(false)
+  sortOrder              Int      @default(0)
+  isPublic               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  users         User[]         @relation("UserCurrentTier")
+  subscriptions Subscription[]
+  accessGrants  AccessGrant[]
+
+  @@index([slug])
+  @@index([sortOrder])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  tierId               String
+  stripeSubscriptionId String?  @unique
+  stripePriceId        String?
+  stripeStatus         String?
+  billingInterval      String   @default("month")
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  amountChf            Decimal  @default(0) @db.Decimal(10, 2)
+  status               String   @default("active")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier Tier @relation(fields: [tierId], references: [id])
+
+  @@index([userId])
+  @@index([tierId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([currentPeriodEnd])
+}
+
+model ContentShare {
+  id             String   @id @default(cuid())
+  userId         String
+  reportId       String
+  shareChannel   String
+  shareUrl       String   @unique
+  shareToken     String   @unique
+  recipientEmail String?
+  recipientCount Int      @default(1)
+  clicks         Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reportId])
+  @@index([shareToken])
+  @@index([shareChannel])
+  @@index([createdAt])
+}
+
+model SavedContent {
+  id        String   @id @default(cuid())
+  userId    String
+  reportId  String
+  note      String?
+  folder    String   @default("default")
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reportId])
+  @@index([userId])
+  @@index([folder])
+  @@index([createdAt])
+}
+
+model AccessGrant {
+  id            String    @id @default(cuid())
+  userId        String
+  grantType     String
+  grantedTierId String?
+  startsAt      DateTime
+  expiresAt     DateTime?
+  isPermanent   Boolean   @default(false)
+  reportId      String?
+  grantedBy     String
+  reason        String
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier   Tier?   @relation(fields: [grantedTierId], references: [id])
+  report Report? @relation(fields: [reportId], references: [id])
+
+  @@index([userId])
+  @@index([grantType])
+  @@index([status])
+  @@index([expiresAt])
 }

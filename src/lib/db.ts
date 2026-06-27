@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Tier } from "@prisma/client";
 
 // --- Prisma Singleton ---
 const globalForPrisma = globalThis as unknown as {
@@ -79,4 +79,113 @@ export function validateAdminKey(request: Request): boolean {
 
   const token = authHeader.replace("Bearer ", "");
   return token === adminKey;
+}
+
+// --- Tier helpers ---
+
+/** Look up a tier by its slug */
+export async function getTierBySlug(slug: string): Promise<Tier | null> {
+  return prisma.tier.findUnique({ where: { slug } });
+}
+
+/**
+ * Resolve a user's effective tier.
+ * Priority: currentTierId > active subscription > active access grant > observer fallback
+ */
+export async function getUserTier(userId: string): Promise<Tier | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      currentTierId: true,
+      subscriptions: {
+        where: { status: "active", currentPeriodEnd: { gte: new Date() } },
+        orderBy: { currentPeriodEnd: "desc" },
+        take: 1,
+        include: { tier: true },
+      },
+      accessGrants: {
+        where: {
+          status: "active",
+          OR: [
+            { isPermanent: true },
+            { expiresAt: { gte: new Date() } },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: { tier: true },
+      },
+    },
+  });
+
+  if (!user) return null;
+
+  // 1. Explicitly assigned tier
+  if (user.currentTierId) {
+    const tier = await prisma.tier.findUnique({ where: { id: user.currentTierId } });
+    if (tier) return tier;
+  }
+
+  // 2. Active subscription tier
+  if (user.subscriptions.length > 0 && user.subscriptions[0].tier) {
+    return user.subscriptions[0].tier;
+  }
+
+  // 3. Active access grant tier
+  if (user.accessGrants.length > 0 && user.accessGrants[0].tier) {
+    return user.accessGrants[0].tier;
+  }
+
+  // 4. Fallback: observer tier
+  return getTierBySlug("observer");
+}
+
+export type AccessResult = {
+  access: "full" | "preview" | "denied";
+  reason: string;
+};
+
+/**
+ * Determine whether a user can access a piece of content.
+ * - If the report has no minTierId → full access for everyone.
+ * - Unauthenticated users get preview access for tier-gated content.
+ * - Authenticated users are compared against the report's minTierId by sortOrder.
+ */
+export async function canAccessContent(
+  userId: string | null,
+  report: { minTierId?: string; publishedAt?: string }
+): Promise<AccessResult> {
+  // No tier gate on the report → full access
+  if (!report.minTierId) {
+    return { access: "full", reason: "No tier restriction" };
+  }
+
+  // Not authenticated → preview only
+  if (!userId) {
+    return { access: "preview", reason: "Authentication required to access this content" };
+  }
+
+  const [userTier, reportMinTier] = await Promise.all([
+    getUserTier(userId),
+    prisma.tier.findUnique({ where: { id: report.minTierId } }),
+  ]);
+
+  if (!reportMinTier) {
+    // minTierId references a non-existent tier → grant full access
+    return { access: "full", reason: "No valid tier restriction" };
+  }
+
+  if (!userTier) {
+    return { access: "denied", reason: "Unable to determine user tier" };
+  }
+
+  // Compare by sortOrder — higher sortOrder = higher tier
+  if (userTier.sortOrder >= reportMinTier.sortOrder) {
+    return { access: "full", reason: "Tier requirement met" };
+  }
+
+  return {
+    access: "preview",
+    reason: `Requires ${reportMinTier.name} tier or higher`,
+  };
 }
