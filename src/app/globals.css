@@ -261,3 +261,109 @@
 .prose-src tr:last-child td {
   border-bottom: none;
 }
+
+/* ============================================
+   SRC Report Design System — charts, figures, callouts
+   Tokens scoped to .prose-src so the board shell/nav/footer/membership UI
+   is untouched. Palette aligns with the site (#0A2540 ink, #E8272C accent)
+   and adds chart-series colours from the Design Director's spec.
+   ============================================ */
+.prose-src {
+  --src-ink: #0A2540;
+  --src-accent: #0A2540;
+  --src-accent-mid: #2e6da4;
+  --src-accent-light: #E7EEF5;
+  --src-highlight: #E8272C;
+  --src-positive: #2d6a4f;
+  --src-warning: #b8860b;
+  --src-neutral: #F4F6F9;
+  --src-rule: #D8DEE6;
+  --src-white: #FFFFFF;
+  overflow-wrap: break-word;
+}
+
+/* GFM table enhancements — striped rows + accent header rule */
+.prose-src thead th {
+  border-bottom: 2px solid var(--src-accent-mid);
+}
+.prose-src tbody tr:nth-child(even) td {
+  background: var(--src-neutral);
+}
+.prose-src td,
+.prose-src th {
+  border: 1px solid var(--src-rule);
+  vertical-align: top;
+}
+.prose-src table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.prose-src caption {
+  caption-side: bottom;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+/* Inline SVG chart figure (Format 2) */
+.prose-src .src-chart {
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+.prose-src .src-chart svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Image figure (Format 3) */
+.prose-src .src-figure {
+  margin: 2rem 0;
+}
+.prose-src .src-figure img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 0.25rem;
+}
+
+/* Shared caption styles */
+.prose-src .src-chart figcaption,
+.prose-src .src-figure figcaption {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+.prose-src .src-source {
+  display: block;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* Callout / aside blocks (Format 4) */
+.prose-src .src-callout {
+  border-left: 4px solid var(--src-accent-mid);
+  background: var(--src-neutral);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+.prose-src .src-callout--key-finding {
+  border-left-color: var(--src-highlight);
+}
+.prose-src .src-callout--warning {
+  border-left-color: var(--src-warning);
+  background: #fffbf0;
+}
+.prose-src .src-callout--definition {
+  border-left-color: var(--src-accent-mid);
+}
+.prose-src .src-callout p {
+  margin: 0 0 0.5rem;
+}
+.prose-src .src-callout p:last-child {
+  margin-bottom: 0;
+}
