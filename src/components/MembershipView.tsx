@@ -5,6 +5,7 @@ import {
   Star, Crown, ArrowRight, Check, Lock, BookOpen, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AuthDialog } from "@/components/AuthDialog";
 
 /* ── Billing toggle ── */
 type BillingCycle = "monthly" | "annual";
@@ -74,6 +75,7 @@ const FEATURE_ROWS: FeatureRow[] = [
 
 export function MembershipView() {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
+  const [authOpen, setAuthOpen] = useState(false);
 
   const isAnnual = billing === "annual";
 
@@ -153,7 +155,7 @@ export function MembershipView() {
       </section>
 
       {/* ═══════ PRICING CARDS ═══════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 overflow-visible">
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 overflow-visible">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-0 overflow-visible">
 
           {/* ── ESSENTIAL ── */}
@@ -186,9 +188,9 @@ export function MembershipView() {
             <Button
               variant="outline"
               className="w-full mb-8 text-sm"
-              onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry%20-%20Essential", "_self")}
+              onClick={() => setAuthOpen(true)}
             >
-              Get Started
+              Start Free Trial
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -234,7 +236,7 @@ export function MembershipView() {
               )}
             </div>
 
-            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm">
+            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => setAuthOpen(true)}>
               Get Started
             </Button>
 
@@ -397,7 +399,7 @@ export function MembershipView() {
                 across our six focus areas.
               </p>
             </div>
-            <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white text-sm flex-shrink-0 gap-2">
+            <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white text-sm flex-shrink-0 gap-2" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>
               View Membership Plans <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
@@ -511,6 +513,7 @@ export function MembershipView() {
               <Button
                 variant="outline"
                 className="border-white/20 text-[#0A2540] bg-white hover:bg-white/90 hover:text-[#0A2540]"
+                onClick={() => setAuthOpen(true)}
               >
                 Start Free Trial
               </Button>
@@ -518,6 +521,13 @@ export function MembershipView() {
           </div>
         </div>
       </section>
+
+      {/* Auth Dialog for trial / premium sign-up */}
+      <AuthDialog
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        defaultMode="register"
+      />
     </div>
   );
 }
