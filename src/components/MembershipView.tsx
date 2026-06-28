@@ -6,9 +6,37 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
+import { useLang } from "@/components/LangProvider";
 
 /* ── Billing toggle ── */
 type BillingCycle = "monthly" | "annual";
+
+/* ── Feature key mapping ── */
+const FEAT_KEYS: string[] = [
+  "opinions", "exec-summaries", "newsletter", "standard-reports",
+  "daily-brief", "pdf", "archive", "video", "early", "forecasts",
+  "studies", "live-calls", "breaking", "summit", "bespoke", "account-director",
+];
+
+/* ── Feature access matrix ── */
+const FEAT_ACCESS: Record<string, { essential: boolean; premium: boolean; expert: boolean }> = {
+  "opinions":         { essential: true,  premium: true,  expert: true  },
+  "exec-summaries":   { essential: true,  premium: true,  expert: true  },
+  "newsletter":       { essential: true,  premium: true,  expert: true  },
+  "standard-reports": { essential: true,  premium: true,  expert: true  },
+  "daily-brief":      { essential: false, premium: true,  expert: true  },
+  "pdf":              { essential: false, premium: true,  expert: true  },
+  "archive":          { essential: false, premium: true,  expert: true  },
+  "video":            { essential: false, premium: true,  expert: true  },
+  "early":            { essential: false, premium: true,  expert: true  },
+  "forecasts":        { essential: false, premium: true,  expert: true  },
+  "studies":          { essential: false, premium: true,  expert: true  },
+  "live-calls":       { essential: false, premium: false, expert: true  },
+  "breaking":         { essential: false, premium: false, expert: true  },
+  "summit":           { essential: false, premium: false, expert: true  },
+  "bespoke":          { essential: false, premium: false, expert: true  },
+  "account-director": { essential: false, premium: false, expert: true  },
+};
 
 /* ── Mock studies ── */
 const MOCK_STUDIES = [
@@ -46,34 +74,8 @@ const MOCK_STUDIES = [
   },
 ];
 
-/* ── Tier feature rows ── */
-interface FeatureRow {
-  label: string;
-  essential: string | boolean;
-  premium: string | boolean;
-  expert: string | boolean;
-}
-
-const FEATURE_ROWS: FeatureRow[] = [
-  { label: "Opinions & Briefs", essential: true, premium: true, expert: true },
-  { label: "Executive Summaries", essential: true, premium: true, expert: true },
-  { label: "Weekly Newsletter", essential: true, premium: true, expert: true },
-  { label: "Standard Reports (2,000–4,000 words)", essential: true, premium: true, expert: true },
-  { label: "Daily Intelligence Brief", essential: false, premium: true, expert: true },
-  { label: "PDF Downloads", essential: false, premium: true, expert: true },
-  { label: "12-Month Archive", essential: false, premium: true, expert: true },
-  { label: "vAvatar Video Briefings", essential: false, premium: true, expert: true },
-  { label: "Early Access (24h)", essential: false, premium: true, expert: true },
-  { label: "Quarterly Forecasts", essential: false, premium: true, expert: true },
-  { label: "Studies (long-term research)", essential: false, premium: true, expert: true },
-  { label: "Live Analyst Calls", essential: false, premium: false, expert: true },
-  { label: "Breaking News Alerts (<4h)", essential: false, premium: false, expert: true },
-  { label: "Annual Summit Invitation", essential: false, premium: false, expert: true },
-  { label: "Bespoke Research Requests", essential: false, premium: false, expert: true },
-  { label: "Dedicated Account Director", essential: false, premium: false, expert: true },
-];
-
 export function MembershipView() {
+  const { t: tr } = useLang();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
 
@@ -86,36 +88,23 @@ export function MembershipView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Top stats strip */}
           <div className="flex items-center justify-center gap-6 sm:gap-12 lg:gap-16 py-8 sm:py-10">
-            <div className="text-center min-w-0 flex-1">
-              <div className="text-2xl sm:text-3xl font-bold text-primary-foreground tracking-tight">
-                24/7
+            {[
+              { value: "v3.stat1.value", label: "v3.stat1.label" },
+              { value: "v3.stat2.value", label: "v3.stat2.label" },
+              { value: "v3.stat3.value", label: "v3.stat3.label" },
+            ].map((stat, i) => (
+              <div key={stat.label} className="contents">
+                <div className="text-center min-w-0 flex-1">
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-foreground tracking-tight">
+                    {tr(`membership.${stat.value}`)}
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/40 mt-1 truncate">
+                    {tr(`membership.${stat.label}`)}
+                  </div>
+                </div>
+                {i < 2 && <div className="w-px h-10 bg-white/10 flex-shrink-0" />}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/40 mt-1 truncate">
-                Monitoring Cycle
-              </div>
-            </div>
-
-            <div className="w-px h-10 bg-white/10 flex-shrink-0" />
-
-            <div className="text-center min-w-0 flex-1">
-              <div className="text-2xl sm:text-3xl font-bold text-primary-foreground tracking-tight">
-                2x
-              </div>
-              <div className="text-[10px] sm:text-xs font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/40 mt-1">
-                Expert Review
-              </div>
-            </div>
-
-            <div className="w-px h-10 bg-white/10 flex-shrink-0" />
-
-            <div className="text-center min-w-0 flex-1">
-              <div className="text-2xl sm:text-3xl font-bold text-primary-foreground tracking-tight">
-                6
-              </div>
-              <div className="text-[10px] sm:text-xs font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/40 mt-1">
-                Focus Areas
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Billing toggle */}
@@ -125,7 +114,7 @@ export function MembershipView() {
                 !isAnnual ? "text-primary-foreground" : "text-white/40"
               }`}
             >
-              Monthly
+              {tr("membership.toggle.monthly")}
             </span>
             <button
               onClick={() => setBilling(isAnnual ? "monthly" : "annual")}
@@ -143,11 +132,11 @@ export function MembershipView() {
                 isAnnual ? "text-primary-foreground" : "text-white/40"
               }`}
             >
-              Annual
+              {tr("membership.toggle.annual")}
             </span>
             {isAnnual && (
               <span className="text-[10px] font-bold tracking-wider uppercase bg-[#E8272C] text-white px-2 py-0.5 rounded-sm ml-1 whitespace-nowrap">
-                Save 17%
+                {tr("membership.v3.save-badge")}
               </span>
             )}
           </div>
@@ -162,10 +151,10 @@ export function MembershipView() {
           <div className="border border-border p-6 lg:p-8 flex flex-col">
             <div className="mb-6">
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-muted-foreground mb-1">
-                Essential
+                {tr("membership.v3.essential")}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                For professionals who need reliable intelligence and full report access.
+                {tr("membership.v3.essential.desc")}
               </p>
             </div>
 
@@ -175,12 +164,12 @@ export function MembershipView() {
                   CHF {isAnnual ? "24" : "29"}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  /{isAnnual ? "month" : "month"}
+                  {tr("membership.v3.per-month")}
                 </span>
               </div>
               {isAnnual && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  CHF 290/year &middot; billed annually
+                  CHF 290/{tr("membership.v3.young.per-year").replace("/", "")} &middot; {tr("membership.v3.billed-annual")}
                 </p>
               )}
             </div>
@@ -190,14 +179,14 @@ export function MembershipView() {
               className="w-full mb-8 text-sm"
               onClick={() => setAuthOpen(true)}
             >
-              Start Free Trial
+              {tr("membership.v3.start-trial")}
             </Button>
 
             <ul className="space-y-3 flex-1">
-              {FEATURE_ROWS.filter((f) => f.essential).map((f) => (
-                <li key={f.label} className="flex items-start gap-2.5 text-sm">
+              {FEAT_KEYS.filter((k) => FEAT_ACCESS[k]?.essential).map((k) => (
+                <li key={k} className="flex items-start gap-2.5 text-sm">
                   <Check className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="text-muted-foreground">{tr(`membership.v3.feat.${k}`)}</span>
                 </li>
               ))}
             </ul>
@@ -208,15 +197,15 @@ export function MembershipView() {
             {/* Badge */}
             <div className="absolute -top-3.5 left-6 flex items-center gap-1.5 bg-[#E8272C] text-white text-[10px] font-bold tracking-[0.12em] uppercase px-3 py-1 rounded-sm z-20">
               <Star className="w-3 h-3" />
-              Most Popular
+              {tr("membership.v3.most-popular")}
             </div>
 
             <div className="mb-6 mt-2">
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-white/50 mb-1">
-                Premium
+                {tr("membership.v3.premium")}
               </h3>
               <p className="text-sm text-white/60 leading-relaxed">
-                For leaders and decision-makers who require early signals, exclusive briefings, and strategic depth.
+                {tr("membership.v3.premium.desc")}
               </p>
             </div>
 
@@ -226,25 +215,25 @@ export function MembershipView() {
                   CHF {isAnnual ? "66" : "79"}
                 </span>
                 <span className="text-sm text-white/50">
-                  /month
+                  {tr("membership.v3.per-month")}
                 </span>
               </div>
               {isAnnual && (
                 <p className="text-xs text-white/40 mt-1">
-                  CHF 790/year &middot; billed annually
+                  CHF 790/{tr("membership.v3.young.per-year").replace("/", "")} &middot; {tr("membership.v3.billed-annual")}
                 </p>
               )}
             </div>
 
             <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => setAuthOpen(true)}>
-              Get Started
+              {tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
-              {FEATURE_ROWS.filter((f) => f.premium).map((f) => (
-                <li key={f.label} className="flex items-start gap-2.5 text-sm">
+              {FEAT_KEYS.filter((k) => FEAT_ACCESS[k]?.premium).map((k) => (
+                <li key={k} className="flex items-start gap-2.5 text-sm">
                   <Check className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
-                  <span className="text-white/70">{f.label}</span>
+                  <span className="text-white/70">{tr(`membership.v3.feat.${k}`)}</span>
                 </li>
               ))}
             </ul>
@@ -255,12 +244,12 @@ export function MembershipView() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-muted-foreground">
-                  Expert
+                  {tr("membership.v3.expert")}
                 </h3>
                 <Crown className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Tailored pricing for institutions. Direct expert access, bespoke research, and bespoke briefings.
+                {tr("membership.v3.expert.desc")}
               </p>
             </div>
 
@@ -271,7 +260,7 @@ export function MembershipView() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Institutional pricing &middot; contact for details
+                {tr("membership.price.expert.annual")}
               </p>
             </div>
 
@@ -280,18 +269,18 @@ export function MembershipView() {
               className="w-full mb-8 text-sm"
               onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry%20-%20Expert", "_self")}
             >
-              Contact Us
+              {tr("membership.v3.contact-us")}
             </Button>
 
             <ul className="space-y-3 flex-1">
-              {FEATURE_ROWS.filter((f) => f.expert).map((f) => (
-                <li key={f.label} className="flex items-start gap-2.5 text-sm">
-                  {f.label === "Bespoke Research Requests" || f.label === "Dedicated Account Director" ? (
+              {FEAT_KEYS.filter((k) => FEAT_ACCESS[k]?.expert).map((k) => (
+                <li key={k} className="flex items-start gap-2.5 text-sm">
+                  {k === "bespoke" || k === "account-director" ? (
                     <Star className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   ) : (
                     <Check className="w-4 h-4 text-[#E8272C] mt-0.5 flex-shrink-0" />
                   )}
-                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="text-muted-foreground">{tr(`membership.v3.feat.${k}`)}</span>
                 </li>
               ))}
             </ul>
@@ -307,27 +296,25 @@ export function MembershipView() {
               <div className="flex items-center gap-2 mb-2">
                 <BookOpen className="w-4 h-4 text-[#E8272C]" />
                 <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C]">
-                  Studies
+                  {tr("membership.v3.studies.tag")}
                 </span>
               </div>
               <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary mb-2">
-                In-Depth Research
+                {tr("membership.v3.studies.heading")}
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Studies are long-term, comprehensive research projects examining critical topics
-                in depth. Spanning 5,000 to 10,000 words, they combine extensive source analysis,
-                expert validation, and multi-domain perspectives to deliver authoritative assessments.
+                {tr("membership.v3.studies.desc")}
               </p>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-[10px] font-bold tracking-[0.1em] uppercase bg-[#E8272C] text-white px-2.5 py-1 rounded-sm">
-                Premium
+                {tr("membership.v3.premium")}
               </span>
               <span className="text-muted-foreground text-xs">+</span>
               <span className="text-[10px] font-bold tracking-[0.1em] uppercase bg-primary text-white px-2.5 py-1 rounded-sm flex items-center gap-1">
                 <Crown className="w-3 h-3" />
-                Custom
+                {tr("membership.v3.expert")}
               </span>
             </div>
           </div>
@@ -372,13 +359,13 @@ export function MembershipView() {
                   <div className="flex items-center gap-2 flex-shrink-0 sm:ml-auto sm:pt-1">
                     {study.status === "Published" ? (
                       <>
-                        <span className="text-xs text-muted-foreground hidden sm:block">Read Study</span>
+                        <span className="text-xs text-muted-foreground hidden sm:block">{tr("membership.v3.studies.read")}</span>
                         <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
                       </>
                     ) : (
                       <div className="flex items-center gap-1.5 text-xs text-amber-600">
                         <Lock className="w-3.5 h-3.5" />
-                        <span className="hidden sm:block">Coming Soon</span>
+                        <span className="hidden sm:block">{tr("membership.v3.studies.coming-soon")}</span>
                       </div>
                     )}
                   </div>
@@ -391,16 +378,14 @@ export function MembershipView() {
           <div className="mt-8 bg-primary/5 border border-border p-5 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-primary mb-1">
-                Access all current and upcoming studies
+                {tr("membership.v3.studies.access-title")}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Studies are exclusively available to Premium and Custom members. New studies are
-                published quarterly, covering the most critical resilience and security topics
-                across our six focus areas.
+                {tr("membership.v3.studies.access-desc")}
               </p>
             </div>
             <Button className="bg-[#E8272C] hover:bg-[#d02025] text-white text-sm flex-shrink-0 gap-2" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>
-              View Membership Plans <ArrowRight className="w-4 h-4" />
+              {tr("membership.v3.studies.view-plans")} <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -410,10 +395,10 @@ export function MembershipView() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
         <div className="text-center mb-10">
           <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C] mb-2 block">
-            Compare
+            {tr("membership.v3.compare.tag")}
           </span>
           <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">
-            Full Feature Comparison
+            {tr("membership.v3.compare.heading")}
           </h2>
         </div>
 
@@ -422,29 +407,29 @@ export function MembershipView() {
             <thead>
               <tr className="bg-secondary">
                 <th className="text-left py-3 px-4 text-xs font-bold tracking-[0.08em] uppercase text-muted-foreground w-[45%]">
-                  Feature
+                  {tr("membership.v3.compare.feature")}
                 </th>
                 <th className="text-center py-3 px-4 text-xs font-bold tracking-[0.08em] uppercase text-muted-foreground w-[18.3%]">
-                  Essential
+                  {tr("membership.v3.essential")}
                 </th>
                 <th className="text-center py-3 px-4 text-xs font-bold tracking-[0.08em] uppercase text-[#E8272C] w-[18.3%]">
-                  Premium
+                  {tr("membership.v3.premium")}
                 </th>
                 <th className="text-center py-3 px-4 text-xs font-bold tracking-[0.08em] uppercase text-muted-foreground w-[18.3%]">
-                  Expert
+                  {tr("membership.v3.expert")}
                 </th>
               </tr>
             </thead>
             <tbody>
-              {FEATURE_ROWS.map((row, i) => (
+              {FEAT_KEYS.map((k, i) => (
                 <tr
-                  key={row.label}
+                  key={k}
                   className={i % 2 === 0 ? "bg-white" : "bg-secondary/30"}
                 >
-                  <td className="py-3 px-4 text-muted-foreground">{row.label}</td>
+                  <td className="py-3 px-4 text-muted-foreground">{tr(`membership.v3.feat.${k}`)}</td>
                   {(["essential", "premium", "expert"] as const).map((tier) => (
                     <td key={tier} className="py-3 px-4 text-center">
-                      {row[tier] === true ? (
+                      {FEAT_ACCESS[k]?.[tier] ? (
                         <Check className="w-4 h-4 text-[#E8272C] mx-auto" />
                       ) : (
                         <span className="text-muted-foreground/30">&mdash;</span>
@@ -465,25 +450,24 @@ export function MembershipView() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <Users className="w-4 h-4 text-[#E8272C]" />
               <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C]">
-                For the Next Generation
+                {tr("membership.v3.young.tag")}
               </span>
             </div>
             <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary mb-3">
-              Student & Young Professional
+              {tr("membership.v3.young.heading")}
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              Under 30? Access all Essential features at a reduced rate.
-              We believe in investing in the next generation of security and resilience leaders.
+              {tr("membership.v3.young.desc")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">CHF 190<span className="text-sm font-normal text-muted-foreground">/year</span></div>
-                <div className="text-xs text-muted-foreground">Young Professionals (under 30)</div>
+                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.yp-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
+                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.yp-label")}</div>
               </div>
               <div className="w-px h-10 bg-border hidden sm:block" />
               <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">CHF 160<span className="text-sm font-normal text-muted-foreground">/year</span></div>
-                <div className="text-xs text-muted-foreground">Students (with valid enrollment)</div>
+                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.student-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
+                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.student-label")}</div>
               </div>
             </div>
           </div>
@@ -496,11 +480,10 @@ export function MembershipView() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div className="max-w-md">
               <h2 className="heading-serif text-xl sm:text-2xl font-bold mb-2">
-                Not Sure Which Plan?
+                {tr("membership.v3.cta.heading")}
               </h2>
               <p className="text-sm text-white/50 leading-relaxed">
-                Start with a 10-day free trial. Full access to all published reports, opinions,
-                and briefings. No credit card required.
+                {tr("membership.v3.cta.desc")}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -508,14 +491,14 @@ export function MembershipView() {
                 className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2"
                 onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry", "_self")}
               >
-                Contact Us <ArrowRight className="w-4 h-4" />
+                {tr("membership.v3.contact-us")} <ArrowRight className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
                 className="border-white/20 text-[#0A2540] bg-white hover:bg-white/90 hover:text-[#0A2540]"
                 onClick={() => setAuthOpen(true)}
               >
-                Start Free Trial
+                {tr("membership.v3.start-trial")}
               </Button>
             </div>
           </div>

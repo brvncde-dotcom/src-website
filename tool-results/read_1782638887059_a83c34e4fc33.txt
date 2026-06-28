@@ -1,0 +1,848 @@
+     1→"use client";
+     2→
+     3→import { useState } from "react";
+     4→import {
+     5→  Check, ArrowRight, Shield, BrainCircuit, Eye, Zap, Users,
+     6→  ChevronDown, Minus, Radio, Lock, FileText, Video,
+     7→  Building2, Star, Quote, Crown, Sparkles, ArrowUpRight,
+     8→} from "lucide-react";
+     9→import { Button } from "@/components/ui/button";
+    10→import { SwissCrossMark } from "./SwissCrossLogo";
+    11→import { useLang } from "./LangProvider";
+    12→import { useNavigation } from "./NavigationProvider";
+    13→
+    14→/* ═══════════════════════════════════════════════════════
+    15→   DATA LAYER
+    16→   ═══════════════════════════════════════════════════════ */
+    17→
+    18→type TierKey = "free" | "basic" | "premium" | "expert";
+    19→
+    20→interface FeatureRow {
+    21→  key: string;
+    22→  group: "content" | "events" | "delivery" | "support";
+    23→  access: [boolean, boolean, boolean, boolean];
+    24→}
+    25→
+    26→const FEATURES: FeatureRow[] = [
+    27→  { key: "opinions",           group: "content",  access: [true,  true,  true,  true]  },
+    28→  { key: "reports-summary",   group: "content",  access: [true,  true,  true,  true]  },
+    29→  { key: "reports-basic",     group: "content",  access: [false, true,  true,  true]  },
+    30→  { key: "reports-strategy",  group: "content",  access: [false, true,  true,  true]  },
+    31→  { key: "video",             group: "content",  access: [false, true,  true,  true]  },
+    32→  { key: "interviews",        group: "content",  access: [false, false, true,  true]  },
+    33→  { key: "briefings",         group: "content",  access: [false, false, true,  true]  },
+    34→  { key: "early",             group: "content",  access: [false, false, true,  true]  },
+    35→  { key: "breaking",          group: "content",  access: [false, false, true,  true]  },
+    36→  { key: "archive",           group: "content",  access: [false, true,  true,  true]  },
+    37→  { key: "pdf",               group: "content",  access: [false, true,  true,  true]  },
+    38→  { key: "events-public",     group: "events",   access: [true,  true,  true,  true]  },
+    39→  { key: "events-priority",   group: "events",   access: [false, true,  true,  true]  },
+    40→  { key: "events-briefing",   group: "events",   access: [false, false, true,  true]  },
+    41→  { key: "events-live",       group: "events",   access: [false, false, false, true]  },
+    42→  { key: "events-qa",         group: "events",   access: [false, false, false, true]  },
+    43→  { key: "events-1to1",       group: "events",   access: [false, false, false, true]  },
+    44→  { key: "newsletter",        group: "delivery", access: [true,  true,  true,  true]  },
+    45→  { key: "section-news",      group: "delivery", access: [false, true,  true,  true]  },
+    46→  { key: "push",              group: "delivery", access: [false, false, true,  true]  },
+    47→  { key: "risk",              group: "delivery", access: [false, false, true,  true]  },
+    48→  { key: "topic-request",     group: "delivery", access: [false, false, false, true]  },
+    49→  { key: "support-email",     group: "support",  access: [true,  true,  true,  true]  },
+    50→  { key: "support-manager",   group: "support",  access: [false, false, false, true]  },
+    51→  { key: "support-invoice",   group: "support",  access: [false, false, false, true]  },
+    52→];
+    53→
+    54→const GROUPS: { group: FeatureRow["group"]; icon: typeof Shield }[] = [
+    55→  { group: "content",  icon: FileText },
+    56→  { group: "events",   icon: Users },
+    57→  { group: "delivery", icon: Radio },
+    58→  { group: "support",  icon: Shield },
+    59→];
+    60→
+    61→const TOP_FEATURES: { tierKey: TierKey; featKeys: string[] }[] = [
+    62→  { tierKey: "free",    featKeys: ["opinions", "reports-summary", "events-public", "newsletter", "support-email"] },
+    63→  { tierKey: "basic",   featKeys: ["reports-basic", "reports-strategy", "video", "archive", "pdf", "section-news"] },
+    64→  { tierKey: "premium", featKeys: ["interviews", "briefings", "early", "breaking", "push", "risk", "events-briefing"] },
+    65→  { tierKey: "expert",  featKeys: ["events-live", "events-qa", "events-1to1", "topic-request", "support-manager", "support-invoice"] },
+    66→];
+    67→
+    68→const JOURNEY_STEPS: { icon: typeof Eye; numKey: "s1" | "s2" | "s3" | "s4"; tierKey: TierKey }[] = [
+    69→  { icon: Eye,  numKey: "s1", tierKey: "free" },
+    70→  { icon: FileText, numKey: "s2", tierKey: "basic" },
+    71→  { icon: Zap,  numKey: "s3", tierKey: "premium" },
+    72→  { icon: BrainCircuit, numKey: "s4", tierKey: "expert" },
+    73→];
+    74→
+    75→const FAQ_ITEMS = ["q1", "q2", "q3", "q4", "q5"] as const;
+    76→
+    77→const TESTIMONIALS = [
+    78→  { quoteKey: "t1.quote", roleKey: "t1.role", orgKey: "t1.org", tierKey: "premium" as TierKey },
+    79→  { quoteKey: "t2.quote", roleKey: "t2.role", orgKey: "t2.org", tierKey: "expert" as TierKey },
+    80→  { quoteKey: "t3.quote", roleKey: "t3.role", orgKey: "t3.org", tierKey: "basic" as TierKey },
+    81→];
+    82→
+    83→/* ═══════════════════════════════════════════════════════
+    84→   BILLING TOGGLE
+    85→   ═══════════════════════════════════════════════════════ */
+    86→
+    87→function BillingToggle({ annual, setAnnual }: { annual: boolean; setAnnual: (v: boolean) => void }) {
+    88→  const { t: tr } = useLang();
+    89→  return (
+    90→    <div className="flex items-center justify-center gap-4 mt-8">
+    91→      <span className={`text-xs font-medium transition-colors ${!annual ? "text-white" : "text-white/40"}`}>
+    92→        {tr("membership.toggle.monthly")}
+    93→      </span>
+    94→      <button
+    95→        onClick={() => setAnnual(!annual)}
+    96→        className="relative w-12 h-6 rounded-full transition-colors duration-300"
+    97→        style={{ backgroundColor: annual ? "#E8272C" : "rgba(255,255,255,0.15)" }}
+    98→      >
+    99→        <div
+   100→          className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300"
+   101→          style={{ left: annual ? "26px" : "2px" }}
+   102→        />
+   103→      </button>
+   104→      <span className={`text-xs font-medium transition-colors ${annual ? "text-white" : "text-white/40"}`}>
+   105→        {tr("membership.toggle.annual")}
+   106→      </span>
+   107→      {annual && (
+   108→        <span className="text-[10px] font-bold tracking-wide uppercase bg-[#E8272C]/20 text-[#E8272C] px-2.5 py-1 rounded-sm">
+   109→          {tr("membership.toggle.save")}
+   110→        </span>
+   111→      )}
+   112→    </div>
+   113→  );
+   114→}
+   115→
+   116→/* ═══════════════════════════════════════════════════════
+   117→   STAT BLOCK
+   118→   ═══════════════════════════════════════════════════════ */
+   119→
+   120→function StatBlock() {
+   121→  const { t: tr } = useLang();
+   122→  const stats = [
+   123→    { value: "membership.hero.stat1.value", label: "membership.hero.stat1.label" },
+   124→    { value: "membership.hero.stat2.value", label: "membership.hero.stat2.label" },
+   125→    { value: "membership.hero.stat3.value", label: "membership.hero.stat3.label" },
+   126→  ];
+   127→  return (
+   128→    <div className="flex items-center justify-center gap-10 sm:gap-16 mt-12">
+   129→      {stats.map((s, i) => (
+   130→        <div key={s.value} className="relative text-center">
+   131→          <div className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+   132→            {tr(s.value)}
+   133→          </div>
+   134→          <div className="text-[10px] sm:text-xs text-white/35 tracking-wider uppercase mt-1.5 font-medium">
+   135→            {tr(s.label)}
+   136→          </div>
+   137→          {i < stats.length - 1 && (
+   138→            <div className="hidden sm:block absolute -right-8 top-1/2 -translate-y-1/2 w-px h-10 bg-white/10" />
+   139→          )}
+   140→        </div>
+   141→      ))}
+   142→    </div>
+   143→  );
+   144→}
+   145→
+   146→/* ═══════════════════════════════════════════════════════
+   147→   TIER CARD — World Class Design
+   148→   ═══════════════════════════════════════════════════════ */
+   149→
+   150→function TierCard({ tierKey, annual }: { tierKey: TierKey; annual: boolean }) {
+   151→  const { t: tr } = useLang();
+   152→  const { navigate } = useNavigation();
+   153→  const topFeats = TOP_FEATURES.find((t) => t.tierKey === tierKey)?.featKeys || [];
+   154→  const isPremium = tierKey === "premium";
+   155→  const isExpert = tierKey === "expert";
+   156→  const isHighlighted = isPremium;
+   157→  const isDark = isPremium || isExpert;
+   158→
+   159→  const handleCta = () => {
+   160→    if (tierKey === "expert") navigate("contact");
+   161→    else if (tierKey === "free") navigate("opinions");
+   162→    else navigate("reports");
+   163→  };
+   164→
+   165→  /* Price display */
+   166→  const getPrice = () => {
+   167→    if (tierKey === "free") return tr("membership.price.free");
+   168→    if (tierKey === "expert") return tr("membership.price.expert");
+   169→    const monthly = tr(`membership.price.${tierKey}`);
+   170→    if (annual) {
+   171→      const yearly = tr(`membership.price.${tierKey}.annual`);
+   172→      return { monthly: yearly.split("/")[0], period: yearly.includes("/") ? yearly.split("/").slice(1).join("/") : "" };
+   173→    }
+   174→    return { monthly, period: tr(`membership.price.${tierKey}.period`) };
+   175→  };
+   176→
+   177→  const price = getPrice();
+   178→  const isAnnualObj = typeof price === "object";
+   179→  const priceStr = isAnnualObj ? "" : (price as string);
+   180→
+   181→  return (
+   182→    <div
+   183→      className={`relative flex flex-col rounded-sm transition-all duration-500 group overflow-hidden ${
+   184→        isPremium
+   185→          ? "bg-[#0A2540] text-white border-2 border-[#E8272C] shadow-2xl shadow-[#0A2540]/30 lg:scale-[1.04] z-10"
+   186→          : isExpert
+   187→            ? "bg-gradient-to-b from-[#0A2540] to-[#061829] text-white border border-white/10 shadow-xl shadow-[#0A2540]/20"
+   188→            : "bg-white text-primary border border-border hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
+   189→      }`}
+   190→    >
+   191→      {/* Top accent line */}
+   192→      {isPremium && (
+   193→        <div className="h-1 bg-gradient-to-r from-[#E8272C] via-[#ff4d52] to-[#E8272C]" />
+   194→      )}
+   195→      {isExpert && (
+   196→        <div className="h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+   197→      )}
+   198→
+   199→      {/* "Most Popular" badge */}
+   200→      {isHighlighted && (
+   201→        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
+   202→          <span className="bg-[#E8272C] text-white text-[10px] font-bold tracking-[0.12em] uppercase px-5 py-1.5 rounded-sm shadow-lg shadow-[#E8272C]/30 flex items-center gap-1.5">
+   203→            <Sparkles className="w-3 h-3" />
+   204→            {tr("membership.badge.popular")}
+   205→          </span>
+   206→        </div>
+   207→      )}
+   208→
+   209→      {/* Expert badge */}
+   210→      {isExpert && (
+   211→        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
+   212→          <span className="bg-amber-500 text-[#0A2540] text-[10px] font-bold tracking-[0.12em] uppercase px-5 py-1.5 rounded-sm shadow-lg shadow-amber-500/20 flex items-center gap-1.5">
+   213→            <Crown className="w-3 h-3" />
+   214→            {tr("membership.badge.institutional")}
+   215→          </span>
+   216→        </div>
+   217→      )}
+   218→
+   219→      {/* Card header */}
+   220→      <div className={`px-5 sm:px-6 pt-8 pb-6 ${isDark ? "" : "border-b border-border"}`}>
+   221→        <div className="flex items-center gap-2 mb-3">
+   222→          <h3 className={`text-[11px] font-bold tracking-[0.14em] uppercase ${
+   223→            isDark ? "text-white/50" : "text-muted-foreground"
+   224→          }`}>
+   225→            {tr(`membership.tier.${tierKey}`)}
+   226→          </h3>
+   227→          {isExpert && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+   228→        </div>
+   229→
+   230→        {/* Price block */}
+   231→        {tierKey === "free" ? (
+   232→          <div className="mt-2 flex items-baseline gap-2">
+   233→            <span className="text-4xl font-bold tracking-tight">{priceStr}</span>
+   234→          </div>
+   235→        ) : tierKey === "expert" ? (
+   236→          <div className="mt-2">
+   237→            <span className="text-4xl font-bold tracking-tight">{priceStr}</span>
+   238→            <p className={`text-[11px] mt-2 ${isDark ? "text-white/35" : "text-muted-foreground/60"}`}>
+   239→              {tr(`membership.price.expert.annual`)}
+   240→            </p>
+   241→          </div>
+   242→        ) : (
+   243→          <div className="mt-2">
+   244→            <div className="flex items-baseline gap-1">
+   245→              <span className="text-4xl font-bold tracking-tight">{isAnnualObj ? (price as { monthly: string }).monthly : priceStr}</span>
+   246→              <span className={`text-sm ${isDark ? "text-white/40" : "text-muted-foreground"}`}>
+   247→                {isAnnualObj ? (price as { period: string }).period : tr(`membership.price.${tierKey}.period`)}
+   248→              </span>
+   249→            </div>
+   250→            {annual && (
+   251→              <div className={`text-[11px] mt-1.5 ${isDark ? "text-white/35" : "text-muted-foreground/60"}`}>
+   252→                <span className="text-[#E8272C] font-semibold">
+   253→                  {tr(`membership.price.${tierKey}.save`)}
+   254→                </span>
+   255→              </div>
+   256→            )}
+   257→            {!annual && (
+   258→              <div className={`text-[11px] mt-1.5 ${isDark ? "text-white/25" : "text-muted-foreground/40"}`}>
+   259→                {tr(`membership.price.${tierKey}.annual`)}
+   260→              </div>
+   261→            )}
+   262→          </div>
+   263→        )}
+   264→
+   265→        {/* "For whom" */}
+   266→        <p className={`text-xs leading-relaxed mt-4 ${
+   267→          isDark ? "text-white/50" : "text-muted-foreground"
+   268→        }`}>
+   269→          {tr(`membership.forwhom.${tierKey}`)}
+   270→        </p>
+   271→
+   272→        {/* CTA button */}
+   273→        <Button
+   274→          className={`w-full mt-6 gap-2 text-xs font-semibold tracking-wide transition-all duration-300 ${
+   275→            isPremium
+   276→              ? "bg-[#E8272C] hover:bg-[#cc1f24] text-white shadow-lg shadow-[#E8272C]/20 hover:shadow-xl hover:shadow-[#E8272C]/30 hover:-translate-y-0.5"
+   277→              : isExpert
+   278→                ? "bg-amber-500 hover:bg-amber-400 text-[#0A2540] shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5"
+   279→                : tierKey === "free"
+   280→                  ? "bg-white hover:bg-secondary text-primary border border-border hover:border-primary/30"
+   281→                  : "bg-primary hover:bg-primary/90 text-white hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5"
+   282→          }`}
+   283→          onClick={handleCta}
+   284→        >
+   285→          {tr(`membership.cta.${tierKey}`)} <ArrowRight className="w-3.5 h-3.5" />
+   286→        </Button>
+   287→      </div>
+   288→
+   289→      {/* Feature list */}
+   290→      <div className="flex-1 px-5 sm:px-6 py-6">
+   291→        <ul className="space-y-3">
+   292→          {topFeats.map((fk) => (
+   293→            <li key={fk} className="flex items-start gap-2.5 group/feat">
+   294→              <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+   295→                isPremium
+   296→                  ? "bg-white/10 group-hover/feat:bg-[#E8272C]/30"
+   297→                  : isExpert
+   298→                    ? "bg-white/10 group-hover/feat:bg-amber-400/20"
+   299→                    : "bg-[#E8272C]/8 group-hover/feat:bg-[#E8272C]/15"
+   300→              }`}>
+   301→                <Check className={`w-2.5 h-2.5 ${
+   302→                  isPremium ? "text-[#E8272C]" : isExpert ? "text-amber-400" : "text-[#E8272C]"
+   303→                }`} strokeWidth={3} />
+   304→              </div>
+   305→              <span className={`text-[12px] leading-relaxed ${
+   306→                isDark ? "text-white/65 group-hover/feat:text-white/85" : "text-muted-foreground group-hover/feat:text-primary"
+   307→              } transition-colors`}>
+   308→                {tr(`membership.feat.${fk}`)}
+   309→              </span>
+   310→            </li>
+   311→          ))}
+   312→        </ul>
+   313→      </div>
+   314→
+   315→      {/* Bottom glow for premium */}
+   316→      {isPremium && (
+   317→        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#E8272C]/10 to-transparent pointer-events-none" />
+   318→      )}
+   319→    </div>
+   320→  );
+   321→}
+   322→
+   323→/* ═══════════════════════════════════════════════════════
+   324→   COMPARISON TABLE
+   325→   ═══════════════════════════════════════════════════════ */
+   326→
+   327→function ComparisonTable() {
+   328→  const { t: tr } = useLang();
+   329→  const [open, setOpen] = useState(false);
+   330→
+   331→  return (
+   332→    <div>
+   333→      <button
+   334→        onClick={() => setOpen(!open)}
+   335→        className="mx-auto flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors group"
+   336→      >
+   337→        {tr("membership.compare.title")}
+   338→        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+   339→      </button>
+   340→
+   341→      {open && (
+   342→        <div className="mt-8 overflow-x-auto -mx-4 px-4">
+   343→          <table className="w-full min-w-[680px] text-xs">
+   344→            <thead>
+   345→              <tr className="border-b-2 border-primary">
+   346→                <th className="text-left py-4 px-3 font-bold text-muted-foreground uppercase tracking-[0.08em] text-[10px]">
+   347→                  {tr("membership.compare.feature")}
+   348→                </th>
+   349→                {(["free", "basic", "premium", "expert"] as TierKey[]).map((t) => (
+   350→                  <th
+   351→                    key={t}
+   352→                    className={`py-4 px-3 text-center font-bold uppercase tracking-[0.08em] text-[10px] ${
+   353→                      t === "premium" ? "text-[#E8272C] bg-[#E8272C]/5" : t === "expert" ? "text-amber-600 bg-amber-50/50" : "text-muted-foreground"
+   354→                    }`}
+   355→                  >
+   356→                    {tr(`membership.tier.${t}`)}
+   357→                  </th>
+   358→                ))}
+   359→              </tr>
+   360→            </thead>
+   361→            <tbody>
+   362→              {GROUPS.map(({ group, icon: GrpIcon }) => {
+   363→                const rows = FEATURES.filter((f) => f.group === group);
+   364→                return (
+   365→                  <FeatureGroup key={group} group={group} Icon={GrpIcon} rows={rows} />
+   366→                );
+   367→              })}
+   368→            </tbody>
+   369→          </table>
+   370→        </div>
+   371→      )}
+   372→    </div>
+   373→  );
+   374→}
+   375→
+   376→function FeatureGroup({ group, Icon, rows }: { group: string; Icon: typeof Shield; rows: FeatureRow[] }) {
+   377→  const { t: tr } = useLang();
+   378→  return (
+   379→    <>
+   380→      <tr>
+   381→        <td colSpan={5} className="pt-6 pb-2 px-3 text-[10px] font-bold tracking-[0.1em] uppercase text-primary bg-secondary/50">
+   382→          <span className="inline-flex items-center gap-2">
+   383→            <Icon className="w-3 h-3" />
+   384→            {tr(`membership.group.${group}`)}
+   385→          </span>
+   386→        </td>
+   387→      </tr>
+   388→      {rows.map((row) => (
+   389→        <tr key={row.key} className="border-t border-border/50 hover:bg-secondary/30 transition-colors">
+   390→          <td className="py-2.5 px-3 text-muted-foreground">{tr(`membership.feat.${row.key}`)}</td>
+   391→          {row.access.map((has, i) => (
+   392→            <td key={i} className="py-2.5 px-3 text-center">
+   393→              {has ? (
+   394→                <Check className="w-3.5 h-3.5 text-[#E8272C] mx-auto" strokeWidth={2.5} />
+   395→              ) : (
+   396→                <Minus className="w-3.5 h-3.5 text-border mx-auto" strokeWidth={2} />
+   397→              )}
+   398→            </td>
+   399→          ))}
+   400→        </tr>
+   401→      ))}
+   402→    </>
+   403→  );
+   404→}
+   405→
+   406→/* ═══════════════════════════════════════════════════════
+   407→   INTELLIGENCE JOURNEY
+   408→   ═══════════════════════════════════════════════════════ */
+   409→
+   410→function JourneySection() {
+   411→  const { t: tr } = useLang();
+   412→  return (
+   413→    <section className="border-t border-border bg-secondary/30">
+   414→      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+   415→        <div className="text-center mb-16">
+   416→          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#E8272C] mb-3 block">
+   417→            {tr("membership.journey.tag")}
+   418→          </span>
+   419→          <h2 className="heading-serif text-2xl sm:text-3xl lg:text-[2.5rem] font-bold text-primary mb-4 max-w-2xl mx-auto leading-[1.15]">
+   420→            {tr("membership.journey.title")}
+   421→          </h2>
+   422→          <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+   423→            {tr("membership.journey.desc")}
+   424→          </p>
+   425→        </div>
+   426→
+   427→        <div className="relative max-w-5xl mx-auto">
+   428→          {/* Horizontal connector line (desktop) */}
+   429→          <div className="hidden lg:block absolute top-[52px] left-[calc(12.5%+24px)] right-[calc(12.5%+24px)] h-px bg-gradient-to-r from-border via-[#E8272C]/30 to-border" />
+   430→
+   431→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+   432→            {JOURNEY_STEPS.map((step, idx) => {
+   433→              const StepIcon = step.icon;
+   434→              const isLast = idx === JOURNEY_STEPS.length - 1;
+   435→              return (
+   436→                <div key={step.numKey} className="relative group">
+   437→                  {/* Vertical connector (mobile) */}
+   438→                  {!isLast && (
+   439→                    <div className="lg:hidden absolute top-16 left-[26px] w-px h-[calc(100%-16px)] bg-border" />
+   440→                  )}
+   441→
+   442→                  <div className="relative">
+   443→                    {/* Step icon circle */}
+   444→                    <div className="relative w-14 h-14 rounded-full border-2 border-[#E8272C]/30 bg-white flex items-center justify-center flex-shrink-0 mx-auto mb-5 group-hover:border-[#E8272C] group-hover:shadow-lg group-hover:shadow-[#E8272C]/10 transition-all duration-300">
+   445→                      <StepIcon className="w-6 h-6 text-[#E8272C]" />
+   446→                      {/* Step number */}
+   447→                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#E8272C] rounded-full flex items-center justify-center">
+   448→                        <span className="text-[9px] font-bold text-white">
+   449→                          {idx === 0 ? "01" : idx === 1 ? "02" : idx === 2 ? "03" : "04"}
+   450→                        </span>
+   451→                      </div>
+   452→                    </div>
+   453→
+   454→                    <div className="text-center">
+   455→                      <h3 className="font-bold text-sm text-primary tracking-wide mb-1">
+   456→                        {tr(`membership.journey.${step.numKey}.title`)}
+   457→                      </h3>
+   458→                      <span className="inline-block text-[9px] font-bold tracking-[0.12em] uppercase bg-secondary border border-border px-2.5 py-0.5 rounded-sm text-muted-foreground mb-3">
+   459→                        {tr(`membership.tier.${step.tierKey}`)}
+   460→                      </span>
+   461→                      <p className="text-xs text-muted-foreground leading-relaxed">
+   462→                        {tr(`membership.journey.${step.numKey}.desc`)}
+   463→                      </p>
+   464→                    </div>
+   465→                  </div>
+   466→                </div>
+   467→              );
+   468→            })}
+   469→          </div>
+   470→        </div>
+   471→      </div>
+   472→    </section>
+   473→  );
+   474→}
+   475→
+   476→/* ═══════════════════════════════════════════════════════
+   477→   TESTIMONIALS
+   478→   ═══════════════════════════════════════════════════════ */
+   479→
+   480→function TestimonialsSection() {
+   481→  const { t: tr } = useLang();
+   482→  return (
+   483→    <section className="border-t border-border">
+   484→      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+   485→        <div className="text-center mb-14">
+   486→          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#E8272C] mb-3 block">
+   487→            {tr("membership.testimonial.tag")}
+   488→          </span>
+   489→          <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">
+   490→            {tr("membership.testimonial.title")}
+   491→          </h2>
+   492→        </div>
+   493→
+   494→        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+   495→          {TESTIMONIALS.map((tm, idx) => (
+   496→            <div
+   497→              key={tm.quoteKey}
+   498→              className="relative bg-secondary/40 border border-border p-6 sm:p-8 hover:border-primary/20 hover:shadow-sm transition-all duration-300 group"
+   499→            >
+   500→              {/* Quote mark */}
+   501→              <div className="absolute top-5 right-6 text-[#E8272C]/10 group-hover:text-[#E8272C]/20 transition-colors">
+   502→                <Quote className="w-10 h-10" />
+   503→              </div>
+   504→
+   505→              {/* Stars */}
+   506→              <div className="flex items-center gap-0.5 mb-4">
+   507→                {[1, 2, 3, 4, 5].map((s) => (
+   508→                  <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+   509→                ))}
+   510→              </div>
+   511→
+   512→              <p className="text-sm text-primary leading-relaxed mb-6 italic">
+   513→                &ldquo;{tr(`membership.testimonial.${tm.quoteKey}`)}&rdquo;
+   514→              </p>
+   515→
+   516→              <div className="flex items-center gap-3">
+   517→                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+   518→                  <Users className="w-4 h-4 text-primary" />
+   519→                </div>
+   520→                <div>
+   521→                  <p className="text-xs font-semibold text-primary">
+   522→                    {tr(`membership.testimonial.${tm.roleKey}`)}
+   523→                  </p>
+   524→                  <p className="text-[11px] text-muted-foreground">
+   525→                    {tr(`membership.testimonial.${tm.orgKey}`)}
+   526→                  </p>
+   527→                </div>
+   528→              </div>
+   529→
+   530→              {/* Tier badge */}
+   531→              <div className="absolute bottom-5 right-6">
+   532→                <span className={`text-[9px] font-bold tracking-[0.1em] uppercase px-2 py-0.5 rounded-sm ${
+   533→                  tm.tierKey === "premium" ? "bg-[#E8272C]/10 text-[#E8272C]" :
+   534→                  tm.tierKey === "expert" ? "bg-amber-100 text-amber-700" :
+   535→                  "bg-secondary text-muted-foreground"
+   536→                }`}>
+   537→                  {tr(`membership.tier.${tm.tierKey}`)}
+   538→                </span>
+   539→              </div>
+   540→            </div>
+   541→          ))}
+   542→        </div>
+   543→      </div>
+   544→    </section>
+   545→  );
+   546→}
+   547→
+   548→/* ═══════════════════════════════════════════════════════
+   549→   ENTERPRISE / INSTITUTIONAL SECTION
+   550→   ═══════════════════════════════════════════════════════ */
+   551→
+   552→function EnterpriseSection() {
+   553→  const { t: tr } = useLang();
+   554→  const { navigate } = useNavigation();
+   555→  return (
+   556→    <section className="relative bg-gradient-to-br from-[#0A2540] via-[#0d2d4f] to-[#0A2540] text-white overflow-hidden">
+   557→      {/* Subtle geometric pattern */}
+   558→      <div
+   559→        className="absolute inset-0 opacity-[0.03]"
+   560→        style={{
+   561→          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+   562→          backgroundSize: "32px 32px",
+   563→        }}
+   564→      />
+   565→      {/* Gold glow */}
+   566→      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none" />
+   567→
+   568→      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+   569→        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+   570→          {/* Left: Content */}
+   571→          <div>
+   572→            <div className="flex items-center gap-2 mb-4">
+   573→              <Building2 className="w-4 h-4 text-amber-400" />
+   574→              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-amber-400/70">
+   575→                {tr("membership.enterprise.tag")}
+   576→              </span>
+   577→            </div>
+   578→            <h2 className="heading-serif text-2xl sm:text-3xl font-bold mb-4 leading-[1.15]">
+   579→              {tr("membership.enterprise.title")}
+   580→            </h2>
+   581→            <p className="text-sm text-white/50 leading-relaxed mb-8 max-w-md">
+   582→              {tr("membership.enterprise.desc")}
+   583→            </p>
+   584→
+   585→            <div className="flex flex-wrap gap-3">
+   586→              <Button
+   587→                className="bg-amber-500 hover:bg-amber-400 text-[#0A2540] gap-2 shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300"
+   588→                onClick={() => navigate("contact")}
+   589→              >
+   590→                {tr("membership.enterprise.cta")} <ArrowUpRight className="w-3.5 h-3.5" />
+   591→              </Button>
+   592→            </div>
+   593→          </div>
+   594→
+   595→          {/* Right: Feature list */}
+   596→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   597→            {[
+   598→              { icon: Shield, key: "enterprise.f1" },
+   599→              { icon: Users, key: "enterprise.f2" },
+   600→              { icon: BrainCircuit, key: "enterprise.f3" },
+   601→              { icon: FileText, key: "enterprise.f4" },
+   602→              { icon: Video, key: "enterprise.f5" },
+   603→              { icon: Star, key: "enterprise.f6" },
+   604→            ].map(({ icon: Icon, key }) => (
+   605→              <div
+   606→                key={key}
+   607→                className="flex items-start gap-3 p-3.5 rounded-sm border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300"
+   608→              >
+   609→                <div className="w-8 h-8 rounded-sm bg-white/5 flex items-center justify-center flex-shrink-0">
+   610→                  <Icon className="w-4 h-4 text-amber-400" />
+   611→                </div>
+   612→                <span className="text-xs text-white/60 leading-relaxed pt-1">
+   613→                  {tr(`membership.${key}`)}
+   614→                </span>
+   615→              </div>
+   616→            ))}
+   617→          </div>
+   618→        </div>
+   619→      </div>
+   620→    </section>
+   621→  );
+   622→}
+   623→
+   624→/* ═══════════════════════════════════════════════════════
+   625→   TRUST SECTION
+   626→   ═══════════════════════════════════════════════════════ */
+   627→
+   628→function TrustSection() {
+   629→  const { t: tr } = useLang();
+   630→  return (
+   631→    <section className="border-t border-border bg-secondary/30">
+   632→      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+   633→        <h2 className="heading-serif text-xl sm:text-2xl font-bold text-primary mb-12">
+   634→          {tr("membership.trust.title")}
+   635→        </h2>
+   636→        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+   637→          {(["independent", "swiss", "methodology"] as const).map((key) => (
+   638→            <div key={key} className="flex flex-col items-center text-center group">
+   639→              <div className="w-16 h-16 bg-white border border-border rounded-full flex items-center justify-center mb-5 shadow-sm group-hover:border-primary/30 group-hover:shadow-md transition-all duration-300">
+   640→                {key === "independent" && <Shield className="w-7 h-7 text-primary" />}
+   641→                {key === "swiss" && <SwissCrossMark size={34} />}
+   642→                {key === "methodology" && <BrainCircuit className="w-7 h-7 text-primary" />}
+   643→              </div>
+   644→              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+   645→                {tr(`membership.trust.${key}`)}
+   646→              </p>
+   647→            </div>
+   648→          ))}
+   649→        </div>
+   650→      </div>
+   651→    </section>
+   652→  );
+   653→}
+   654→
+   655→/* ═══════════════════════════════════════════════════════
+   656→   FAQ SECTION
+   657→   ═══════════════════════════════════════════════════════ */
+   658→
+   659→function FAQSection() {
+   660→  const { t: tr } = useLang();
+   661→  const [openIdx, setOpenIdx] = useState<number | null>(null);
+   662→
+   663→  return (
+   664→    <section className="bg-secondary/50 border-t border-border">
+   665→      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+   666→        <div className="text-center mb-12">
+   667→          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#E8272C] mb-3 block">
+   668→            {tr("membership.faq.tag")}
+   669→          </span>
+   670→          <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary">
+   671→            {tr("membership.faq.title")}
+   672→          </h2>
+   673→        </div>
+   674→
+   675→        <div className="space-y-0 border border-border bg-white rounded-sm overflow-hidden">
+   676→          {FAQ_ITEMS.map((qKey, idx) => {
+   677→            const isOpen = openIdx === idx;
+   678→            return (
+   679→              <div key={qKey}>
+   680→                {idx > 0 && <div className="border-t border-border" />}
+   681→                <button
+   682→                  onClick={() => setOpenIdx(isOpen ? null : idx)}
+   683→                  className="w-full flex items-start justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5 text-left hover:bg-secondary/50 transition-colors"
+   684→                >
+   685→                  <span className="font-semibold text-sm text-primary leading-snug">
+   686→                    {tr(`membership.faq.${qKey}`)}
+   687→                  </span>
+   688→                  <ChevronDown
+   689→                    className={`w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5 transition-transform duration-300 ${
+   690→                      isOpen ? "rotate-180" : ""
+   691→                    }`}
+   692→                  />
+   693→                </button>
+   694→                <div className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+   695→                  <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+   696→                    <p className="text-sm text-muted-foreground leading-relaxed">
+   697→                      {tr(`membership.faq.a${qKey.replace("q", "")}`)}
+   698→                    </p>
+   699→                  </div>
+   700→                </div>
+   701→              </div>
+   702→            );
+   703→          })}
+   704→        </div>
+   705→      </div>
+   706→    </section>
+   707→  );
+   708→}
+   709→
+   710→/* ═══════════════════════════════════════════════════════
+   711→   FINAL CTA
+   712→   ═══════════════════════════════════════════════════════ */
+   713→
+   714→function FinalCTA() {
+   715→  const { t: tr } = useLang();
+   716→  const { navigate } = useNavigation();
+   717→  return (
+   718→    <section className="relative bg-[#0A2540] text-white overflow-hidden">
+   719→      {/* Grid pattern */}
+   720→      <div
+   721→        className="absolute inset-0 opacity-[0.04]"
+   722→        style={{
+   723→          backgroundImage:
+   724→            "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)",
+   725→          backgroundSize: "60px 60px",
+   726→        }}
+   727→      />
+   728→      {/* Red gradient glow */}
+   729→      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#E8272C]/10 rounded-full blur-[120px] pointer-events-none" />
+   730→      {/* Bottom glow */}
+   731→      <div className="absolute bottom-0 left-1/3 w-[400px] h-[200px] bg-[#E8272C]/5 rounded-full blur-[100px] pointer-events-none" />
+   732→
+   733→      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
+   734→        <div className="w-16 h-16 mx-auto mb-8 rounded-full border-2 border-white/10 flex items-center justify-center bg-white/5">
+   735→          <SwissCrossMark size={36} />
+   736→        </div>
+   737→        <h2 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold leading-[1.15] tracking-tight mb-5">
+   738→          {tr("membership.final.title")}
+   739→        </h2>
+   740→        <p className="text-sm sm:text-base text-white/45 leading-relaxed max-w-xl mx-auto mb-10">
+   741→          {tr("membership.final.desc")}
+   742→        </p>
+   743→        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+   744→          <Button
+   745→            className="bg-[#E8272C] hover:bg-[#cc1f24] text-white gap-2 px-8 shadow-lg shadow-[#E8272C]/20 hover:shadow-xl hover:shadow-[#E8272C]/30 transition-all duration-300"
+   746→            onClick={() => navigate("reports")}
+   747→          >
+   748→            {tr("membership.final.cta")} <ArrowRight className="w-4 h-4" />
+   749→          </Button>
+   750→          <span
+   751→            className="text-xs text-white/35 hover:text-white/70 cursor-pointer transition-colors underline underline-offset-2 decoration-white/20"
+   752→            onClick={() => navigate("reports")}
+   753→          >
+   754→            {tr("membership.final.login")}
+   755→          </span>
+   756→        </div>
+   757→      </div>
+   758→    </section>
+   759→  );
+   760→}
+   761→
+   762→/* ═══════════════════════════════════════════════════════
+   763→   MAIN VIEW
+   764→   ═══════════════════════════════════════════════════════ */
+   765→
+   766→export function MembershipView() {
+   767→  const { t: tr } = useLang();
+   768→  const [annual, setAnnual] = useState(false);
+   769→
+   770→  return (
+   771→    <div>
+   772→      {/* ═══ HERO ═══ */}
+   773→      <section className="relative bg-[#0A2540] text-white overflow-hidden">
+   774→        {/* Grid pattern */}
+   775→        <div
+   776→          className="absolute inset-0 opacity-[0.04]"
+   777→          style={{
+   778→            backgroundImage:
+   779→              "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)",
+   780→            backgroundSize: "60px 60px",
+   781→          }}
+   782→        />
+   783→        {/* Radial glow */}
+   784→        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#E8272C]/5 rounded-full blur-[150px] pointer-events-none" />
+   785→        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+   786→
+   787→        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-16 sm:pb-20 text-center">
+   788→          <div className="inline-flex items-center gap-2.5 mb-8 border border-white/10 rounded-full px-5 py-2 bg-white/[0.03] backdrop-blur-sm">
+   789→            <Lock className="w-3.5 h-3.5 text-[#E8272C]" />
+   790→            <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-white/50">
+   791→              {tr("membership.hero.tag")}
+   792→            </span>
+   793→          </div>
+   794→
+   795→          <h1 className="heading-serif text-3xl sm:text-4xl lg:text-[3.5rem] font-bold leading-[1.08] tracking-tight mb-6 max-w-3xl mx-auto">
+   796→            {tr("membership.hero.title.1")}{" "}
+   797→            <span className="text-[#E8272C]">{tr("membership.hero.title.2")}</span>
+   798→          </h1>
+   799→          <p className="text-sm sm:text-base text-white/40 leading-relaxed max-w-2xl mx-auto">
+   800→            {tr("membership.hero.desc")}
+   801→          </p>
+   802→
+   803→          <StatBlock />
+   804→          <BillingToggle annual={annual} setAnnual={setAnnual} />
+   805→        </div>
+   806→
+   807→        {/* Fade to background */}
+   808→        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+   809→      </section>
+   810→
+   811→      {/* ═══ PRICING CARDS ═══ */}
+   812→      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10 pb-8">
+   813→        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-4 items-start">
+   814→          {(["free", "basic", "premium", "expert"] as TierKey[]).map((key) => (
+   815→            <TierCard
+   816→              key={key}
+   817→              tierKey={key}
+   818→              annual={annual}
+   819→            />
+   820→          ))}
+   821→        </div>
+   822→      </section>
+   823→
+   824→      {/* ═══ COMPARISON TABLE ═══ */}
+   825→      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+   826→        <ComparisonTable />
+   827→      </section>
+   828→
+   829→      {/* ═══ INTELLIGENCE JOURNEY ═══ */}
+   830→      <JourneySection />
+   831→
+   832→      {/* ═══ TESTIMONIALS ═══ */}
+   833→      <TestimonialsSection />
+   834→
+   835→      {/* ═══ ENTERPRISE / INSTITUTIONAL ═══ */}
+   836→      <EnterpriseSection />
+   837→
+   838→      {/* ═══ TRUST SECTION ═══ */}
+   839→      <TrustSection />
+   840→
+   841→      {/* ═══ FAQ ═══ */}
+   842→      <FAQSection />
+   843→
+   844→      {/* ═══ FINAL CTA ═══ */}
+   845→      <FinalCTA />
+   846→    </div>
+   847→  );
+   848→}
