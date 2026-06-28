@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────────────
+# SRC Advisory — Pre-commit safety checks
+# ─────────────────────────────────────────────────────────────
+# Prevents accidental removal of critical providers and components.
+set -euo pipefail
+
+RED='\033[0;31m'
+NC='\033[0m'
+ERRORS=0
+
+# 1. LangProvider must be in page.tsx
+if [ -f "src/app/page.tsx" ]; then
+  if ! grep -qP '(?:import.*?LangProvider|<LangProvider>)' src/app/page.tsx; then
+    echo -e "${RED}BLOCKED: LangProvider is missing from src/app/page.tsx${NC}"
+    echo "  → Multi-language (i18n) will be broken. Add: import { LangProvider } from \"@/components/LangProvider\""
+    echo "  → And wrap the component tree with <LangProvider>...</LangProvider>"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# 2. SessionProvider must be in page.tsx
+if [ -f "src/app/page.tsx" ]; then
+  if ! grep -qP '(?:import.*?SessionProvider|<SessionProvider>)' src/app/page.tsx; then
+    echo -e "${RED}BLOCKED: SessionProvider is missing from src/app/page.tsx${NC}"
+    echo "  → Authentication will be broken."
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# 3. NavigationProvider must be in page.tsx
+if [ -f "src/app/page.tsx" ]; then
+  if ! grep -qP '(?:import.*?NavigationProvider|<NavigationProvider>)' src/app/page.tsx; then
+    echo -e "${RED}BLOCKED: NavigationProvider is missing from src/app/page.tsx${NC}"
+    echo "  → SPA routing will be broken."
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo -e "${RED}Commit blocked: $ERRORS critical check(s) failed.${NC}"
+  echo "If you are intentionally removing a provider, use: git commit --no-verify"
+  exit 1
+fi
+
+echo 'HOOK IS RUNNING' >&2
+exit 0
