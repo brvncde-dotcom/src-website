@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SiteNavigation, type PageKey } from "@/components/SiteNavigation";
+import { NavigationProvider } from "@/components/NavigationProvider";
 import { HomeView } from "@/components/HomeView";
 import { ReportsView } from "@/components/ReportsView";
 import { OpinionsView } from "@/components/OpinionsView";
@@ -10,6 +11,8 @@ import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
 import { MembershipView } from "@/components/MembershipView";
 import { UserAccountView } from "@/components/UserAccountView";
+import { LegalView } from "@/components/LegalView";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SessionProvider } from "@/components/SessionProvider";
 
 function getInitialPage(): PageKey {
@@ -23,10 +26,16 @@ function getInitialPage(): PageKey {
   return "home";
 }
 
-function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageKey) => void }) {
+const LEGAL_PAGES: Set<PageKey> = new Set(["impressum", "datenschutz", "agb"]);
+
+function PageRouter({ page }: { page: PageKey }) {
+  if (LEGAL_PAGES.has(page)) {
+    return <LegalView page={page as "impressum" | "datenschutz" | "agb"} />;
+  }
+
   switch (page) {
     case "home":
-      return <HomeView onNavigate={onNavigate} />;
+      return <HomeView />;
     case "reports":
       return <ReportsView />;
     case "opinions":
@@ -42,7 +51,7 @@ function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageK
     case "account":
       return <UserAccountView />;
     default:
-      return <HomeView onNavigate={onNavigate} />;
+      return <HomeView />;
   }
 }
 
@@ -51,8 +60,13 @@ export default function Page() {
 
   return (
     <SessionProvider>
-      <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
-      <PageRouter page={currentPage} onNavigate={setCurrentPage} />
+      <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
+        <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
+        <main className="flex-1">
+          <PageRouter page={currentPage} />
+        </main>
+        <SiteFooter />
+      </NavigationProvider>
     </SessionProvider>
   );
 }

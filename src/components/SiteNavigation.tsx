@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, Menu, ArrowRight, User, LogIn } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
@@ -13,20 +13,28 @@ import {
 import { AuthDialog } from "@/components/AuthDialog";
 import { useLang } from "@/components/LangProvider";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "membership" | "contact" | "account";
+export type PageKey =
+  | "home"
+  | "reports"
+  | "opinions"
+  | "focus-areas"
+  | "approach"
+  | "membership"
+  | "contact"
+  | "account"
+  | "impressum"
+  | "datenschutz"
+  | "agb";
 
-const NAV: { key: PageKey; label: string }[] = [
-  { key: "home", label: "Home" },
-  { key: "reports", label: "Reports" },
-  { key: "opinions", label: "Opinions" },
-  { key: "focus-areas", label: "Focus Areas" },
-  { key: "approach", label: "Approach" },
-  { key: "membership", label: "Membership" },
-  { key: "contact", label: "Contact" },
+const NAV: { key: PageKey; labelKey: string }[] = [
+  { key: "home", labelKey: "nav.home" },
+  { key: "reports", labelKey: "nav.reports" },
+  { key: "opinions", labelKey: "nav.opinions" },
+  { key: "focus-areas", labelKey: "nav.focus-areas" },
+  { key: "approach", labelKey: "nav.approach" },
+  { key: "membership", labelKey: "nav.membership" },
+  { key: "contact", labelKey: "nav.contact" },
 ];
-
-// Pages where the account button should trigger SPA navigation instead of link
-const SPA_PAGES = new Set<PageKey>(["home", "reports", "opinions", "focus-areas", "approach", "membership", "contact", "account"]);
 
 interface Props {
   currentPage: PageKey;
@@ -47,13 +55,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
 
   const handleAccountClick = () => {
     if (status === "authenticated") {
-      if (currentPage === "home") {
-        // We're on the SPA — navigate to account page
-        handleNav("account");
-      } else {
-        // We're on a separate page like /reports/[id] — link back to SPA account
-        window.location.href = "/?tab=account";
-      }
+      handleNav("account");
     } else {
       setAuthOpen(true);
     }
@@ -88,7 +90,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {item.label}
+                  {tr(item.labelKey)}
                 </button>
               ))}
             </div>
@@ -175,7 +177,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                   }`}
                 >
-                  {item.label}
+                  {tr(item.labelKey)}
                 </button>
               ))}
 

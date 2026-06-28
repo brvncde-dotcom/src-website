@@ -133,7 +133,7 @@ export default function ReportPage() {
 
   const handleBookmarkToggle = async () => {
     if (!isAuthenticated) {
-      window.location.href = "/register";
+      window.location.href = "/?tab=account";
       return;
     }
     if (!params.id || bookmarkLoading) return;
