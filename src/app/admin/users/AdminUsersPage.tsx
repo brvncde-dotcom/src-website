@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -184,6 +185,23 @@ export default function AdminUsersPage() {
     return "";
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { data: session } = useSession();
+
+  // Auto-fetch API key if logged in via NextAuth
+  useEffect(() => {
+    if (session?.user?.email && !apiKey) {
+      fetch("/api/admin/auth-key")
+        .then(r => r.json())
+        .then(data => {
+          if (data.key) {
+            sessionStorage.setItem("src_admin_key", data.key);
+            setApiKey(data.key);
+            setIsAuthenticated(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [session, apiKey]);
 
   // ── Fetch users ──
 
