@@ -273,7 +273,7 @@
   --src-accent: #0A2540;
   --src-accent-mid: #2e6da4;
   --src-accent-light: #E7EEF5;
-  --src-highlight: #E8272C;
+  --src-highlight: #e85d04;
   --src-positive: #2d6a4f;
   --src-warning: #b8860b;
   --src-neutral: #F4F6F9;
@@ -284,6 +284,12 @@
 
 /* GFM table enhancements — striped rows + accent header rule */
 .prose-src thead th {
+  background: #d0e4f7;
+  color: var(--src-ink);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.6rem 0.75rem;
   border-bottom: 2px solid var(--src-accent-mid);
 }
 .prose-src tbody tr:nth-child(even) td {
@@ -355,7 +361,7 @@
   border-left-color: var(--src-highlight);
 }
 .prose-src .src-callout--warning {
-  border-left-color: var(--src-warning);
+  border-left-color: #d4a017;
   background: #fffbf0;
 }
 .prose-src .src-callout--definition {

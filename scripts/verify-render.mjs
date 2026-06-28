@@ -26,7 +26,7 @@ const svgTags = [
 ];
 const svgAttributes = [
   "id", "className", "dataChartType", "viewBox", "xmlns", "xmlnsXlink", "role",
-  "aria-label", "aria-labelledby", "aria-hidden", "x", "y", "x1", "y1", "x2",
+  "ariaLabel", "ariaLabelledBy", "ariaHidden", "x", "y", "x1", "y1", "x2",
   "y2", "width", "height", "cx", "cy", "r", "rx", "ry", "fx", "fy", "d",
   "points", "transform", "fill", "fillOpacity", "fillRule", "stroke",
   "strokeWidth", "strokeLinecap", "strokeLinejoin", "strokeDasharray",
@@ -48,8 +48,8 @@ const reportSanitizeSchema = {
     ...defaultSchema.attributes,
     "*": [
       ...((defaultSchema.attributes?.["*"] ?? [])),
-      "className", "dataChartType", "role", "aria-label", "aria-labelledby",
-      "aria-hidden",
+      "className", "dataChartType", "role", "ariaLabel", "ariaLabelledBy",
+      "ariaHidden",
     ],
     img: [...((defaultSchema.attributes?.img ?? [])), "loading"],
     ...svgAttributeRecord,
@@ -71,7 +71,7 @@ const sample = `# Sample SRC Report
 <figure class="src-chart" data-chart-type="bar">
   <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Risk by domain">
     <rect x="40" y="120" width="120" height="130" fill="#2e6da4" />
-    <rect x="200" y="60" width="120" height="190" fill="#E8272C" />
+    <rect x="200" y="60" width="120" height="190" fill="#e85d04" />
     <text x="100" y="270" text-anchor="middle">Digital</text>
   </svg>
   <figcaption>
@@ -113,6 +113,7 @@ const checks = [
   ["data-chart-type preserved", has("data-chart-type") || has("data-chart-type")],
   ["svg geometry kept (<rect>)", has("<rect")],
   ["svg <text> kept", has("<text")],
+  ["svg aria-label preserved", has("aria-label")],
   ["<figcaption> present", has("<figcaption")],
   ["markdown image -> <img>", has("<img") && has("/reports/assets/capability-curve.svg")],
   ["callout aside preserved", has('class="src-callout src-callout--key-finding"')],

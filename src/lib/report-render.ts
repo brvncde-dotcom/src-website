@@ -29,7 +29,7 @@ const svgTags = [
 // Presentation + geometry attributes used by SRC-original inline SVG charts.
 // NOTE: rehype-sanitize matches HAST *property names*, so multi-word HTML
 // attributes use their camelCase property form (className, dataChartType,
-// strokeWidth, fontSize, fillOpacity ...). aria-* keep their hyphenated form.
+// strokeWidth, fontSize, fillOpacity, ariaLabel, ariaLabelledBy, ariaHidden ...).
 const svgAttributes = [
   "id",
   "className",
@@ -38,9 +38,9 @@ const svgAttributes = [
   "xmlns",
   "xmlnsXlink",
   "role",
-  "aria-label",
-  "aria-labelledby",
-  "aria-hidden",
+  "ariaLabel",
+  "ariaLabelledBy",
+  "ariaHidden",
   "x",
   "y",
   "x1",
@@ -107,15 +107,15 @@ export const reportSanitizeSchema = {
   attributes: {
     ...defaultSchema.attributes,
     // Allow class + data-chart-type + a11y attrs on any element (design-system
-    // hooks). Property names: className, dataChartType, role, aria-*.
+    // hooks). Property names: className, dataChartType, role, aria* (camelCase).
     "*": [
       ...((defaultSchema.attributes?.["*"] as string[] | undefined) ?? []),
       "className",
       "dataChartType",
       "role",
-      "aria-label",
-      "aria-labelledby",
-      "aria-hidden",
+      "ariaLabel",
+      "ariaLabelledBy",
+      "ariaHidden",
     ],
     img: [
       ...((defaultSchema.attributes?.img as string[] | undefined) ?? []),

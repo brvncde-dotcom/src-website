@@ -34,7 +34,7 @@ const svgTags = [
 ];
 const svgAttributes = [
   "id", "className", "dataChartType", "viewBox", "xmlns", "xmlnsXlink", "role",
-  "aria-label", "aria-labelledby", "aria-hidden", "x", "y", "x1", "y1", "x2",
+  "ariaLabel", "ariaLabelledBy", "ariaHidden", "x", "y", "x1", "y1", "x2",
   "y2", "width", "height", "cx", "cy", "r", "rx", "ry", "fx", "fy", "d",
   "points", "transform", "fill", "fillOpacity", "fillRule", "stroke",
   "strokeWidth", "strokeLinecap", "strokeLinejoin", "strokeDasharray",
@@ -55,8 +55,8 @@ const reportSanitizeSchema = {
     ...defaultSchema.attributes,
     "*": [
       ...((defaultSchema.attributes?.["*"] ?? [])),
-      "className", "dataChartType", "role", "aria-label", "aria-labelledby",
-      "aria-hidden",
+      "className", "dataChartType", "role", "ariaLabel", "ariaLabelledBy",
+      "ariaHidden",
     ],
     img: [...((defaultSchema.attributes?.img ?? [])), "loading"],
     ...svgAttributeRecord,
@@ -100,10 +100,10 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 .prose-src td { padding: 0.65rem 1rem; border-bottom: 1px solid #D8DEE6; }
 .prose-src tr:last-child td { border-bottom: none; }
 .prose-src { --src-ink: #0A2540; --src-accent: #0A2540; --src-accent-mid: #2e6da4;
-  --src-accent-light: #E7EEF5; --src-highlight: #E8272C; --src-positive: #2d6a4f;
+  --src-accent-light: #E7EEF5; --src-highlight: #e85d04; --src-positive: #2d6a4f;
   --src-warning: #b8860b; --src-neutral: #F4F6F9; --src-rule: #D8DEE6; --src-white: #FFFFFF;
   overflow-wrap: break-word; }
-.prose-src thead th { border-bottom: 2px solid var(--src-accent-mid); }
+.prose-src thead th { background: #d0e4f7; color: var(--src-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--src-accent-mid); }
 .prose-src tbody tr:nth-child(even) td { background: var(--src-neutral); }
 .prose-src td, .prose-src th { border: 1px solid var(--src-rule); vertical-align: top; }
 .prose-src table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -116,7 +116,7 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 .prose-src .src-source { display: block; font-style: italic; margin-top: 0.25rem; }
 .prose-src .src-callout { border-left: 4px solid var(--src-accent-mid); background: var(--src-neutral); padding: 1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 0.25rem 0.25rem 0; }
 .prose-src .src-callout--key-finding { border-left-color: var(--src-highlight); }
-.prose-src .src-callout--warning { border-left-color: var(--src-warning); background: #fffbf0; }
+.prose-src .src-callout--warning { border-left-color: #d4a017; background: #fffbf0; }
 .prose-src .src-callout--definition { border-left-color: var(--src-accent-mid); }
 .prose-src .src-callout p { margin: 0 0 0.5rem; }
 .prose-src .src-callout p:last-child { margin-bottom: 0; }
@@ -139,7 +139,7 @@ const sample = `# Sample SRC Report — Renderer Acceptance
 <figure class="src-chart" data-chart-type="bar">
   <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Risk score by domain">
     <rect x="40" y="120" width="120" height="130" fill="#2e6da4" />
-    <rect x="200" y="60" width="120" height="190" fill="#E8272C" />
+    <rect x="200" y="60" width="120" height="190" fill="#e85d04" />
     <rect x="360" y="160" width="120" height="90" fill="#2d6a4f" />
     <text x="100" y="270" text-anchor="middle">Digital</text>
     <text x="260" y="270" text-anchor="middle">Geopolitics</text>
