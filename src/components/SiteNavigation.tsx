@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useLang } from "@/components/LangProvider";
+import { LANG_LABELS, type Lang } from "@/lib/i18n";
 
 export type PageKey =
   | "home"
@@ -35,6 +36,29 @@ const NAV: { key: PageKey; labelKey: string }[] = [
   { key: "membership", labelKey: "nav.membership" },
   { key: "contact", labelKey: "nav.contact" },
 ];
+
+const ALL_LANGS: Lang[] = ["en", "de", "fr", "it"];
+
+function LangSwitcher() {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="flex items-center gap-0.5 border border-border rounded-sm overflow-hidden">
+      {ALL_LANGS.map((l) => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          className={`px-1.5 py-1 text-[10px] font-bold tracking-wide transition-colors ${
+            lang === l
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+          }`}
+        >
+          {LANG_LABELS[l]}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface Props {
   currentPage: PageKey;
@@ -95,8 +119,13 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
               ))}
             </div>
 
-            {/* CTA + Account + Mobile toggle */}
+            {/* Lang switcher + Account + CTA + Mobile toggle */}
             <div className="flex items-center gap-2">
+              {/* Language switcher — desktop */}
+              <div className="hidden md:block">
+                <LangSwitcher />
+              </div>
+
               {/* Account / Login button */}
               {status === "authenticated" ? (
                 <Popover>
@@ -149,7 +178,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                 className="hidden sm:flex items-center gap-2 text-xs tracking-wide"
                 onClick={() => handleNav("reports")}
               >
-                Member Access
+                {tr("nav.member-access")}
                 <ArrowRight className="w-3 h-3" />
               </Button>
               <button
@@ -211,14 +240,16 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-border">
+              {/* Language switcher + Member Access — mobile */}
+              <div className="pt-3 border-t border-border space-y-2">
+                <LangSwitcher />
                 <Button
                   size="sm"
                   variant="outline"
                   className="w-full flex items-center justify-center gap-2 text-xs"
                   onClick={() => handleNav("reports")}
                 >
-                  Member Access
+                  {tr("nav.member-access")}
                   <ArrowRight className="w-3 h-3" />
                 </Button>
               </div>
@@ -232,7 +263,6 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         open={authOpen}
         onOpenChange={setAuthOpen}
         onSuccess={() => {
-          // After successful login, navigate to account
           handleAccountClick();
         }}
       />
