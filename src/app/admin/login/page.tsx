@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
     if (result?.error) {
       setError("Invalid email or password.");
     } else {
-      router.push("/admin");
+      router.push("/admin/reports");
     }
   }
 
