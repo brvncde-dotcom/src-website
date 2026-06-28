@@ -1,5 +1,4 @@
 "use client";
-cat > src/app/admin/login/page.tsx << 'ENDOFFILE'
 "use client";
 
 import { useState } from "react";
