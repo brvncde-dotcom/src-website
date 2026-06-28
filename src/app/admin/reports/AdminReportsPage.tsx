@@ -108,7 +108,7 @@ export default function AdminReportsPage() {
     return "";
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { data: session } = useSession();
+  const { data: session } = useSession() ?? {};
 
   // Auto-fetch API key if logged in via NextAuth
   useEffect(() => {
