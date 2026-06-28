@@ -9,6 +9,19 @@ import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
 import { MembershipView } from "@/components/MembershipView";
+import { UserAccountView } from "@/components/UserAccountView";
+import { SessionProvider } from "@/components/SessionProvider";
+
+function getInitialPage(): PageKey {
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "account") {
+      window.history.replaceState({}, "", "/");
+      return "account";
+    }
+  }
+  return "home";
+}
 
 function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageKey) => void }) {
   switch (page) {
@@ -26,18 +39,20 @@ function PageRouter({ page, onNavigate }: { page: PageKey; onNavigate: (p: PageK
       return <MembershipView />;
     case "contact":
       return <ContactView />;
+    case "account":
+      return <UserAccountView />;
     default:
       return <HomeView onNavigate={onNavigate} />;
   }
 }
 
 export default function Page() {
-  const [currentPage, setCurrentPage] = useState<PageKey>("home");
+  const [currentPage, setCurrentPage] = useState<PageKey>(getInitialPage);
 
   return (
-    <>
+    <SessionProvider>
       <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
       <PageRouter page={currentPage} onNavigate={setCurrentPage} />
-    </>
+    </SessionProvider>
   );
 }

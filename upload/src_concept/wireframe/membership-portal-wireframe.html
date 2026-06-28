@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRC Membership Portal — Wireframe</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f0f0;
+    color: #333;
+    line-height: 1.4;
+  }
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+  .subtitle {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 40px 0 20px;
+    color: #1a1a1a;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Wireframe Screen Container */
+  .screen {
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+  .screen-header {
+    background: #e8e8e8;
+    border-bottom: 2px solid #ccc;
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .screen-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .screen-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    border: 1px solid #bbb;
+  }
+
+  /* Wireframe Elements */
+  .wf-nav {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 2px solid #e0e0e0;
+    gap: 24px;
+  }
+  .wf-logo {
+    width: 140px;
+    height: 32px;
+    background: #d0d0d0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+  }
+  .wf-nav-links {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+  }
+  .wf-nav-link {
+    width: 60px;
+    height: 14px;
+    background: #e0e0e0;
+    border-radius: 2px;
+  }
+  .wf-nav-link.active {
+    background: #c0c0c0;
+  }
+  .wf-nav-cta {
+    width: 100px;
+    height: 30px;
+    background: #bbb;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+  }
+
+  .wf-hero {
+    padding: 48px 24px;
+    text-align: center;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  .wf-hero-label {
+    width: 200px;
+    height: 18px;
+    background: #e8e8e8;
+    margin: 0 auto 16px;
+    border-radius: 2px;
+  }
+  .wf-hero-title {
+    width: 500px;
+    height: 40px;
+    background: #d0d0d0;
+    margin: 0 auto 16px;
+    border-radius: 4px;
+  }
+  .wf-hero-subtitle {
+    width: 400px;
+    height: 18px;
+    background: #e8e8e8;
+    margin: 0 auto 24px;
+    border-radius: 2px;
+  }
+  .wf-hero-cta {
+    display: inline-flex;
+    gap: 12px;
+  }
+  .wf-btn {
+    padding: 10px 24px;
+    background: #999;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .wf-btn.secondary {
+    background: #e0e0e0;
+    color: #666;
+  }
+
+  .wf-section {
+    padding: 32px 24px;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  .wf-section-title {
+    width: 250px;
+    height: 24px;
+    background: #d0d0d0;
+    margin-bottom: 24px;
+    border-radius: 4px;
+  }
+  .wf-section-subtitle {
+    width: 350px;
+    height: 14px;
+    background: #e8e8e8;
+    margin-bottom: 24px;
+    border-radius: 2px;
+  }
+
+  .wf-grid {
+    display: grid;
+    gap: 20px;
+  }
+  .wf-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .wf-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .wf-grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .wf-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+    background: #fafafa;
+  }
+  .wf-card-featured {
+    border-color: #999;
+    background: #f5f5f5;
+    position: relative;
+  }
+  .wf-card-badge {
+    position: absolute;
+    top: -10px;
+    right: 16px;
+    background: #888;
+    color: #fff;
+    font-size: 9px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .wf-card-tier {
+    width: 80px;
+    height: 16px;
+    background: #d0d0d0;
+    margin-bottom: 10px;
+    border-radius: 2px;
+  }
+  .wf-card-price {
+    width: 100px;
+    height: 28px;
+    background: #bbb;
+    margin-bottom: 16px;
+    border-radius: 4px;
+  }
+  .wf-card-free .wf-card-price { background: #d8d8d8; }
+  .wf-card-featured .wf-card-price { background: #888; }
+  .wf-card ul {
+    list-style: none;
+  }
+  .wf-card li {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    margin-bottom: 8px;
+    border-radius: 2px;
+  }
+  .wf-card li:last-child { width: 70%; }
+  .wf-card-btn {
+    width: 100%;
+    height: 32px;
+    background: #bbb;
+    border-radius: 4px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+  }
+  .wf-card-free .wf-card-btn {
+    background: #d0d0d0;
+    color: #666;
+  }
+
+  .wf-content-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+    min-height: 500px;
+  }
+  .wf-sidebar {
+    background: #f5f5f5;
+    border-right: 2px solid #e0e0e0;
+    padding: 20px 16px;
+  }
+  .wf-sidebar-item {
+    height: 32px;
+    background: #e8e8e8;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 11px;
+    color: #888;
+  }
+  .wf-sidebar-item.active {
+    background: #ccc;
+    color: #333;
+    font-weight: 600;
+  }
+  .wf-main {
+    padding: 24px;
+    background: #fff;
+  }
+  .wf-rightbar {
+    background: #fafafa;
+    border-left: 2px solid #e0e0e0;
+    padding: 20px 16px;
+  }
+  .wf-panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .wf-panel-title {
+    height: 14px;
+    width: 120px;
+    background: #d0d0d0;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+  .wf-panel-row {
+    height: 10px;
+    background: #e8e8e8;
+    margin-bottom: 8px;
+    border-radius: 2px;
+  }
+
+  .wf-content-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .wf-content-item {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+  }
+  .wf-content-thumb {
+    height: 90px;
+    background: #e0e0e0;
+    border-radius: 4px;
+  }
+  .wf-content-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .wf-content-type {
+    width: 60px;
+    height: 14px;
+    background: #d8d8d8;
+    border-radius: 2px;
+  }
+  .wf-content-title {
+    width: 80%;
+    height: 18px;
+    background: #bbb;
+    border-radius: 2px;
+  }
+  .wf-content-excerpt {
+    width: 90%;
+    height: 10px;
+    background: #e8e8e8;
+    border-radius: 2px;
+  }
+  .wf-content-excerpt.short { width: 60%; }
+  .wf-content-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #999;
+  }
+  .wf-lock-icon {
+    width: 12px;
+    height: 12px;
+    background: #bbb;
+    border-radius: 2px;
+  }
+
+  .wf-detail-layout {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+  .wf-detail-type {
+    width: 80px;
+    height: 16px;
+    background: #d8d8d8;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+  .wf-detail-title {
+    width: 90%;
+    height: 36px;
+    background: #bbb;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  .wf-detail-author {
+    width: 200px;
+    height: 12px;
+    background: #e8e8e8;
+    margin-bottom: 24px;
+    border-radius: 2px;
+  }
+  .wf-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .wf-detail-line {
+    height: 10px;
+    background: #e8e8e8;
+    border-radius: 2px;
+  }
+  .wf-detail-line.short { width: 70%; }
+  .wf-detail-line.shorter { width: 45%; }
+
+  .wf-paywall-overlay {
+    position: relative;
+    margin-top: -80px;
+    padding: 40px 24px;
+    background: linear-gradient(transparent, #fff 30%);
+    text-align: center;
+  }
+  .wf-paywall-box {
+    border: 2px solid #bbb;
+    border-radius: 8px;
+    padding: 32px;
+    background: #fafafa;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .wf-paywall-title {
+    width: 300px;
+    height: 20px;
+    background: #bbb;
+    margin: 0 auto 16px;
+    border-radius: 4px;
+  }
+  .wf-paywall-text {
+    width: 80%;
+    height: 10px;
+    background: #e0e0e0;
+    margin: 0 auto 20px;
+    border-radius: 2px;
+  }
+
+  .wf-token-input {
+    display: flex;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .wf-input {
+    flex: 1;
+    height: 40px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    padding: 0 12px;
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+  }
+
+  .wf-crm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 2px solid #e0e0e0;
+    background: #f5f5f5;
+  }
+  .wf-crm-title {
+    width: 200px;
+    height: 22px;
+    background: #bbb;
+    border-radius: 4px;
+  }
+  .wf-crm-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .wf-crm-action {
+    width: 100px;
+    height: 30px;
+    background: #ccc;
+    border-radius: 4px;
+  }
+
+  .wf-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  .wf-stat-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .wf-stat-number {
+    width: 60px;
+    height: 32px;
+    background: #bbb;
+    margin: 0 auto 8px;
+    border-radius: 4px;
+  }
+  .wf-stat-label {
+    width: 80px;
+    height: 10px;
+    background: #e0e0e0;
+    margin: 0 auto;
+    border-radius: 2px;
+  }
+
+  .wf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .wf-table th {
+    background: #e8e8e8;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 2px solid #ccc;
+  }
+  .wf-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    color: #888;
+  }
+  .wf-table tr:hover td {
+    background: #f8f8f8;
+  }
+  .wf-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .wf-pill.green { background: #d4edda; color: #155724; }
+  .wf-pill.blue { background: #cce5ff; color: #004085; }
+  .wf-pill.yellow { background: #fff3cd; color: #856404; }
+  .wf-pill.red { background: #f8d7da; color: #721c24; }
+  .wf-pill.gray { background: #e2e3e5; color: #383d41; }
+
+  .wf-mini-chart {
+    height: 60px;
+    background: repeating-linear-gradient(
+      90deg,
+      #e0e0e0 0px,
+      #e0e0e0 8px,
+      transparent 8px,
+      transparent 12px
+    );
+    border-radius: 4px;
+    margin-top: 8px;
+    position: relative;
+  }
+  .wf-mini-chart::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: repeating-linear-gradient(
+      90deg,
+      #ccc 0px,
+      #ccc 8px,
+      transparent 8px,
+      transparent 12px
+    );
+    border-radius: 0 0 4px 4px;
+  }
+
+  .wf-alert-compose {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+  }
+  .wf-form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .wf-form-input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    margin-bottom: 16px;
+    padding: 0 12px;
+    font-size: 11px;
+    color: #888;
+    display: flex;
+    align-items: center;
+  }
+  .wf-form-textarea {
+    width: 100%;
+    height: 120px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    margin-bottom: 16px;
+    padding: 12px;
+    font-size: 11px;
+    color: #888;
+  }
+
+  .annotation {
+    background: #fff9e6;
+    border-left: 3px solid #f0c040;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #665500;
+    border-radius: 0 4px 4px 0;
+  }
+  .annotation strong {
+    color: #332b00;
+  }
+
+  @media print {
+    .page { padding: 20px; }
+    h2 { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>SRC Advisory — Membership Portal Wireframe</h1>
+  <p class="subtitle">Wireframe v1.0 | Key screens for the 4-tier membership model with token system and admin CRM</p>
+
+  <!-- ==================== SCREEN 1: PUBLIC LANDING / PRICING ==================== -->
+  <h2>Screen 1: Public Landing Page (Anonymous Visitor)</h2>
+  <div class="screen">
+    <div class="screen-header">
+      <span>src-advisory.ch</span>
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+    </div>
+
+    <!-- Nav -->
+    <div class="wf-nav">
+      <div class="wf-logo">SRC Advisory</div>
+      <div class="wf-nav-links">
+        <div class="wf-nav-link active"></div>
+        <div class="wf-nav-link"></div>
+        <div class="wf-nav-link"></div>
+        <div class="wf-nav-link"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <div class="wf-btn secondary" style="padding:8px 18px;font-size:10px;">Log In</div>
+        <div class="wf-btn" style="padding:8px 18px;font-size:10px;background:#888;">Get Started</div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="wf-hero">
+      <div class="wf-hero-label" style="background:#e0c080;width:180px;"></div>
+      <div class="wf-hero-title" style="width:550px;height:44px;background:#aaa;"></div>
+      <div class="wf-hero-subtitle" style="width:420px;"></div>
+      <div class="wf-hero-subtitle" style="width:380px;margin-bottom:28px;"></div>
+      <div class="wf-hero-cta">
+        <div class="wf-btn" style="background:#888;">View Pricing</div>
+        <div class="wf-btn secondary">Our Approach</div>
+      </div>
+    </div>
+
+    <!-- Pricing Tiers -->
+    <div class="wf-section">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div class="wf-section-title" style="margin:0 auto 12px;width:200px;"></div>
+        <div class="wf-section-subtitle" style="margin:0 auto;width:300px;"></div>
+      </div>
+
+      <div class="wf-grid wf-grid-4">
+        <!-- Free -->
+        <div class="wf-card wf-card-free">
+          <div class="wf-card-tier" style="background:#d0d0d0;"></div>
+          <div class="wf-card-price" style="background:#d8d8d8;width:40px;"></div>
+          <ul>
+            <li></li><li></li><li></li><li></li><li></li><li style="width:60%;"></li>
+          </ul>
+          <div class="wf-card-btn">Register Free</div>
+        </div>
+
+        <!-- Essential -->
+        <div class="wf-card">
+          <div class="wf-card-tier"></div>
+          <div class="wf-card-price" style="width:90px;"></div>
+          <ul>
+            <li></li><li></li><li></li><li></li><li></li><li></li><li style="width:60%;"></li>
+          </ul>
+          <div class="wf-card-btn">Start Trial</div>
+        </div>
+
+        <!-- Professional (Featured) -->
+        <div class="wf-card wf-card-featured">
+          <div class="wf-card-badge">Most Popular</div>
+          <div class="wf-card-tier" style="background:#bbb;"></div>
+          <div class="wf-card-price" style="width:90px;"></div>
+          <ul>
+            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li style="width:60%;"></li>
+          </ul>
+          <div class="wf-card-btn" style="background:#888;">Start Trial</div>
+        </div>
+
+        <!-- Executive -->
+        <div class="wf-card">
+          <div class="wf-card-tier"></div>
+          <div class="wf-card-price" style="width:100px;"></div>
+          <ul>
+            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li style="width:50%;"></li>
+          </ul>
+          <div class="wf-card-btn">Apply</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Token CTA Section -->
+    <div class="wf-section" style="text-align:center;">
+      <div class="wf-section-title" style="margin:0 auto 12px;width:350px;"></div>
+      <div class="wf-section-subtitle" style="margin:0 auto 20px;width:400px;"></div>
+      <div class="wf-token-input" style="max-width:400px;">
+        <div class="wf-input">Enter access token</div>
+        <div class="wf-btn" style="background:#888;">Activate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 1 — Key Interactions:</strong> Anonymous visitor sees all 4 tiers but "Apply" (Executive) and content previews are gated. 
+    The token input field at bottom captures key persons with pre-issued tokens. Registration wall triggers after 2-3 article views (not shown here).
+  </div>
+
+
+  <!-- ==================== SCREEN 2: REGISTRATION / LOGIN ==================== -->
+  <h2>Screen 2: Registration & Login</h2>
+  <div class="screen" style="max-width:500px;margin:0 auto 30px;">
+    <div class="screen-header">
+      <span>Authentication</span>
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+    </div>
+
+    <div style="padding:40px 32px;text-align:center;">
+      <div class="wf-logo" style="width:160px;height:36px;margin:0 auto 32px;">SRC Advisory</div>
+
+      <!-- OAuth buttons -->
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+        <div class="wf-btn secondary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;">
+          <span style="width:16px;height:16px;background:#bbb;border-radius:2px;display:inline-block;"></span>
+          Continue with LinkedIn
+        </div>
+        <div class="wf-btn secondary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;">
+          <span style="width:16px;height:16px;background:#bbb;border-radius:50%;display:inline-block;"></span>
+          Continue with Google
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+        <div style="flex:1;height:1px;background:#e0e0e0;"></div>
+        <span style="font-size:11px;color:#999;">or with email</span>
+        <div style="flex:1;height:1px;background:#e0e0e0;"></div>
+      </div>
+
+      <!-- Email form -->
+      <div style="text-align:left;margin-bottom:16px;">
+        <span class="wf-form-label">Email</span>
+        <div class="wf-form-input">you@organization.com</div>
+      </div>
+      <div style="text-align:left;margin-bottom:16px;">
+        <span class="wf-form-label">Password</span>
+        <div class="wf-form-input">••••••••••••</div>
+      </div>
+      <div style="text-align:left;margin-bottom:24px;">
+        <span class="wf-form-label">Confirm Password</span>
+        <div class="wf-form-input">••••••••••••</div>
+      </div>
+
+      <div class="wf-btn" style="width:100%;margin-bottom:16px;background:#888;">Create Account</div>
+      <p style="font-size:11px;color:#999;">Already have an account? <span style="color:#666;text-decoration:underline;">Log in</span></p>
+      <p style="font-size:10px;color:#bbb;margin-top:16px;">By signing up, you agree to our Terms and Privacy Policy</p>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 2 — Key Flows:</strong> Registration wall triggers after 3rd article view. OAuth via LinkedIn (for key persons) and Google. 
+    Token holders can also activate via "Have a token?" link which skips payment. 7-day onboarding email series begins on account creation.
+  </div>
+
+
+  <!-- ==================== SCREEN 3: MEMBER DASHBOARD ==================== -->
+  <h2>Screen 3: Member Dashboard (Authenticated)</h2>
+  <div class="screen">
+    <div class="screen-header">
+      <span>member.src-advisory.ch / dashboard</span>
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+    </div>
+
+    <!-- Nav -->
+    <div class="wf-nav">
+      <div class="wf-logo">SRC Advisory</div>
+      <div class="wf-nav-links">
+        <div class="wf-nav-link active"></div>
+        <div class="wf-nav-link"></div>
+        <div class="wf-nav-link"></div>
+        <div class="wf-nav-link"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-left:auto;">
+        <span style="font-size:11px;color:#888;">🔔</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:28px;height:28px;background:#bbb;border-radius:50%;"></div>
+          <span style="font-size:11px;color:#666;">John D. / <strong>Professional</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-column layout -->
+    <div class="wf-content-layout" style="min-height:600px;">
+
+      <!-- Left Sidebar -->
+      <div class="wf-sidebar">
+        <h3>My Library</h3>
+        <div class="wf-sidebar-item active">📰 Feed</div>
+        <div class="wf-sidebar-item">📑 Reports</div>
+        <div class="wf-sidebar-item">📊 Studies</div>
+        <div class="wf-sidebar-item">🎥 vAvatar Videos</div>
+        <div class="wf-sidebar-item">🎙️ Interviews</div>
+        <div class="wf-sidebar-item">🔔 Alerts</div>
+        <div class="wf-sidebar-item">📅 Events</div>
+
+        <h3 style="margin-top:24px;">My Account</h3>
+        <div class="wf-sidebar-item">⚙️ Settings</div>
+        <div class="wf-sidebar-item">💳 Billing</div>
+        <div class="wf-sidebar-item">🔗 Referrals</div>
+
+        <h3 style="margin-top:24px;">Filters</h3>
+        <div style="font-size:11px;color:#888;margin-bottom:8px;">Focus Area</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+          <span class="wf-pill gray">All</span>
+          <span class="wf-pill blue">Digital Power</span>
+          <span class="wf-pill gray">Geopolitics</span>
+          <span class="wf-pill gray">Resilience</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:8px;">Content Type</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="wf-pill gray">Opinion</span>
+          <span class="wf-pill blue">Report</span>
+          <span class="wf-pill gray">Study</span>
+          <span class="wf-pill gray">Video</span>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="wf-main">
+        <!-- Welcome + Tier Status -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div>
+            <div style="width:200px;height:20px;background:#bbb;margin-bottom:6px;border-radius:2px;"></div>
+            <div style="width:300px;height:12px;background:#e0e0e0;border-radius:2px;"></div>
+          </div>
+          <div class="wf-pill blue" style="font-size:11px;">Professional Plan</div>
+        </div>
+
+        <!-- Early Access Banner -->
+        <div style="background:#e8f0e8;border:1px solid #b8d8b8;border-radius:6px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:16px;">⚡</span>
+          <div>
+            <div style="width:200px;height:14px;background:#8a8;border-radius:2px;margin-bottom:4px;"></div>
+            <div style="width:350px;height:10px;background:#b8d8b8;border-radius:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Content Feed -->
+        <div class="wf-content-list">
+          <!-- Item 1: Early access exclusive -->
+          <div class="wf-content-item" style="border-color:#b8c8b8;background:#f8faf8;">
+            <div class="wf-content-thumb" style="background:#c8d8c8;"></div>
+            <div class="wf-content-meta">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="wf-content-type" style="background:#b8d8b8;"></div>
+                <span class="wf-pill green" style="font-size:9px;">Early Access</span>
+              </div>
+              <div class="wf-content-title" style="background:#aaa;"></div>
+              <div class="wf-content-excerpt"></div>
+              <div class="wf-content-excerpt short"></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+                <span style="font-size:10px;color:#888;">3 hours ago</span>
+                <span style="font-size:10px;color:#888;">6 min read</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 2: Regular -->
+          <div class="wf-content-item">
+            <div class="wf-content-thumb"></div>
+            <div class="wf-content-meta">
+              <div class="wf-content-type"></div>
+              <div class="wf-content-title"></div>
+              <div class="wf-content-excerpt"></div>
+              <div class="wf-content-excerpt short"></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+                <span style="font-size:10px;color:#888;">Yesterday</span>
+                <span style="font-size:10px;color:#888;">8 min read</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 3: Video -->
+          <div class="wf-content-item">
+            <div class="wf-content-thumb" style="background:#d0d0e0;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:24px;color:#888;">▶</span>
+            </div>
+            <div class="wf-content-meta">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="wf-content-type" style="background:#c0c0d8;"></div>
+                <span class="wf-pill blue" style="font-size:9px;">vAvatar</span>
+              </div>
+              <div class="wf-content-title"></div>
+              <div class="wf-content-excerpt"></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+                <span style="font-size:10px;color:#888;">2 days ago</span>
+                <span style="font-size:10px;color:#888;">4 min watch</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 4: Upgrade tease (lower tier content) -->
+          <div class="wf-content-item" style="opacity:0.7;">
+            <div class="wf-content-thumb" style="background:#e8e8e8;"></div>
+            <div class="wf-content-meta">
+              <div class="wf-content-type" style="background:#e0e0e0;"></div>
+              <div class="wf-content-title" style="background:#ccc;"></div>
+              <div class="wf-content-excerpt" style="background:#eee;"></div>
+              <div class="wf-content-locked">
+                <div class="wf-lock-icon"></div>
+                Executive only — Upgrade to access
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="wf-rightbar">
+        <!-- Daily Brief Widget -->
+        <div class="wf-panel">
+          <div class="wf-panel-title"></div>
+          <div class="wf-panel-row"></div>
+          <div class="wf-panel-row"></div>
+          <div class="wf-panel-row"></div>
+          <div class="wf-panel-row" style="width:70%"></div>
+          <div style="margin-top:12px;height:24px;background:#ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">Read Full Brief</div>
+        </div>
+
+        <!-- My Stats -->
+        <div class="wf-panel">
+          <div class="wf-panel-title" style="width:80px;"></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:10px;color:#888;">Articles read</span>
+            <span style="font-size:11px;font-weight:600;">24</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:10px;color:#888;">Videos watched</span>
+            <span style="font-size:11px;font-weight:600;">8</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:10px;color:#888;">Engagement</span>
+            <span style="font-size:11px;font-weight:600;color:#2a8;">72/100</span>
+          </div>
+          <div class="wf-mini-chart"></div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="wf-panel">
+          <div class="wf-panel-title" style="width:100px;"></div>
+          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
+            <div style="font-size:10px;color:#888;">Jun 30, 14:00 CET</div>
+            <div style="width:80%;height:12px;background:#e0e0e0;margin-top:4px;border-radius:2px;"></div>
+          </div>
+          <div style="padding:8px 0;">
+            <div style="font-size:10px;color:#888;">Jul 15, 10:00 CET</div>
+            <div style="width:60%;height:12px;background:#e0e0e0;margin-top:4px;border-radius:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Referral Widget -->
+        <div class="wf-panel" style="background:#f0f4f8;">
+          <div class="wf-panel-title" style="width:90px;"></div>
+          <div class="wf-panel-row" style="width:100%"></div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <div class="wf-input" style="height:28px;font-size:10px;flex:1;">src-advisory.ch/r/jd-2847</div>
+            <div style="width:40px;height:28px;background:#ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;">Copy</div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:#888;">3 referrals • 1 converted</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 3 — Key Elements:</strong> Left sidebar filters by content type and focus area. Main feed shows personalized content with "Early Access" badges for tier-exclusive items. 
+    Executive-only content appears locked as an upgrade tease. Right sidebar has the daily brief, engagement score, upcoming events, and referral link widget.
+  </div>
+
+
+  <!-- ==================== SCREEN 4: CONTENT DETAIL WITH GATING ==================== -->
+  <h2>Screen 4: Content Detail — Access States</h2>
+
+  <h3>4a: Full Access (User's Tier ≥ Content Tier)</h3>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="wf-logo">SRC Advisory</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <div style="width:28px;height:28px;background:#bbb;border-radius:50%;"></div>
+      </div>
+    </div>
+    <div class="wf-detail-layout">
+      <div class="wf-detail-type" style="background:#b8d8b8;"></div>
+      <div class="wf-detail-title" style="background:#aaa;"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+        <div class="wf-detail-author" style="width:120px;"></div>
+        <span style="font-size:10px;color:#888;">June 25, 2026</span>
+        <span class="wf-pill green" style="font-size:9px;">Early Access</span>
+      </div>
+      <div class="wf-detail-body">
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:95%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line short"></div>
+        <div style="height:200px;background:#e0e0e0;border-radius:6px;margin:16px 0;"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:90%"></div>
+        <div class="wf-detail-line shorter"></div>
+      </div>
+      <!-- Actions bar -->
+      <div style="display:flex;align-items:center;gap:16px;margin-top:32px;padding-top:20px;border-top:1px solid #e0e0e0;">
+        <div class="wf-btn secondary" style="padding:8px 16px;font-size:10px;">⬇ Download PDF</div>
+        <div class="wf-btn secondary" style="padding:8px 16px;font-size:10px;">🔗 Share</div>
+        <div class="wf-btn secondary" style="padding:8px 16px;font-size:10px;">🔖 Save</div>
+        <div class="wf-btn secondary" style="padding:8px 16px;font-size:10px;">💬 Comment</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>4b: Teaser + Paywall (User's Tier &lt; Content Tier)</h3>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="wf-logo">SRC Advisory</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <div style="width:28px;height:28px;background:#bbb;border-radius:50%;"></div>
+      </div>
+    </div>
+    <div class="wf-detail-layout">
+      <div class="wf-detail-type"></div>
+      <div class="wf-detail-title"></div>
+      <div class="wf-detail-author"></div>
+      <div class="wf-detail-body">
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:100%"></div>
+        <div class="wf-detail-line" style="width:95%"></div>
+        <div class="wf-detail-line" style="width:80%"></div>
+      </div>
+      <!-- Paywall overlay -->
+      <div class="wf-paywall-overlay">
+        <div class="wf-paywall-box">
+          <div class="wf-paywall-title" style="width:250px;"></div>
+          <div class="wf-paywall-text"></div>
+          <div class="wf-paywall-text" style="width:60%"></div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-top:16px;">
+            <div class="wf-btn" style="width:200px;background:#888;">Upgrade to Professional</div>
+            <span style="font-size:10px;color:#999;">or <span style="text-decoration:underline;">start a 10-day free trial</span></span>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:16px;justify-content:center;">
+            <div style="text-align:center;">
+              <div style="font-size:16px;font-weight:600;">200+</div>
+              <div style="font-size:9px;color:#999;">exclusive studies</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:16px;font-weight:600;">Weekly</div>
+              <div style="font-size:9px;color:#999;">vAvatar briefings</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:16px;font-weight:600;">24h</div>
+              <div style="font-size:9px;color:#999;">early access</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 4 — Gating Logic:</strong> Full-access users see the complete article with PDF download, share, and comment actions. 
+    Teaser users see ~40% of the content (soft gate), then a paywall overlay with tier-specific upgrade CTA. The paywall shows social proof 
+    ("200+ exclusive studies") relevant to the target tier, not generic messaging.
+  </div>
+
+
+  <!-- ==================== SCREEN 5: TOKEN ACTIVATION ==================== -->
+  <h2>Screen 5: Token Activation Flow (Key Persons)</h2>
+  <div class="screen" style="max-width:600px;margin:0 auto 30px;">
+    <div class="screen-header">
+      <span>Activate Your Access Token</span>
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+    </div>
+
+    <div style="padding:48px 40px;text-align:center;">
+      <!-- Step indicator -->
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:40px;">
+        <div style="width:32px;height:32px;background:#888;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;">1</div>
+        <div style="width:40px;height:2px;background:#888;margin-top:15px;"></div>
+        <div style="width:32px;height:32px;background:#ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;">2</div>
+        <div style="width:40px;height:2px;background:#ccc;margin-top:15px;"></div>
+        <div style="width:32px;height:32px;background:#ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;">3</div>
+      </div>
+
+      <div class="wf-logo" style="width:120px;height:32px;margin:0 auto 12px;font-size:10px;">SRC Advisory</div>
+      <div style="width:300px;height:22px;background:#bbb;margin:0 auto 12px;border-radius:4px;"></div>
+      <div style="width:400px;height:12px;background:#e8e8e8;margin:0 auto 32px;border-radius:2px;"></div>
+
+      <!-- Token details card -->
+      <div style="border:1px solid #e0e0e0;border-radius:8px;padding:20px;text-align:left;margin-bottom:24px;background:#fafafa;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:11px;color:#888;">Token</span>
+          <span class="wf-pill yellow" style="font-size:9px;">Founder</span>
+        </div>
+        <div style="font-family:monospace;font-size:14px;font-weight:600;color:#333;margin-bottom:4px;">SRC-FNDR-2026-001</div>
+        <div style="display:flex;gap:24px;margin-top:16px;">
+          <div>
+            <div style="font-size:9px;color:#888;">TIER</div>
+            <div style="font-size:13px;font-weight:600;">Executive</div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:#888;">DURATION</div>
+            <div style="font-size:13px;font-weight:600;">12 months</div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:#888;">EXPIRES</div>
+            <div style="font-size:13px;font-weight:600;">June 26, 2027</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prefilled email -->
+      <div style="text-align:left;margin-bottom:20px;">
+        <span class="wf-form-label">Email (pre-filled)</span>
+        <div class="wf-form-input" style="background:#f5f5f5;">general@example.gov</div>
+      </div>
+
+      <!-- Create password -->
+      <div style="text-align:left;margin-bottom:24px;">
+        <span class="wf-form-label">Create Password</span>
+        <div class="wf-form-input">••••••••••••</div>
+      </div>
+
+      <div class="wf-btn" style="width:100%;background:#888;margin-bottom:16px;">Activate Executive Access</div>
+      <p style="font-size:10px;color:#bbb;">By activating, you agree to our Terms and accept referral program participation</p>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 5 — Token Flow:</strong> Invitation email contains unique activation URL. Page shows token details (type, tier, duration) 
+    with email pre-filled from invitation. Account creation in one step. After activation, user sees onboarding wizard and receives 
+    their personal referral link. Token status changes from "invited" → "active" in PostgreSQL.
+  </div>
+
+
+  <!-- ==================== SCREEN 6: ADMIN CRM DASHBOARD ==================== -->
+  <h2>Screen 6: Admin CRM Dashboard</h2>
+  <div class="screen">
+    <div class="screen-header">
+      <span>admin.src-advisory.ch / crm</span>
+      <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+    </div>
+
+    <!-- CRM Header -->
+    <div class="wf-crm-header">
+      <div class="wf-crm-title"></div>
+      <div class="wf-crm-actions">
+        <div class="wf-crm-action" style="background:#e8e8e8;"></div>
+        <div class="wf-crm-action" style="background:#888;width:120px;"></div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="wf-stats-row">
+      <div class="wf-stat-card">
+        <div class="wf-stat-number" style="background:#888;"></div>
+        <div class="wf-stat-label"></div>
+        <div style="font-size:10px;color:#2a8;margin-top:4px;">+12% vs last month</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-number" style="width:80px;"></div>
+        <div class="wf-stat-label" style="width:60px;"></div>
+        <div style="font-size:10px;color:#2a8;margin-top:4px;">+5 new this week</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-number" style="width:50px;background:#d0a040;"></div>
+        <div class="wf-stat-label" style="width:70px;"></div>
+        <div style="font-size:10px;color:#a80;margin-top:4px;">3 expiring this month</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-number" style="width:60px;"></div>
+        <div class="wf-stat-label" style="width:50px;"></div>
+        <div style="font-size:10px;color:#888;margin-top:4px;">CHF 24,100 MRR</div>
+      </div>
+    </div>
+
+    <!-- Two-column CRM body -->
+    <div style="display:grid;grid-template-columns:1fr 320px;min-height:500px;">
+
+      <!-- Left: Member Table -->
+      <div style="padding:20px 24px;">
+        <!-- Filters -->
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <div class="wf-input" style="width:120px;height:28px;font-size:10px;">All Tiers</div>
+          <div class="wf-input" style="width:120px;height:28px;font-size:10px;">All Status</div>
+          <div class="wf-input" style="width:160px;height:28px;font-size:10px;">Search members...</div>
+          <div style="margin-left:auto;height:28px;background:#888;border-radius:4px;padding:0 16px;display:flex;align-items:center;color:#fff;font-size:10px;">Export CSV</div>
+        </div>
+
+        <!-- Table -->
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Tier</th>
+              <th>Status</th>
+              <th>Engagement</th>
+              <th>Last Active</th>
+              <th>Referrals</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sarah M.</strong><br><span style="font-size:10px;color:#888;">sarah@consilium.eu</span></td>
+              <td><span class="wf-pill blue">Executive</span></td>
+              <td><span class="wf-pill green">Active</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:60px;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+                    <div style="width:85%;height:100%;background:#4a8;border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:10px;">85</span>
+                </div>
+              </td>
+              <td>2 hours ago</td>
+              <td>4 / 2 conv.</td>
+              <td><span style="color:#888;font-size:11px;cursor:pointer;">View →</span></td>
+            </tr>
+            <tr>
+              <td><strong>Hans K.</strong><br><span style="font-size:10px;color:#888;">hans@dgap.org</span></td>
+              <td><span class="wf-pill blue">Professional</span></td>
+              <td><span class="wf-pill green">Active</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:60px;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+                    <div style="width:45%;height:100%;background:#c90;border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:10px;">45</span>
+                </div>
+              </td>
+              <td>3 days ago</td>
+              <td>—</td>
+              <td><span style="color:#888;font-size:11px;cursor:pointer;">View →</span></td>
+            </tr>
+            <tr>
+              <td><strong>Aisha B.</strong><br><span style="font-size:10px;color:#888;">aisha@rai.ae</span></td>
+              <td><span class="wf-pill yellow">Token</span></td>
+              <td><span class="wf-pill yellow">Founder</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:60px;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+                    <div style="width:20%;height:100%;background:#c44;border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:10px;color:#c44;">18</span>
+                </div>
+              </td>
+              <td>14 days ago</td>
+              <td>0 / 0</td>
+              <td><span style="color:#888;font-size:11px;cursor:pointer;">Nudge →</span></td>
+            </tr>
+            <tr>
+              <td><strong>Marcus T.</strong><br><span style="font-size:10px;color:#888;">marcus@bloomberg.net</span></td>
+              <td><span class="wf-pill gray">Observer</span></td>
+              <td><span class="wf-pill red">Churned</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:60px;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+                    <div style="width:5%;height:100%;background:#c44;border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:10px;color:#c44;">5</span>
+                </div>
+              </td>
+              <td>28 days ago</td>
+              <td>—</td>
+              <td><span style="color:#888;font-size:11px;cursor:pointer;">Win-back →</span></td>
+            </tr>
+            <tr>
+              <td><strong>Elena R.</strong><br><span style="font-size:10px;color:#888;">elena@uni.ch</span></td>
+              <td><span class="wf-pill blue">Professional</span></td>
+              <td><span class="wf-pill green">Active</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:60px;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+                    <div style="width:92%;height:100%;background:#4a8;border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:10px;">92</span>
+                </div>
+              </td>
+              <td>Yesterday</td>
+              <td>1 / 1 conv.</td>
+              <td><span style="color:#888;font-size:11px;cursor:pointer;">View →</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
+          <span style="font-size:11px;color:#888;padding:4px 8px;">← Prev</span>
+          <span style="font-size:11px;color:#fff;background:#888;padding:4px 10px;border-radius:4px;">1</span>
+          <span style="font-size:11px;color:#888;padding:4px 10px;">2</span>
+          <span style="font-size:11px;color:#888;padding:4px 10px;">3</span>
+          <span style="font-size:11px;color:#888;padding:4px 8px;">Next →</span>
+        </div>
+      </div>
+
+      <!-- Right: CRM Sidebar -->
+      <div class="wf-rightbar" style="padding:20px;">
+        <!-- Tasks -->
+        <div class="wf-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div class="wf-panel-title" style="width:80px;margin:0;"></div>
+            <span style="font-size:10px;color:#c44;font-weight:600;">4 overdue</span>
+          </div>
+          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:16px;height:16px;border:2px solid #ccc;border-radius:3px;"></div>
+              <div>
+                <div style="width:140px;height:11px;background:#e0e0e0;border-radius:2px;margin-bottom:3px;"></div>
+                <div style="font-size:9px;color:#c44;">Due yesterday</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:16px;height:16px;border:2px solid #ccc;border-radius:3px;"></div>
+              <div>
+                <div style="width:120px;height:11px;background:#e0e0e0;border-radius:2px;margin-bottom:3px;"></div>
+                <div style="font-size:9px;color:#888;">Due tomorrow</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:16px;height:16px;border:2px solid #ccc;border-radius:3px;"></div>
+              <div>
+                <div style="width:160px;height:11px;background:#e0e0e0;border-radius:2px;margin-bottom:3px;"></div>
+                <div style="font-size:9px;color:#888;">Due Jul 2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Token Inventory -->
+        <div class="wf-panel">
+          <div class="wf-panel-title" style="width:100px;"></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:10px;color:#888;">Founder (50 max)</span>
+            <span style="font-size:11px;font-weight:600;">32 / 50</span>
+          </div>
+          <div style="width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-bottom:10px;overflow:hidden;">
+            <div style="width:64%;height:100%;background:#888;border-radius:3px;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:10px;color:#888;">Ambassador (200 max)</span>
+            <span style="font-size:11px;font-weight:600;">89 / 200</span>
+          </div>
+          <div style="width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-bottom:10px;overflow:hidden;">
+            <div style="width:45%;height:100%;background:#bbb;border-radius:3px;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:10px;color:#888;">Academic (50 max)</span>
+            <span style="font-size:11px;font-weight:600;">18 / 50</span>
+          </div>
+          <div style="width:100%;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+            <div style="width:36%;height:100%;background:#ccc;border-radius:3px;"></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="wf-panel" style="background:#f0f0f0;">
+          <div class="wf-panel-title" style="width:90px;"></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="height:28px;background:#888;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;">+ Issue Token</div>
+            <div style="height:28px;background:#ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px;">Send Newsletter</div>
+            <div style="height:28px;background:#ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px;">Create Alert</div>
+            <div style="height:28px;background:#ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px;">View Analytics</div>
+          </div>
+        </div>
+
+        <!-- Referral Leaderboard -->
+        <div class="wf-panel">
+          <div class="wf-panel-title" style="width:120px;"></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;">
+            <span style="color:#888;">1. Sarah M.</span>
+            <span style="font-weight:600;">4 refs, 2 paid</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;border-top:1px solid #f0f0f0;">
+            <span style="color:#888;">2. Elena R.</span>
+            <span style="font-weight:600;">1 ref, 1 paid</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;border-top:1px solid #f0f0f0;">
+            <span style="color:#888;">3. Aisha B.</span>
+            <span style="font-weight:600;color:#c44;">0 refs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 6 — Admin CRM:</strong> Central hub for all member management. Stats row shows total members, active tokens (with expiry warnings), 
+    and MRR. Member table filters by tier, status, engagement score. Color-coded engagement bars (green 70-100, yellow 30-69, red 0-29). 
+    Right sidebar: task board with overdue alerts, token inventory with caps (300 total), quick actions, and referral leaderboard. 
+    "Nudge" action sends re-engagement email to dormant token holders. "Win-back" triggers churn recovery campaign.
+  </div>
+
+
+  <!-- ==================== SCREEN 7: MOBILE PWA ==================== -->
+  <h2>Screen 7: Mobile PWA (Responsive)</h2>
+  <div style="display:flex;gap:30px;justify-content:center;">
+
+    <!-- Mobile: Feed -->
+    <div class="screen" style="width:340px;flex-shrink:0;">
+      <div class="screen-header">
+        <span>SRC Mobile</span>
+        <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      </div>
+      <div style="padding:12px 16px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:10px;">
+        <div class="wf-logo" style="width:80px;height:24px;font-size:9px;">SRC</div>
+        <div style="margin-left:auto;width:24px;height:24px;background:#bbb;border-radius:50%;"></div>
+      </div>
+      <!-- Mobile content cards -->
+      <div style="padding:12px;">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="wf-pill green" style="font-size:8px;">Early</span>
+            <span style="font-size:10px;color:#888;">Study</span>
+          </div>
+          <div style="width:100%;height:16px;background:#bbb;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="width:80%;height:10px;background:#e8e8e8;border-radius:2px;"></div>
+        </div>
+        <div style="border-top:1px solid #f0f0f0;padding-top:12px;margin-bottom:12px;">
+          <div style="font-size:10px;color:#888;margin-bottom:6px;">Report</div>
+          <div style="width:90%;height:14px;background:#ccc;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="width:70%;height:10px;background:#e8e8e8;border-radius:2px;"></div>
+        </div>
+        <div style="border-top:1px solid #f0f0f0;padding-top:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span class="wf-pill blue" style="font-size:8px;">vAvatar</span>
+            <span style="font-size:10px;color:#888;">4 min</span>
+          </div>
+          <div style="width:100%;height:100px;background:#d0d0e0;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;">
+            <span style="font-size:24px;color:#888;">▶</span>
+          </div>
+          <div style="width:85%;height:12px;background:#ccc;border-radius:2px;"></div>
+        </div>
+      </div>
+      <!-- Bottom nav -->
+      <div style="display:flex;justify-content:space-around;padding:10px 0;border-top:2px solid #e8e8e8;background:#fafafa;">
+        <span style="font-size:16px;color:#888;">📰</span>
+        <span style="font-size:16px;color:#888;">🔔</span>
+        <span style="font-size:16px;color:#888;">🎥</span>
+        <span style="font-size:16px;color:#888;">⚙️</span>
+      </div>
+    </div>
+
+    <!-- Mobile: Alert Push -->
+    <div class="screen" style="width:340px;flex-shrink:0;">
+      <div class="screen-header">
+        <span>Push Notification</span>
+        <div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div>
+      </div>
+      <div style="padding:20px;">
+        <!-- Push notification mock -->
+        <div style="background:#1a1a1a;border-radius:16px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="width:28px;height:28px;background:#c44;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;">!</div>
+            <div>
+              <div style="color:#fff;font-size:11px;font-weight:600;">SRC Advisory</div>
+              <div style="color:#888;font-size:9px;">now</div>
+            </div>
+          </div>
+          <div style="color:#fff;font-size:12px;font-weight:600;margin-bottom:4px;">FLASH ALERT</div>
+          <div style="color:#aaa;font-size:11px;line-height:1.4;">Breaking: Regional security escalation in [redacted]. Initial assessment and implications for European energy security.</div>
+        </div>
+
+        <!-- In-app alert view -->
+        <div style="border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="wf-pill red" style="font-size:9px;">Flash</span>
+            <span style="font-size:10px;color:#888;">June 26, 14:32 CET</span>
+          </div>
+          <div style="width:95%;height:18px;background:#bbb;border-radius:2px;margin-bottom:10px;"></div>
+          <div style="width:100%;height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="width:100%;height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="width:90%;height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="width:60%;height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;">
+            <div class="wf-btn" style="padding:6px 14px;font-size:10px;background:#888;">Full Analysis</div>
+            <div class="wf-btn secondary" style="padding:6px 14px;font-size:10px;">Share</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Screen 7 — Mobile:</strong> PWA with bottom navigation (Feed / Alerts / Videos / Settings). Push notifications for Executive-tier 
+    flash alerts appear as dark-mode cards. In-app alert view shows priority badge, timestamp, and action buttons. Mobile respects 
+    the same tier-based gating as desktop — content the user cannot access shows upgrade prompts optimized for mobile screens.
+  </div>
+
+  <div style="margin-top:40px;padding-top:20px;border-top:2px solid #333;text-align:center;font-size:12px;color:#888;">
+    <p><strong>SRC Advisory — Membership Portal Wireframe v1.0</strong></p>
+    <p>7 screens covering public landing, authentication, member dashboard, content gating, token activation, admin CRM, and mobile PWA.</p>
+    <p style="margin-top:8px;">All screens are responsive and follow the 4-tier access model: Observer / Essential / Professional / Executive.</p>
+  </div>
+
+</div>
+</body>
+</html>

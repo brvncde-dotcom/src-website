@@ -1,0 +1,927 @@
+     1→# SRC Advisory — Backend Architecture
+     2→## PostgreSQL + Vercel Serverless | Own CRM & Email Engine
+     3→
+     4→---
+     5→
+     6→## 1. Database Schema (PostgreSQL)
+     7→
+     8→### Core Principle
+     9→One database, fully normalized, with row-level security (RLS) policies. The CRM is not a separate system — it IS the membership database. Every user interaction, token lifecycle event, email send, payment, and referral is a row in PostgreSQL.
+    10→
+    11→### Schema Overview
+    12→```
+    13→├── users                  # All accounts (free, paid, token holders)
+    14→├── tiers                  # Membership tier definitions
+    15→├── subscriptions          # Stripe-linked paid subscriptions
+    16→├── tokens                 # Influencer access tokens
+    17→├── token_invitations      # Who was invited, when, status
+    18→├── referrals              # Referral tracking (who referred whom)
+    19→├── content                # All content (reports, opinions, studies, videos)
+    20→├── content_access_rules   # Which tier can access what content type
+    21→├── content_views          # Audit log of every content view
+    22→├── emails                 # All emails sent (newsletter + transactional)
+    23→├── email_subscriptions    # User newsletter preferences
+    24→├── alerts                 # Breaking news alerts
+    25→├── alert_deliveries       # Who received what alert, when
+    26→├── events                 # Virtual and in-person events
+    27→├── event_registrations    # Who signed up for what
+    28→├── analyst_calls          # Executive tier 1:1 calls
+    29→├── vavatar_videos         # AI-generated video metadata
+    30→├── crm_activities         # The CRM: every interaction logged
+    31→├── crm_tasks              # Follow-up tasks for team
+    32→├── crm_segments           # Dynamic user segments
+    33→└── audit_log              # Immutable change log
+    34→```
+    35→
+    36→---
+    37→
+    38→### Table: users
+    39→```sql
+    40→CREATE TABLE users (
+    41→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    42→    email           VARCHAR(255) UNIQUE NOT NULL,
+    43→    password_hash   VARCHAR(255),           -- NULL for OAuth/token users
+    44→    auth_method     VARCHAR(20) NOT NULL DEFAULT 'password', -- password | oauth_linkedin | token
+    45→    
+    46→    -- Profile
+    47→    first_name      VARCHAR(100),
+    48→    last_name       VARCHAR(100),
+    49→    title           VARCHAR(100),           -- Job title
+    50→    organization    VARCHAR(200),
+    51→    country         VARCHAR(2),             -- ISO-3166
+    52→    language_pref   VARCHAR(5) DEFAULT 'en', -- en | de | fr | it
+    53→    timezone        VARCHAR(50) DEFAULT 'Europe/Zurich',
+    54→    
+    55→    -- Tier & Access
+    56→    current_tier_id UUID REFERENCES tiers(id),
+    57→    access_type     VARCHAR(20) NOT NULL DEFAULT 'free', -- free | paid | token | trial
+    58→    token_id        UUID REFERENCES tokens(id),
+    59→    
+    60→    -- Engagement Scoring (CRM)
+    61→    engagement_score INT DEFAULT 0,          -- 0-100, auto-calculated
+    62→    last_active_at  TIMESTAMPTZ,
+    63→    login_count     INT DEFAULT 0,
+    64→    content_views_30d INT DEFAULT 0,
+    65→    
+    66→    -- Status
+    67→    status          VARCHAR(20) DEFAULT 'active', -- active | paused | churned | banned
+    68→    email_verified  BOOLEAN DEFAULT FALSE,
+    69→    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    70→    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    71→    
+    72→    -- Stripe
+    73→    stripe_customer_id VARCHAR(100),
+    74→    stripe_subscription_id VARCHAR(100)
+    75→);
+    76→
+    77→CREATE INDEX idx_users_tier ON users(current_tier_id);
+    78→CREATE INDEX idx_users_token ON users(token_id);
+    79→CREATE INDEX idx_users_status ON users(status);
+    80→CREATE INDEX idx_users_engagement ON users(engagement_score DESC);
+    81→```
+    82→
+    83→### Table: tiers
+    84→```sql
+    85→CREATE TABLE tiers (
+    86→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    87→    slug            VARCHAR(30) UNIQUE NOT NULL, -- observer | essential | professional | executive
+    88→    name            VARCHAR(50) NOT NULL,
+    89→    description     TEXT,
+    90→    
+    91→    -- Pricing (monthly = display, annual = billed)
+    92→    price_monthly_chf   DECIMAL(10,2),
+    93→    price_annual_chf    DECIMAL(10,2),
+    94→    
+    95→    -- Content limits
+    96→    max_reports_monthly INT,                -- NULL = unlimited
+    97→    archive_months      INT,
+    98→    
+    99→    -- Feature flags
+   100→    has_pdf_download        BOOLEAN DEFAULT FALSE,
+   101→    has_vavatar_access      BOOLEAN DEFAULT FALSE,
+   102→    has_early_access        BOOLEAN DEFAULT FALSE,     -- hours before public
+   103→    early_access_hours      INT DEFAULT 0,
+   104→    has_live_calls          BOOLEAN DEFAULT FALSE,
+   105→    has_breaking_alerts     BOOLEAN DEFAULT FALSE,
+   106→    has_bespoke_research    BOOLEAN DEFAULT FALSE,
+   107→    bespoke_requests_per_year INT DEFAULT 0,
+   108→    has_dedicated_manager   BOOLEAN DEFAULT FALSE,
+   109→    team_seats              INT DEFAULT 0,
+   110→    
+   111→    -- Display
+   112→    sort_order          INT NOT NULL,
+   113→    is_public           BOOLEAN DEFAULT TRUE,
+   114→    created_at          TIMESTAMPTZ DEFAULT NOW()
+   115→);
+   116→
+   117→-- Seed data
+   118→INSERT INTO tiers (slug, name, price_monthly_chf, price_annual_chf, max_reports_monthly, archive_months, has_pdf_download, has_vavatar_access, has_early_access, early_access_hours, has_live_calls, has_breaking_alerts, has_bespoke_research, bespoke_requests_per_year, has_dedicated_manager, team_seats, sort_order) VALUES
+   119→('observer',    'Observer',    0,    0,    10,   6,  false, false, false, 0,  false, false, false, 0, false, 0, 1),
+   120→('essential',   'Essential',   29,   290,  NULL, 12, true,  true,  false, 0,  false, false, false, 0, false, 0, 2),
+   121→('professional','Professional',79,   790,  NULL, NULL, true, true, true, 24, false, false, false, 0, false, 3, 3),
+   122→('executive',   'Executive',   149,  1490, NULL, NULL, true, true, true, 0,  true,  true,  true,  4, true,  1, 4);
+   123→```
+   124→
+   125→### Table: subscriptions
+   126→```sql
+   127→CREATE TABLE subscriptions (
+   128→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   129→    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   130→    tier_id         UUID NOT NULL REFERENCES tiers(id),
+   131→    
+   132→    -- Stripe refs
+   133→    stripe_subscription_id  VARCHAR(100) UNIQUE,
+   134→    stripe_price_id         VARCHAR(100),
+   135→    stripe_status           VARCHAR(20), -- active | canceled | past_due | unpaid
+   136→    
+   137→    -- Billing
+   138→    billing_interval    VARCHAR(10) NOT NULL, -- month | year
+   139→    current_period_start TIMESTAMPTZ NOT NULL,
+   140→    current_period_end   TIMESTAMPTZ NOT NULL,
+   141→    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+   142→    
+   143→    -- Amounts
+   144→    amount_chf      DECIMAL(10,2) NOT NULL,
+   145→    
+   146→    -- Status
+   147→    status          VARCHAR(20) DEFAULT 'active', -- active | canceled | past_due | paused
+   148→    
+   149→    created_at      TIMESTAMPTZ DEFAULT NOW(),
+   150→    updated_at      TIMESTAMPTZ DEFAULT NOW()
+   151→);
+   152→
+   153→CREATE INDEX idx_subscriptions_user ON subscriptions(user_id);
+   154→CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+   155→CREATE INDEX idx_subscriptions_period_end ON subscriptions(current_period_end);
+   156→```
+   157→
+   158→### Table: tokens
+   159→```sql
+   160→CREATE TABLE tokens (
+   161→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   162→    token_code      VARCHAR(32) UNIQUE NOT NULL, -- e.g., 'SRC-FNDR-2026-001'
+   163→    
+   164→    -- Type
+   165→    token_type      VARCHAR(20) NOT NULL, -- founder | ambassador | academic | partner | trial
+   166→    
+   167→    -- What it grants
+   168→    granted_tier_id UUID NOT NULL REFERENCES tiers(id),
+   169→    duration_months INT NOT NULL DEFAULT 12,
+   170→    
+   171→    -- Status
+   172→    status          VARCHAR(20) DEFAULT 'pending', -- pending | invited | active | expired | revoked
+   173→    
+   174→    -- Issuance
+   175→    issued_by       UUID REFERENCES users(id), -- admin who created it
+   176→    issued_at       TIMESTAMPTZ,
+   177→    
+   178→    -- Recipient (filled when assigned)
+   179→    recipient_email VARCHAR(255),
+   180→    recipient_name  VARCHAR(200),
+   181→    recipient_org   VARCHAR(200),
+   182→    recipient_note  TEXT,                    -- Why this person was selected
+   183→    
+   184→    -- Usage
+   185→    activated_at    TIMESTAMPTZ,
+   186→    activated_by_user_id UUID REFERENCES users(id),
+   187→    expires_at      TIMESTAMPTZ,
+   188→    revoked_at      TIMESTAMPTZ,
+   189→    revoke_reason   TEXT,
+   190→    
+   191→    -- Referral tracking (for ambassador/founder tokens)
+   192→    referral_link_code VARCHAR(50) UNIQUE,
+   193→    referrals_count    INT DEFAULT 0,
+   194→    referrals_converted INT DEFAULT 0,
+   195→    
+   196→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   197→);
+   198→
+   199→CREATE INDEX idx_tokens_type ON tokens(token_type);
+   200→CREATE INDEX idx_tokens_status ON tokens(status);
+   201→CREATE INDEX idx_tokens_code ON tokens(token_code);
+   202→CREATE INDEX idx_tokens_referral ON tokens(referral_link_code);
+   203→```
+   204→
+   205→### Table: referrals
+   206→```sql
+   207→CREATE TABLE referrals (
+   208→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   209→    
+   210→    -- Who referred
+   211→    referrer_token_id UUID REFERENCES tokens(id),
+   212→    referrer_user_id  UUID REFERENCES users(id),
+   213→    
+   214→    -- Who signed up
+   215→    referred_user_id  UUID NOT NULL REFERENCES users(id),
+   216→    
+   217→    -- Tracking
+   218→    referral_code   VARCHAR(50) NOT NULL,
+   219→    source_url      TEXT,
+   220→    
+   221→    -- Conversion
+   222→    clicked_at      TIMESTAMPTZ,
+   223→    signed_up_at    TIMESTAMPTZ DEFAULT NOW(),
+   224→    converted_at    TIMESTAMPTZ,              -- When they became paying
+   225→    subscription_id UUID REFERENCES subscriptions(id),
+   226→    commission_type VARCHAR(20),              -- free_month | tier_upgrade | cash
+   227→    commission_value VARCHAR(50),
+   228→    
+   229→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   230→);
+   231→
+   232→CREATE INDEX idx_referrals_code ON referrals(referral_code);
+   233→CREATE INDEX idx_referrals_referrer ON referrals(referrer_user_id);
+   234→```
+   235→
+   236→### Table: content
+   237→```sql
+   238→CREATE TABLE content (
+   239→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   240→    slug            VARCHAR(200) UNIQUE NOT NULL,
+   241→    
+   242→    -- Type
+   243→    content_type    VARCHAR(20) NOT NULL, -- opinion | report | study | briefing | video | interview | podcast
+   244→    
+   245→    -- Metadata
+   246→    title           VARCHAR(300) NOT NULL,
+   247→    subtitle        VARCHAR(500),
+   248→    excerpt         TEXT,                    -- 200-char summary for listings
+   249→    body            TEXT,                    -- Full HTML/markdown content
+   250→    body_truncated  TEXT,                    -- Free preview version
+   251→    
+   252→    -- Media
+   253→    cover_image_url TEXT,
+   254→    vavatar_video_id UUID REFERENCES vavatar_videos(id),
+   255→    
+   256→    -- Taxonomy
+   257→    focus_area      VARCHAR(50),             -- digital_power | geopolitics | hard_security | resilience
+   258→    tags            TEXT[],                  -- PostgreSQL array
+   259→    
+   260→    -- Access & Timing (Reverse Timewall)
+   261→    min_tier_id     UUID REFERENCES tiers(id), -- NULL = free for all
+   262→    published_at    TIMESTAMPTZ,             -- When it becomes public/free
+   263→    embargo_until   TIMESTAMPTZ,             -- NULL = no embargo
+   264→    
+   265→    -- For breaking news / alerts
+   266→    alert_priority  VARCHAR(10),             -- flash | high | medium | low
+   267→    alert_sent_at   TIMESTAMPTZ,
+   268→    
+   269→    -- Authoring
+   270→    author_id       UUID REFERENCES users(id),
+   271→    ai_assisted     BOOLEAN DEFAULT FALSE,
+   272→    expert_reviewed BOOLEAN DEFAULT FALSE,
+   273→    
+   274→    -- SEO
+   275→    meta_title      VARCHAR(70),
+   276→    meta_description TEXT,
+   277→    
+   278→    -- Status
+   279→    status          VARCHAR(20) DEFAULT 'draft', -- draft | review | scheduled | published | archived
+   280→    
+   281→    view_count      INT DEFAULT 0,
+   282→    created_at      TIMESTAMPTZ DEFAULT NOW(),
+   283→    updated_at      TIMESTAMPTZ DEFAULT NOW()
+   284→);
+   285→
+   286→CREATE INDEX idx_content_type ON content(content_type);
+   287→CREATE INDEX idx_content_status ON content(status);
+   288→CREATE INDEX idx_content_tier ON content(min_tier_id);
+   289→CREATE INDEX idx_content_published ON content(published_at);
+   290→CREATE INDEX idx_content_focus ON content(focus_area);
+   291→CREATE INDEX idx_content_tags ON content USING GIN(tags);
+   292→```
+   293→
+   294→### Table: content_views
+   295→```sql
+   296→CREATE TABLE content_views (
+   297→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   298→    user_id         UUID REFERENCES users(id),
+   299→    content_id      UUID NOT NULL REFERENCES content(id),
+   300→    view_type       VARCHAR(20) NOT NULL, -- summary | full | download | video_play
+   301→    accessed_at     TIMESTAMPTZ DEFAULT NOW(),
+   302→    source          VARCHAR(50),           -- newsletter | direct | search | alert
+   303→    ip_address      INET,
+   304→    user_agent      TEXT
+   305→);
+   306→
+   307→CREATE INDEX idx_views_user ON content_views(user_id);
+   308→CREATE INDEX idx_views_content ON content_views(content_id);
+   309→CREATE INDEX idx_views_time ON content_views(accessed_at);
+   310→```
+   311→
+   312→### Table: emails
+   313→```sql
+   314→CREATE TABLE emails (
+   315→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   316→    
+   317→    -- What
+   318→    email_type      VARCHAR(30) NOT NULL, -- daily_brief | weekly_deepdive | forecast | alert_flash | alert_newsbreak | transactional | onboarding | winback
+   319→    subject         VARCHAR(300) NOT NULL,
+   320→    body_html       TEXT NOT NULL,
+   321→    body_text       TEXT NOT NULL,
+   322→    
+   323→    -- Who
+   324→    recipient_count INT DEFAULT 0,
+   325→    segment_criteria JSONB,               -- { tiers: ['essential','professional'], engagement_min: 20 }
+   326→    
+   327→    -- Status
+   328→    status          VARCHAR(20) DEFAULT 'draft', -- draft | scheduled | sending | sent | failed
+   329→    scheduled_at    TIMESTAMPTZ,
+   330→    sent_at         TIMESTAMPTZ,
+   331→    
+   332→    -- Metrics
+   333→    open_count      INT DEFAULT 0,
+   334→    click_count     INT DEFAULT 0,
+   335→    bounce_count    INT DEFAULT 0,
+   336→    unsubscribe_count INT DEFAULT 0,
+   337→    
+   338→    -- Content link (for newsletters containing content)
+   339→    linked_content_ids UUID[],
+   340→    
+   341→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   342→);
+   343→```
+   344→
+   345→### Table: email_deliveries
+   346→```sql
+   347→CREATE TABLE email_deliveries (
+   348→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   349→    email_id        UUID NOT NULL REFERENCES emails(id),
+   350→    user_id         UUID NOT NULL REFERENCES users(id),
+   351→    
+   352→    -- Delivery
+   353→    status          VARCHAR(20) DEFAULT 'pending', -- pending | sent | delivered | opened | clicked | bounced | failed
+   354→    provider_msg_id VARCHAR(100),                  -- SendGrid/Postmark message ID
+   355→    
+   356→    -- Tracking
+   357→    sent_at         TIMESTAMPTZ,
+   358→    opened_at       TIMESTAMPTZ,
+   359→    clicked_at      TIMESTAMPTZ,
+   360→    ip_address      INET,
+   361→    user_agent      TEXT,
+   362→    
+   363→    UNIQUE(email_id, user_id)
+   364→);
+   365→
+   366→CREATE INDEX idx_deliveries_email ON email_deliveries(email_id);
+   367→CREATE INDEX idx_deliveries_user ON email_deliveries(user_id);
+   368→CREATE INDEX idx_deliveries_status ON email_deliveries(status);
+   369→```
+   370→
+   371→### Table: email_subscriptions
+   372→```sql
+   373→CREATE TABLE email_subscriptions (
+   374→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   375→    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   376→    
+   377→    -- Preferences
+   378→    daily_brief     BOOLEAN DEFAULT TRUE,
+   379→    weekly_deepdive BOOLEAN DEFAULT TRUE,
+   380→    forecast        BOOLEAN DEFAULT FALSE,       -- professional+
+   381→    breaking_alerts BOOLEAN DEFAULT FALSE,        -- executive
+   382→    content_type_prefs TEXT[] DEFAULT '{opinion,report,study}', -- which content types
+   383→    focus_area_prefs   TEXT[],                     -- which focus areas
+   384→    language_pref      VARCHAR(5) DEFAULT 'en',
+   385→    frequency          VARCHAR(20) DEFAULT 'immediate', -- immediate | daily_digest | weekly_digest
+   386→    
+   387→    created_at      TIMESTAMPTZ DEFAULT NOW(),
+   388→    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+   389→    
+   390→    UNIQUE(user_id)
+   391→);
+   392→```
+   393→
+   394→### Table: alerts
+   395→```sql
+   396→CREATE TABLE alerts (
+   397→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   398→    content_id      UUID REFERENCES content(id),   -- Linked content, if any
+   399→    
+   400→    -- Alert content
+   401→    priority        VARCHAR(10) NOT NULL,          -- flash | high | medium | low
+   402→    headline        VARCHAR(300) NOT NULL,
+   403→    summary         TEXT NOT NULL,                  -- 150-800 words depending on priority
+   404→    
+   405→    -- Geographic/topic tags for targeting
+   406→    regions         TEXT[],
+   407→    topics          TEXT[],
+   408→    
+   409→    -- Timing
+   410→    triggered_at    TIMESTAMPTZ DEFAULT NOW(),     -- AI detection
+   411→    validated_at    TIMESTAMPTZ,                   -- Analyst approval
+   412→    sent_at         TIMESTAMPTZ,
+   413→    
+   414→    -- Status
+   415→    status          VARCHAR(20) DEFAULT 'pending', -- pending | validating | approved | sent | archived
+   416→    
+   417→    -- AI + Analyst metadata
+   418→    ai_confidence   DECIMAL(3,2),                  -- 0.00 - 1.00
+   419→    validated_by    UUID REFERENCES users(id),      -- Analyst who approved
+   420→    
+   421→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   422→);
+   423→```
+   424→
+   425→### Table: alert_deliveries
+   426→```sql
+   427→CREATE TABLE alert_deliveries (
+   428→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   429→    alert_id        UUID NOT NULL REFERENCES alerts(id),
+   430→    user_id         UUID NOT NULL REFERENCES users(id),
+   431→    
+   432→    -- How delivered
+   433→    channel         VARCHAR(10) NOT NULL,          -- push | sms | email | in_app
+   434→    delivered_at    TIMESTAMPTZ,
+   435→    read_at         TIMESTAMPTZ,
+   436→    
+   437→    UNIQUE(alert_id, user_id, channel)
+   438→);
+   439→```
+   440→
+   441→### Table: crm_activities
+   442→```sql
+   443→CREATE TABLE crm_activities (
+   444→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   445→    user_id         UUID NOT NULL REFERENCES users(id),
+   446→    
+   447→    -- The CRM core: every interaction
+   448→    activity_type   VARCHAR(30) NOT NULL,
+   449→    -- content_view | content_download | email_open | email_click | alert_read
+   450→    -- login | upgrade | downgrade | churn | referral | call_attended
+   451→    -- event_registered | event_attended | token_activated | payment_failed
+   452→    -- onboarding_step | support_request | feedback
+   453→    
+   454→    -- Details
+   455→    description     TEXT,
+   456→    metadata        JSONB,                         -- Flexible: { content_id: "...", email_id: "..." }
+   457→    
+   458→    -- Source
+   459→    source          VARCHAR(30) DEFAULT 'web',     -- web | email | mobile | api | stripe_webhook
+   460→    
+   461→    -- When
+   462→    occurred_at     TIMESTAMPTZ DEFAULT NOW(),
+   463→    
+   464→    -- Calculated score impact
+   465→    score_impact    INT DEFAULT 0                  -- +1 view, +5 download, +10 call, etc.
+   466→);
+   467→
+   468→CREATE INDEX idx_activities_user ON crm_activities(user_id);
+   469→CREATE INDEX idx_activities_type ON crm_activities(activity_type);
+   470→CREATE INDEX idx_activities_time ON crm_activities(occurred_at);
+   471→CREATE INDEX idx_activities_metadata ON crm_activities USING GIN(metadata);
+   472→```
+   473→
+   474→### Table: crm_tasks
+   475→```sql
+   476→CREATE TABLE crm_tasks (
+   477→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   478→    assigned_to     UUID REFERENCES users(id),     -- Admin/team member
+   479→    related_user_id UUID REFERENCES users(id),     -- The member this task is about
+   480→    
+   481→    task_type       VARCHAR(30) NOT NULL,
+   482→    -- follow_up | renewal_call | win_back | token_nudge | onboarding | support | research
+   483→    
+   484→    title           VARCHAR(200) NOT NULL,
+   485→    description     TEXT,
+   486→    
+   487→    due_at          TIMESTAMPTZ NOT NULL,
+   488→    completed_at    TIMESTAMPTZ,
+   489→    status          VARCHAR(20) DEFAULT 'open',    -- open | in_progress | completed | cancelled
+   490→    
+   491→    -- Priority scoring
+   492→    priority        INT DEFAULT 3,                 -- 1=urgent, 5=low
+   493→    auto_generated  BOOLEAN DEFAULT FALSE,          -- System-created vs manual
+   494→    
+   495→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   496→);
+   497→
+   498→CREATE INDEX idx_tasks_assigned ON crm_tasks(assigned_to);
+   499→CREATE INDEX idx_tasks_user ON crm_tasks(related_user_id);
+   500→CREATE INDEX idx_tasks_status ON crm_tasks(status);
+   501→CREATE INDEX idx_tasks_due ON crm_tasks(due_at);
+   502→```
+   503→
+   504→### Table: vavatar_videos
+   505→```sql
+   506→CREATE TABLE vavatar_videos (
+   507→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   508→    content_id      UUID REFERENCES content(id),
+   509→    
+   510→    -- Metadata
+   511→    title           VARCHAR(300) NOT NULL,
+   512→    video_type      VARCHAR(20) NOT NULL,        -- daily_brief | weekly_analysis | interview | alert | summit
+   513→    language        VARCHAR(5) NOT NULL,         -- en | de | fr | it
+   514→    duration_seconds INT,
+   515→    
+   516→    -- URLs
+   517→    video_url       TEXT NOT NULL,               -- CDN URL
+   518→    thumbnail_url   TEXT,
+   519→    transcript      TEXT,                        -- Full transcript for SEO/accessibility
+   520→    
+   521→    -- Generation
+   522→    synthesia_project_id VARCHAR(100),           -- For re-generation
+   523→    ai_script       TEXT,                        -- The AI-generated script
+   524→    expert_approved   BOOLEAN DEFAULT FALSE,
+   525→    approved_by     UUID REFERENCES users(id),
+   526→    
+   527→    -- Access
+   528→    min_tier_id     UUID REFERENCES tiers(id),
+   529→    
+   530→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   531→);
+   532→```
+   533→
+   534→### Table: audit_log
+   535→```sql
+   536→CREATE TABLE audit_log (
+   537→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   538→    table_name      VARCHAR(50) NOT NULL,
+   539→    record_id       UUID NOT NULL,
+   540→    action          VARCHAR(10) NOT NULL,         -- INSERT | UPDATE | DELETE
+   541→    old_data        JSONB,
+   542→    new_data        JSONB,
+   543→    changed_by      UUID REFERENCES users(id),
+   544→    changed_at      TIMESTAMPTZ DEFAULT NOW()
+   545→);
+   546→
+   547→CREATE INDEX idx_audit_table ON audit_log(table_name, record_id);
+   548→CREATE INDEX idx_audit_time ON audit_log(changed_at);
+   549→```
+   550→
+   551→---
+   552→
+   553→## 2. API Architecture (Vercel Serverless)
+   554→
+   555→### Project Structure
+   556→```
+   557→src-advisory-platform/
+   558→├── app/                          # Next.js App Router
+   559→│   ├── api/                      # Serverless API routes
+   560→│   │   ├── auth/
+   561→│   │   │   ├── register/route.ts
+   562→│   │   │   ├── login/route.ts
+   563→│   │   │   ├── oauth/linkedin/route.ts
+   564→│   │   │   └── refresh/route.ts
+   565→│   │   ├── users/
+   566→│   │   │   ├── route.ts          # CRUD + search + segments
+   567→│   │   │   └── [id]/
+   568→│   │   │       ├── route.ts      # Get/Update/Patch user
+   569→│   │   │       ├── activity/route.ts    # CRM activity feed
+   570→│   │   │       └── tasks/route.ts       # CRM tasks for this user
+   571→│   │   ├── content/
+   572→│   │   │   ├── route.ts          # List (with tier-based filtering)
+   573→│   │   │   ├── [slug]/route.ts   # Get (with access check)
+   574→│   │   │   └── [slug]/view/route.ts     # Record view
+   575→│   │   ├── subscriptions/
+   576→│   │   │   ├── route.ts
+   577→│   │   │   ├── create/route.ts   # Stripe checkout session
+   578→│   │   │   ├── webhook/route.ts  # Stripe webhook handler
+   579→│   │   │   └── portal/route.ts   # Stripe Customer Portal
+   580→│   │   ├── tokens/
+   581→│   │   │   ├── route.ts          # Admin: list/create tokens
+   582→│   │   │   ├── [code]/activate/route.ts # User activates token
+   583→│   │   │   └── [code]/revoke/route.ts   # Admin revokes
+   584→│   │   ├── referrals/
+   585→│   │   │   ├── route.ts          # Track referral
+   586→│   │   │   └── [code]/stats/route.ts    # Referrer dashboard stats
+   587→│   │   ├── emails/
+   588→│   │   │   ├── route.ts          # Admin: list/create emails
+   589→│   │   │   ├── [id]/send/route.ts       # Trigger send
+   590→│   │   │   ├── [id]/stats/route.ts      # Delivery stats
+   591→│   │   │   └── subscribe/route.ts       # Update preferences
+   592→│   │   ├── alerts/
+   593→│   │   │   ├── route.ts          # Create alert (admin)
+   594→│   │   │   ├── [id]/approve/route.ts    # Analyst approval
+   595→│   │   │   └── [id]/send/route.ts       # Trigger cascade
+   596→│   │   ├── crm/
+   597→│   │   │   ├── dashboard/route.ts       # KPIs + charts
+   598→│   │   │   ├── segments/route.ts        # Dynamic segments
+   599→│   │   │   ├── tasks/route.ts           # Task management
+   600→│   │   │   └── score/route.ts           # Engagement scoring
+   601→│   │   ├── analytics/
+   602→│   │   │   ├── views/route.ts
+   603→│   │   │   ├── engagement/route.ts
+   604→│   │   │   └── revenue/route.ts
+   605→│   │   └── webhooks/
+   606→│   │       └── stripe/route.ts
+   607→│   ├── (public)/                 # Public pages
+   608→│   ├── (member)/                 # Authenticated member pages
+   609→│   └── admin/                    # CRM Dashboard
+   610→├── lib/
+   611→│   ├── db.ts                     # PostgreSQL connection (Vercel Postgres)
+   612→│   ├── stripe.ts                 # Stripe client
+   613→│   ├── email.ts                  # Email service (SendGrid/Postmark API)
+   614→│   ├── auth.ts                   # JWT + session management
+   615→│   ├── access.ts                 # Content access control engine
+   616→│   ├── scoring.ts                # Engagement scoring algorithm
+   617→│   └── alerts.ts                 # Alert cascade engine
+   618→├── jobs/                         # Background jobs (Vercel Cron)
+   619→│   ├── daily-brief.ts
+   620→│   ├── engagement-score.ts
+   621→│   ├── token-expiry.ts
+   622→│   ├── renewal-reminders.ts
+   623→│   └── winback-campaign.ts
+   624→└── middleware.ts                 # Route protection + tier checks
+   625→```
+   626→
+   627→### Middleware: Tier-Based Access Control
+   628→```typescript
+   629→// middleware.ts — runs on every request
+   630→export function middleware(request: NextRequest) {
+   631→  const token = request.cookies.get('session')?.value;
+   632→  const user = verifyJWT(token);
+   633→  
+   634→  // Check content access
+   635→  if (request.nextUrl.pathname.startsWith('/content/')) {
+   636→    const contentSlug = request.nextUrl.pathname.split('/')[2];
+   637→    const hasAccess = checkContentAccess(user, contentSlug);
+   638→    if (!hasAccess) {
+   639→      // Show preview + upgrade prompt
+   640→      return rewriteToPreview(request, contentSlug);
+   641→    }
+   642→  }
+   643→  
+   644→  // Check admin routes
+   645→  if (request.nextUrl.pathname.startsWith('/admin')) {
+   646→    if (!user?.isAdmin) return redirect('/');
+   647→  }
+   648→}
+   649→```
+   650→
+   651→### Key API Patterns
+   652→
+   653→**Content Access Check** (runs on every content request):
+   654→```typescript
+   655→// lib/access.ts
+   656→async function checkContentAccess(userId: string, contentSlug: string) {
+   657→  const content = await db.query(
+   658→    `SELECT c.*, t.early_access_hours 
+   659→     FROM content c 
+   660→     JOIN tiers t ON c.min_tier_id = t.id 
+   661→     WHERE c.slug = $1`, [contentSlug]
+   662→  );
+   663→  
+   664→  const user = await db.query(
+   665→    `SELECT u.*, t.early_access_hours as user_early_access
+   666→     FROM users u 
+   667→     JOIN tiers t ON u.current_tier_id = t.id 
+   668→     WHERE u.id = $1`, [userId]
+   669→  );
+   670→  
+   671→  // Reverse timewall logic
+   672→  if (!content.min_tier_id) return { access: 'full' }; // Free content
+   673→  
+   674→  const userTierLevel = getTierLevel(user.current_tier_id);
+   675→  const contentTierLevel = getTierLevel(content.min_tier_id);
+   676→  
+   677→  if (userTierLevel > contentTierLevel) {
+   678→    return { access: 'full', earlyAccess: true }; // Higher tier = full + early
+   679→  }
+   680→  
+   681→  if (userTierLevel === contentTierLevel) {
+   682→    // Check if content has aged into this tier
+   683→    const hoursSincePublish = (now - content.published_at) / 3600000;
+   684→    if (hoursSincePublish >= content.early_access_hours) {
+   685→      return { access: 'full' };
+   686→    }
+   687→    return { access: 'preview', reason: 'early_access' };
+   688→  }
+   689→  
+   690→  return { access: 'preview', reason: 'tier_upgrade_needed' };
+   691→}
+   692→```
+   693→
+   694→**Engagement Scoring** (runs daily via cron):
+   695→```typescript
+   696→// lib/scoring.ts
+   697→async function calculateEngagementScore(userId: string): Promise<number> {
+   698→  const last30d = await db.query(`
+   699→    SELECT 
+   700→      COUNT(DISTINCT cv.content_id) * 5 as content_score,
+   701→      COUNT(CASE WHEN cv.view_type = 'download' THEN 1 END) * 10 as download_score,
+   702→      COUNT(CASE WHEN a.activity_type = 'email_open' THEN 1 END) * 1 as email_score,
+   703→      COUNT(CASE WHEN a.activity_type = 'email_click' THEN 1 END) * 3 as click_score,
+   704→      COUNT(CASE WHEN a.activity_type = 'login' THEN 1 END) * 2 as login_score,
+   705→      COUNT(CASE WHEN a.activity_type = 'call_attended' THEN 1 END) * 25 as call_score,
+   706→      MAX(a.occurred_at) as last_active
+   707→    FROM users u
+   708→    LEFT JOIN content_views cv ON cv.user_id = u.id AND cv.accessed_at > NOW() - INTERVAL '30 days'
+   709→    LEFT JOIN crm_activities a ON a.user_id = u.id AND a.occurred_at > NOW() - INTERVAL '30 days'
+   710→    WHERE u.id = $1
+   711→    GROUP BY u.id
+   712→  `, [userId]);
+   713→  
+   714→  const score = Math.min(100, (
+   715→    (last30d.content_score || 0) +
+   716→    (last30d.download_score || 0) +
+   717→    (last30d.email_score || 0) +
+   718→    (last30d.click_score || 0) +
+   719→    (last30d.login_score || 0) +
+   720→    (last30d.call_score || 0)
+   721→  ));
+   722→  
+   723→  // Decay for inactivity: -10 points per week of no login
+   724→  const daysSinceActive = Math.floor((now - last30d.last_active) / 86400000);
+   725→  const decay = Math.floor(daysSinceActive / 7) * 10;
+   726→  
+   727→  await db.query(`UPDATE users SET engagement_score = $1 WHERE id = $2`,
+   728→    [Math.max(0, score - decay), userId]
+   729→  );
+   730→  
+   731→  return Math.max(0, score - decay);
+   732→}
+   733→```
+   734→
+   735→---
+   736→
+   737→## 3. Email Engine (No 3rd Party Newsletter Tool)
+   738→
+   739→### Architecture
+   740→```
+   741→Your Platform                          Email Delivery API
+   742→┌─────────────────┐                   ┌─────────────────┐
+   743→│ PostgreSQL      │──email content──→│ SendGrid API    │──→ Recipient inbox
+   744→│ (emails table)  │   + recipient     │ or Postmark API │
+   745→│                 │   list            │                 │
+   746→│ (email_subs     │                   └─────────────────┘
+   747→│  table)         │
+   748→│                 │←──delivery       ┌─────────────────┐
+   749→│ (email_deliv    │    webhook       │ OneSignal API   │──→ Push notification
+   750→│  eries table)   │←─────────────────│ (for alerts)    │
+   751→└─────────────────┘                   └─────────────────┘
+   752→```
+   753→
+   754→### Email Types Engineered In-House
+   755→
+   756→| Email Type | Trigger | Recipients | Content Source |
+   757→|---|---|---|---|
+   758→| **SRC Daily Brief** | Cron: 7am CET | All registered | Curated content from last 24h |
+   759→| **Weekly Deep-Dive** | Cron: Monday 8am | Essential+ | Original long-form analysis |
+   760→| **SRC Forecast** | Cron: 1st of month | Professional+ | Scenario analysis from studies |
+   761→| **Breaking Alert (Flash)** | Analyst approval | Executive + Partners | Alert table summary field |
+   762→| **Breaking Alert (Newsbreak)** | Analyst approval | Professional+ | Alert table summary field |
+   763→| **Onboarding** | Account creation | New user | 7-email series over 14 days |
+   764→| **Renewal Reminder** | 30 days before expiry | Annual subscribers | Personalized usage stats |
+   765→| **Win-Back** | 7 days post-churn | Churned users | "What you missed" highlights |
+   766→| **Token Invite** | Admin action | Selected recipient | Personalized invitation + activation link |
+   767→| **Referral Reward** | Threshold reached | Token holder | Reward confirmation + new referral link |
+   768→| **Payment Failed** | Stripe webhook | Subscriber | Retry link + support contact |
+   769→
+   770→### Delivery API Choice
+   771→```typescript
+   772→// lib/email.ts
+   773→// Primary: Postmark (transactional email leader, Swiss-friendly)
+   774→// Fallback: SendGrid
+   775→
+   776→import postmark from 'postmark';
+   777→
+   778→const client = new postmark.ServerClient(process.env.POSTMARK_API_KEY);
+   779→
+   780→export async function sendEmail(params: {
+   781→  to: string;
+   782→  template: string;      // 'daily_brief' | 'alert_flash' | 'onboarding_1' ...
+   783→  data: Record<string, any>;
+   784→  emailType: string;
+   785→}) {
+   786→  // 1. Render template server-side
+   787→  const html = await renderTemplate(params.template, params.data);
+   788→  
+   789→  // 2. Send via Postmark
+   790→  const result = await client.sendEmail({
+   791→    From: 'brief@src-advisory.ch',
+   792→    To: params.to,
+   793→    Subject: params.data.subject,
+   794→    HtmlBody: html,
+   795→    TextBody: htmlToText(html),
+   796→    MessageStream: params.emailType,  // Separate streams per type
+   797→  });
+   798→  
+   799→  // 3. Record delivery in PostgreSQL
+   800→  await db.query(`INSERT INTO email_deliveries ...`, [emailId, userId, result.MessageID]);
+   801→  
+   802→  // 4. Webhook will update status when delivered/opened/clicked
+   803→}
+   804→```
+   805→
+   806→---
+   807→
+   808→## 4. Background Jobs (Vercel Cron)
+   809→
+   810→```typescript
+   811→// vercel.json
+   812→{
+   813→  "crons": [
+   814→    { "path": "/api/jobs/daily-brief", "schedule": "0 6 * * *" },      // 6am CET
+   815→    { "path": "/api/jobs/engagement-score", "schedule": "0 2 * * *" },  // 2am CET
+   816→    { "path": "/api/jobs/token-expiry", "schedule": "0 3 * * *" },     // 3am CET
+   817→    { "path": "/api/jobs/renewal-reminders", "schedule": "0 4 * * *" }, // 4am CET
+   818→    { "path": "/api/jobs/winback", "schedule": "0 5 * * 1" }          // Monday 5am
+   819→  ]
+   820→}
+   821→```
+   822→
+   823→---
+   824→
+   825→## 5. CRM Dashboard (Built In)
+   826→
+   827→### Built directly into the Next.js app at `/admin`
+   828→
+   829→**Views:**
+   830→
+   831→| View | Purpose | Data Source |
+   832→|---|---|---|
+   833→| **Member Directory** | All users, filterable by tier, engagement score, status | users table |
+   834→| **Member Profile** | Single user: activity timeline, subscription, referrals | crm_activities + subscriptions + referrals |
+   835→| **Token Management** | Issue, track, revoke tokens; see referral performance | tokens + referrals |
+   836→| **Task Board** | Kanban: open → in progress → done for CRM tasks | crm_tasks |
+   837→| **Segments** | Dynamic groups: "High engagement + churn risk", "Token holders, no referrals" | crm_activities + users (SQL-based) |
+   838→| **Email Center** | Compose, schedule, view stats for all emails | emails + email_deliveries |
+   839→| **Alert Center** | Create alert, analyst approval queue, delivery status | alerts + alert_deliveries |
+   840→| **Analytics** | MRR, churn, LTV, content performance, funnel conversion | All tables aggregated |
+   841→
+   842→### Key CRM Query Examples
+   843→
+   844→```sql
+   845→-- Segment: High-value churn risk (engagement < 20, paid tier, renewal in 30 days)
+   846→SELECT u.*, s.current_period_end
+   847→FROM users u
+   848→JOIN subscriptions s ON s.user_id = u.id
+   849→WHERE u.engagement_score < 20
+   850→  AND u.access_type = 'paid'
+   851→  AND s.current_period_end BETWEEN NOW() AND NOW() + INTERVAL '30 days'
+   852→  AND s.status = 'active';
+   853→
+   854→-- Segment: Ambassador tokens with 0 referrals (nudge candidates)
+   855→SELECT t.*, u.last_active_at
+   856→FROM tokens t
+   857→JOIN users u ON u.token_id = t.id
+   858→WHERE t.token_type = 'ambassador'
+   859→  AND t.status = 'active'
+   860→  AND t.referrals_count = 0
+   861→  AND t.activated_at < NOW() - INTERVAL '30 days';
+   862→
+   863→-- Revenue dashboard: MRR by tier
+   864→SELECT t.name, COUNT(s.id) as subs, SUM(s.amount_chf) as mrr
+   865→FROM subscriptions s
+   866→JOIN tiers t ON t.id = s.tier_id
+   867→WHERE s.status = 'active'
+   868→GROUP BY t.name;
+   869→```
+   870→
+   871→---
+   872→
+   873→## 6. Updated Tech Stack (No 3rd Party CRM/Newsletter)
+   874→
+   875→| Layer | Tool | Monthly Cost |
+   876→|---|---|---|
+   877→| **Hosting** | Vercel Pro | $20 |
+   878→| **Database** | Vercel Postgres (or Supabase Swiss) | $30 |
+   879→| **Payments** | Stripe Switzerland + TWINT | 2.9% + CHF 0.30 |
+   880→| **Email Delivery** | Postmark (10K emails/mo) | $15 |
+   881→| **Push/SMS** | OneSignal (free tier) | $0 |
+   882→| **Video Hosting** | Vimeo Pro | $20 |
+   883→| **AI Avatar** | Synthesia API | ~$200 (pay per minute) |
+   884→| **Auth** | NextAuth.js (own database) | $0 |
+   885→| **CRM** | **Built in PostgreSQL** | $0 |
+   886→| **Newsletter** | **Built in PostgreSQL + Postmark** | $0 |
+   887→| **Analytics** | Built-in dashboard + Vercel Analytics | $0 |
+   888→| **Total fixed** | | **~$285/month** |
+   889→
+   890→---
+   891→
+   892→## 7. Implementation Phases
+   893→
+   894→### Phase 1: Foundation (Weeks 1-6)
+   895→- [ ] Deploy Vercel + PostgreSQL
+   896→- [ ] Schema migration (all tables above)
+   897→- [ ] Auth system (registration wall, login, LinkedIn OAuth)
+   898→- [ ] Stripe integration (Essential tier only)
+   899→- [ ] Email engine (Daily Brief + transactional)
+   900→- [ ] Content publishing + gating (observer + essential)
+   901→- [ ] **CRM dashboard v1** (member directory, activity feed)
+   902→- [ ] **Token system v1** (generate, activate, track)
+   903→- [ ] Issue first 50 Founder tokens
+   904→
+   905→### Phase 2: Premium + vAvatar (Weeks 7-10)
+   906→- [ ] Professional tier (Stripe price + gating rules)
+   907→- [ ] vAvatar pipeline (Synthesia integration)
+   908→- [ ] Early access / reverse timewall engine
+   909→- [ ] Premium newsletters (weekly deep-dive, forecast)
+   910→- [ ] **CRM: Segments + Tasks**
+   911→- [ ] Issue 200 Ambassador + 50 Academic tokens
+   912→
+   913→### Phase 3: Expert + Corporate (Weeks 11-14)
+   914→- [ ] Executive tier + live call scheduling
+   915→- [ ] Breaking news alert system
+   916→- [ ] Corporate tiers (Team/Department/Enterprise)
+   917→- [ ] Admin dashboard + seat management
+   918→- [ ] First SRC Summit planning
+   919→- [ ] Referral tracking + gamification
+   920→
+   921→### Phase 4: Polish (Weeks 15-16)
+   922→- [ ] Mobile PWA + push notifications
+   923→- [ ] API access for Enterprise
+   924→- [ ] Win-back campaigns
+   925→- [ ] Analytics dashboard
+   926→- [ ] Performance optimization
+   927→

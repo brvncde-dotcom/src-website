@@ -1,0 +1,810 @@
+     1→# SRC Advisory — Membership & Content Management System (MCMS)
+     2→## Complete Specification | v2.0
+     3→
+     4→---
+     5→
+     6→## 0. Philosophy: The "Swiss Vault" Model
+     7→
+     8→Every user is a **record** in one system. Not "members" and "non-members" — one continuous spectrum from anonymous visitor → registered user → token holder → paying subscriber → enterprise client. The admin sees everyone, controls everything, and can grant or revoke access with one click.
+     9→
+    10→Content is **SRC intellectual property** at all times. Every share, every forward, every download carries the SRC brand, copyright notice, and a link back. Think Financial Times "ft.com" on every paragraph. Think The Economist's share links that always route through their domain.
+    11→
+    12→---
+    13→
+    14→## 1. Enhanced Database Schema
+    15→
+    16→### New & Updated Tables
+    17→
+    18→```
+    19→users                    # ← enhanced: roles, admin flags, free_access_override
+    20→user_roles               # ← NEW: role-based access control
+    21→subscription_events      # ← NEW: audit log of every subscription change
+    22→subscription_schedules   # ← NEW: planned upgrades/downgrades at period end
+    23→access_grants            # ← NEW: admin-granted free access overrides
+    24→customer_notes           # ← NEW: CRM notes on customers
+    25→customer_tags            # ← NEW: tagging system for customer segmentation
+    26→saved_content            # ← NEW: bookmarks
+    27→content_shares           # ← NEW: every share tracked with IP attribution
+    28→share_templates          # ← NEW: email/social share templates with SRC branding
+    29→user_sessions            # ← NEW: login session tracking
+    30→impersonation_logs       # ← NEW: admin "login as user" audit trail
+    31→```
+    32→
+    33→### Table: users (enhanced)
+    34→
+    35→```sql
+    36→ALTER TABLE users ADD COLUMN IF NOT EXISTS
+    37→    -- Roles & Admin
+    38→    role VARCHAR(20) DEFAULT 'member',       -- superadmin | admin | editor | analyst | member
+    39→    is_admin BOOLEAN DEFAULT FALSE,
+    40→    
+    41→    -- Free Access Override (NEW)
+    42→    free_access_granted_by UUID REFERENCES users(id),
+    43→    free_access_granted_at TIMESTAMPTZ,
+    44→    free_access_expires_at TIMESTAMPTZ,
+    45→    free_access_reason TEXT,                  -- "Board member" | "Strategic partner" | "Government liaison"
+    46→    free_access_tier_override UUID REFERENCES tiers(id), -- Which tier they get for free
+    47→    
+    48→    -- Manual tier assignment (NEW)
+    49→    tier_assigned_by UUID REFERENCES users(id),
+    50→    tier_assigned_at TIMESTAMPTZ,
+    51→    tier_assignment_reason TEXT,
+    52→    
+    53→    -- Content sharing (NEW)
+    54→    can_share BOOLEAN DEFAULT TRUE,
+    55→    share_count_total INT DEFAULT 0,
+    56→    
+    57→    -- Status expanded
+    58→    status VARCHAR(20) DEFAULT 'active',     -- active | paused | churned | banned | pending_verification
+    59→    
+    60→    -- Lifecycle
+    61→    churned_at TIMESTAMPTZ,
+    62→    churn_reason TEXT,
+    63→    first_payment_at TIMESTAMPTZ,
+    64→    lifetime_value_chf DECIMAL(10,2) DEFAULT 0,
+    65→    
+    66→    -- Communication
+    67→    preferred_contact_method VARCHAR(20) DEFAULT 'email', -- email | phone | sms
+    68→    phone VARCHAR(50),
+    69→    
+    70→    -- GDPR
+    71→    marketing_consent BOOLEAN DEFAULT FALSE,
+    72→    consent_recorded_at TIMESTAMPTZ,
+    73→    data_processing_consent BOOLEAN DEFAULT FALSE;
+    74→
+    75→CREATE INDEX idx_users_role ON users(role);
+    76→CREATE INDEX idx_users_free_access ON users(free_access_granted_by) WHERE free_access_granted_by IS NOT NULL;
+    77→CREATE INDEX idx_users_admin ON users(is_admin) WHERE is_admin = TRUE;
+    78→```
+    79→
+    80→### Table: user_roles (NEW)
+    81→
+    82→```sql
+    83→CREATE TABLE user_roles (
+    84→    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    85→    user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    86→    role        VARCHAR(30) NOT NULL,
+    87→    -- superadmin: full system access
+    88→    -- admin: user management, content management, CRM
+    89→    -- editor: content creation and publishing
+    90→    -- analyst: content creation + alert management
+    91→    -- billing_admin: subscriptions and refunds
+    92→    -- token_manager: token issuance and tracking
+    93→    -- event_manager: event creation and registrations
+    94→    granted_by  UUID NOT NULL REFERENCES users(id),
+    95→    granted_at  TIMESTAMPTZ DEFAULT NOW(),
+    96→    revoked_at  TIMESTAMPTZ,
+    97→    UNIQUE(user_id, role)
+    98→);
+    99→
+   100→-- Admin-only role: can impersonate users
+   101→CREATE TABLE impersonation_logs (
+   102→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   103→    admin_user_id   UUID NOT NULL REFERENCES users(id),
+   104→    target_user_id  UUID NOT NULL REFERENCES users(id),
+   105→    started_at      TIMESTAMPTZ DEFAULT NOW(),
+   106→    ended_at        TIMESTAMPTZ,
+   107→    actions_taken   TEXT[],  -- what the admin did while impersonating
+   108→    ip_address      INET
+   109→);
+   110→```
+   111→
+   112→### Table: subscription_events (NEW)
+   113→
+   114→```sql
+   115→CREATE TABLE subscription_events (
+   116→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   117→    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+   118→    user_id         UUID NOT NULL REFERENCES users(id),
+   119→    
+   120→    event_type      VARCHAR(30) NOT NULL,
+   121→    -- created | activated | upgraded | downgraded | paused | resumed 
+   122→    -- canceled | expired | renewed | refunded | charged_back | modified
+   123→    
+   124→    -- Before/after for tracking changes
+   125→    from_tier_id    UUID REFERENCES tiers(id),
+   126→    to_tier_id      UUID REFERENCES tiers(id),
+   127→    from_amount     DECIMAL(10,2),
+   128→    to_amount       DECIMAL(10,2),
+   129→    from_interval   VARCHAR(10),
+   130→    to_interval     VARCHAR(10),
+   131→    
+   132→    -- Who made the change
+   133→    initiated_by    VARCHAR(20) NOT NULL DEFAULT 'user', -- user | admin | system | stripe_webhook
+   134→    admin_user_id   UUID REFERENCES users(id),           -- if initiated by admin
+   135→    
+   136→    -- Stripe
+   137→    stripe_event_id VARCHAR(100),
+   138→    
+   139→    reason          TEXT,                                  -- "User requested upgrade" | "Admin granted free access"
+   140→    metadata        JSONB,
+   141→    
+   142→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   143→);
+   144→
+   145→CREATE INDEX idx_sub_events_sub ON subscription_events(subscription_id);
+   146→CREATE INDEX idx_sub_events_user ON subscription_events(user_id);
+   147→CREATE INDEX idx_sub_events_type ON subscription_events(event_type);
+   148→CREATE INDEX idx_sub_events_admin ON subscription_events(admin_user_id);
+   149→```
+   150→
+   151→### Table: subscription_schedules (NEW)
+   152→
+   153→```sql
+   154→CREATE TABLE subscription_schedules (
+   155→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   156→    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+   157→    
+   158→    -- What will happen
+   159→    action          VARCHAR(20) NOT NULL, -- upgrade | downgrade | cancel | pause | resume
+   160→    target_tier_id  UUID REFERENCES tiers(id),
+   161→    
+   162→    -- When
+   163→    scheduled_at    TIMESTAMPTZ NOT NULL,
+   164→    executed_at     TIMESTAMPTZ,
+   165→    
+   166→    -- Who scheduled it
+   167→    scheduled_by    UUID NOT NULL REFERENCES users(id),
+   168→    
+   169→    status          VARCHAR(20) DEFAULT 'pending', -- pending | executed | cancelled
+   170→    
+   171→    UNIQUE(subscription_id, status) WHERE status = 'pending'
+   172→);
+   173→```
+   174→
+   175→### Table: access_grants (NEW)
+   176→
+   177→```sql
+   178→CREATE TABLE access_grants (
+   179→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   180→    
+   181→    -- Who received
+   182→    user_id         UUID NOT NULL REFERENCES users(id),
+   183→    
+   184→    -- What they get
+   185→    grant_type      VARCHAR(20) NOT NULL, -- free_tier | complimentary_period | content_unlock | feature_unlock
+   186→    granted_tier_id UUID REFERENCES tiers(id),
+   187→    
+   188→    -- Duration
+   189→    starts_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   190→    expires_at      TIMESTAMPTZ,
+   191→    is_permanent    BOOLEAN DEFAULT FALSE,
+   192→    
+   193→    -- Content-specific (for content_unlock)
+   194→    content_id      UUID REFERENCES content(id),
+   195→    
+   196→    -- Who granted and why
+   197→    granted_by      UUID NOT NULL REFERENCES users(id),
+   198→    granted_at      TIMESTAMPTZ DEFAULT NOW(),
+   199→    reason          TEXT NOT NULL,          -- mandatory justification
+   200→    
+   201→    -- Status
+   202→    status          VARCHAR(20) DEFAULT 'active', -- active | expired | revoked
+   203→    revoked_by      UUID REFERENCES users(id),
+   204→    revoked_at      TIMESTAMPTZ,
+   205→    revoke_reason   TEXT,
+   206→    
+   207→    -- Stripe: if complimentary, create $0 subscription
+   208→    stripe_subscription_id VARCHAR(100)
+   209→);
+   210→
+   211→CREATE INDEX idx_access_grants_user ON access_grants(user_id);
+   212→CREATE INDEX idx_access_grants_status ON access_grants(status);
+   213→CREATE INDEX idx_access_grants_granted_by ON access_grants(granted_by);
+   214→```
+   215→
+   216→### Table: customer_notes (NEW)
+   217→
+   218→```sql
+   219→CREATE TABLE customer_notes (
+   220→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   221→    user_id         UUID NOT NULL REFERENCES users(id),
+   222→    
+   223→    -- The note
+   224→    note_type       VARCHAR(20) DEFAULT 'general', -- general | call | meeting | complaint | milestone | task
+   225→    content         TEXT NOT NULL,
+   226→    
+   227→    -- Author
+   228→    created_by      UUID NOT NULL REFERENCES users(id),
+   229→    created_at      TIMESTAMPTZ DEFAULT NOW(),
+   230→    
+   231→    -- Follow-up
+   232→    follow_up_at    TIMESTAMPTZ,
+   233→    follow_up_completed BOOLEAN DEFAULT FALSE
+   234→);
+   235→
+   236→CREATE INDEX idx_notes_user ON customer_notes(user_id);
+   237→CREATE INDEX idx_notes_followup ON customer_notes(follow_up_at) WHERE follow_up_at IS NOT NULL;
+   238→```
+   239→
+   240→### Table: customer_tags (NEW)
+   241→
+   242→```sql
+   243→CREATE TABLE customer_tags (
+   244→    id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   245→    user_id UUID NOT NULL REFERENCES users(id),
+   246→    tag     VARCHAR(50) NOT NULL,
+   247→    added_by UUID NOT NULL REFERENCES users(id),
+   248→    added_at TIMESTAMPTZ DEFAULT NOW(),
+   249→    UNIQUE(user_id, tag)
+   250→);
+   251→
+   252→-- Common tags: high_value, churn_risk, token_holder, enterprise_contact, 
+   253→--              journalist, government, academic, summit_invitee, referrer
+   254→```
+   255→
+   256→### Table: saved_content (NEW)
+   257→
+   258→```sql
+   259→CREATE TABLE saved_content (
+   260→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   261→    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   262→    content_id      UUID NOT NULL REFERENCES content(id) ON DELETE CASCADE,
+   263→    
+   264→    -- Metadata
+   265→    saved_at        TIMESTAMPTZ DEFAULT NOW(),
+   266→    note            TEXT,                       -- user's personal note
+   267→    folder          VARCHAR(100) DEFAULT 'default', -- for future folder organization
+   268→    
+   269→    -- Share tracking
+   270→    shared_count    INT DEFAULT 0,
+   271→    last_shared_at  TIMESTAMPTZ,
+   272→    
+   273→    UNIQUE(user_id, content_id)
+   274→);
+   275→
+   276→CREATE INDEX idx_saved_user ON saved_content(user_id);
+   277→CREATE INDEX idx_saved_content ON saved_content(content_id);
+   278→```
+   279→
+   280→### Table: content_shares (NEW)
+   281→
+   282→```sql
+   283→CREATE TABLE content_shares (
+   284→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   285→    
+   286→    -- Who shared
+   287→    user_id         UUID NOT NULL REFERENCES users(id),
+   288→    content_id      UUID NOT NULL REFERENCES content(id),
+   289→    
+   290→    -- How shared
+   291→    share_channel   VARCHAR(20) NOT NULL, -- email | twitter | linkedin | whatsapp | copy_link | embed
+   292→    
+   293→    -- IP Protection: every share gets a unique tracked URL
+   294→    share_url       TEXT NOT NULL,          -- e.g., https://src-advisory.ch/s/a1b2c3d4
+   295→    share_token     VARCHAR(32) UNIQUE NOT NULL, -- unique token for tracking
+   296→    
+   297→    -- For email shares
+   298→    recipient_email VARCHAR(255),
+   299→    recipient_count INT DEFAULT 1,           -- for group emails
+   300→    
+   301→    -- Attribution (always included)
+   302→    attribution_text TEXT NOT NULL DEFAULT 'Shared via SRC Advisory — Security & Resilience Counsel. Read the full article at src-advisory.ch',
+   303→    copyright_notice TEXT NOT NULL DEFAULT '© SRC Advisory AG. All rights reserved. This content may not be reproduced without permission.',
+   304→    
+   305→    -- Recipients who clicked (for email shares)
+   306→    clicks          INT DEFAULT 0,
+   307→    
+   308→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   309→);
+   310→
+   311→CREATE INDEX idx_shares_user ON content_shares(user_id);
+   312→CREATE INDEX idx_shares_content ON content_shares(content_id);
+   313→CREATE INDEX idx_shares_token ON content_shares(share_token);
+   314→```
+   315→
+   316→### Table: share_templates (NEW)
+   317→
+   318→```sql
+   319→CREATE TABLE share_templates (
+   320→    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   321→    
+   322→    template_type   VARCHAR(20) NOT NULL, -- email | twitter | linkedin | whatsapp
+   323→    name            VARCHAR(100) NOT NULL,
+   324→    
+   325→    -- Template with placeholders: {{title}}, {{excerpt}}, {{author}}, {{url}}, {{attribution}}
+   326→    subject_template VARCHAR(300),
+   327→    body_template   TEXT NOT NULL,
+   328→    
+   329→    -- Always appended (cannot be edited by user)
+   330→    footer_template TEXT NOT NULL DEFAULT 
+   331→        '---\n© SRC Advisory AG | Global Security Intelligence. Swiss Independence.\nFull article: {{url}} | Subscribe: src-advisory.ch',
+   332→    
+   333→    is_active       BOOLEAN DEFAULT TRUE,
+   334→    is_default      BOOLEAN DEFAULT FALSE,
+   335→    created_at      TIMESTAMPTZ DEFAULT NOW()
+   336→);
+   337→
+   338→-- Seed templates
+   339→INSERT INTO share_templates (template_type, name, body_template, is_default) VALUES
+   340→('email', 'Default Email', 
+   341→ 'Hi,\n\nI thought you''d find this interesting:\n\n**{{title}}** by {{author}}\n\n{{excerpt}}\n\nRead more: {{url}}\n\n{{attribution}}', 
+   342→ true),
+   343→('twitter', 'Twitter/X',
+   344→ '{{title}} by {{author}} — worth a read. {{url}} via @SRC_Advisory #security #geopolitics'),
+   345→('linkedin', 'LinkedIn',
+   346→ 'Recommended reading from SRC Advisory:\n\n{{title}}\n{{excerpt}}\n\n{{url}}'),
+   347→('whatsapp', 'WhatsApp',
+   348→ '{{title}}\n\n{{excerpt}}\n\nRead: {{url}}\n\n— Shared from SRC Advisory');
+   349→```
+   350→
+   351→---
+   352→
+   353→## 2. Admin Screens: User & Subscription Management
+   354→
+   355→### Screen A: User Management (Admin)
+   356→
+   357→```
+   358→┌─────────────────────────────────────────────────────────────────────────────┐
+   359→│  SRC Advisory    Dashboard  Content  Users  Subscriptions  Tokens  CRM  ⚙️  │
+   360→├─────────────────────────────────────────────────────────────────────────────┤
+   361→│                                                                             │
+   362→│  👥 User Management                              [+ Grant Free Access]      │
+   363→│  ━━━━━━━━━━━━━━━━━━                              [+ Invite User]            │
+   364→│                                                                             │
+   365→│  Filters:  [All Tiers ▼]  [All Status ▼]  [All Roles ▼]  [All Tags ▼]     │
+   366→│           ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │
+   367→│           │🔍 Search... │  │ Engagement  │  │ Date range  │  [Export CSV] │
+   368→│           └─────────────┘  └─────────────┘  └─────────────┘               │
+   369→│                                                                             │
+   370→│  ┌────────┬──────────────┬─────────┬────────┬──────────┬────────┬────────┐│
+   371→│  │ Select │ Member       │ Tier    │ Status │ Access   │ Eng.   │ Actions││
+   372→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   373→│  │   ☐    │ Sarah M.     │🔵 Exec │ active │ paid     │  85 🟢 │ 👁 ✏ 🚫 ││
+   374→│  │        │ sarah@c...   │        │        │ Stripe   │        │        ││
+   375→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   376→│  │   ☐    │ Hans K.      │🔵 Pro  │ active │ paid     │  45 🟡 │ 👁 ✏ 🚫 ││
+   377→│  │        │ hans@dgap    │        │        │ Stripe   │        │        ││
+   378→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   379→│  │   ☐    │ Aisha B.     │🟡 Tokn │ active │ founder  │  18 🔴 │ 👁 ✏ 🔁 ││
+   380→│  │        │ aisha@rai    │        │        │ token    │        │  Nudge ││
+   381→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   382→│  │   ☐    │ Marcus T.    │⚪ Obs  │churned │ free     │   5 🔴 │ 👁 ✏ 🔄 ││
+   383→│  │        │ marcus@blm   │        │        │          │        │ WinBck ││
+   384→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   385→│  │   ☐    │ Pierre L.    │🔵 Exec │ active │ FREE     │  62 🟢 │ 👁 ✏ 🚫 ││
+   386→│  │        │ pierre@gov   │        │        │ Admin    │        │        ││
+   387→│  │        │              │        │        │ granted  │        │        ││
+   388→│  ├────────┼──────────────┼─────────┼────────┼──────────┼────────┼────────┤│
+   389→│  │   ☐    │ Elena R.     │🔵 Pro  │ active │ paid     │  92 🟢 │ 👁 ✏ 🚫 ││
+   390→│  │        │ elena@uni    │        │        │ Stripe   │        │        ││
+   391→│  └────────┴──────────────┴─────────┴────────┴──────────┴────────┴────────┘│
+   392→│                                                                             │
+   393→│  Showing 1-25 of 1,247 users      [← Prev]  [1] [2] [3] ... [50] [Next →] │
+   394→│                                                                             │
+   395→│  Bulk actions: [Change Tier ▼]  [Add Tag ▼]  [Export Selected]            │
+   396→│                                                                             │
+   397→└─────────────────────────────────────────────────────────────────────────────┘
+   398→```
+   399→
+   400→**Key features:**
+   401→- **Access column** shows the SOURCE of their access: `paid` (Stripe), `token` (which type), `free` (admin granted), `comp` (complimentary)
+   402→- **Actions per row**: View profile 👁, Edit ✏, Revoke/Ban 🚫, Nudge 🔁 (for dormant), Win-back 🔄 (for churned)
+   403→- **Bulk actions**: Select multiple users → change tier, add tags, export
+   404→- **Green/yellow/red engagement bars** for at-a-glance health scoring
+   405→
+   406→---
+   407→
+   408→### Screen B: Grant Free Access (Admin Modal)
+   409→
+   410→```
+   411→┌──────────────────────────────────────────────────────────────┐
+   412→│  ⚡ Grant Free Access                              [× Close] │
+   413→├──────────────────────────────────────────────────────────────┤
+   414→│                                                               │
+   415→│  Member: Pierre L. (pierre@government.ch)                    │
+   416→│  Current: Observer (free)                                    │
+   417→│                                                               │
+   418→│  ┌──────────────────────────────────────────────────────┐    │
+   419→│  │ Access Type:                                         │    │
+   420→│  │  (•) Free Tier Access     ( ) Complimentary Period   │    │
+   421→│  │  ( ) Content Unlock       ( ) Feature Only           │    │
+   422→│  └──────────────────────────────────────────────────────┘    │
+   423→│                                                               │
+   424→│  Select Tier:  [🔵 Executive  ▼]                              │
+   425→│                                                               │
+   426→│  Duration:     [Indefinite ▼]  or  [12 months ▼]             │
+   427→│                                                               │
+   428→│  Reason (required):                                           │
+   429→│  ┌──────────────────────────────────────────────────────┐    │
+   430→│  │ Government liaison — Swiss Federal Department of     │    │
+   431→│  │ Defence. Attending summit as speaker.                │    │
+   432→│  └──────────────────────────────────────────────────────┘    │
+   433→│                                                               │
+   434→│  Notify user by email:  [✓] Yes                              │
+   435→│  Include referral link: [✓] Yes (as Ambassador token)        │
+   436→│                                                               │
+   437→│  [ Cancel ]              [ ✓ Grant Access ]                   │
+   438→│                                                               │
+   439→└──────────────────────────────────────────────────────────────┘
+   440→```
+   441→
+   442→**What happens on grant:**
+   443→1. Row inserted into `access_grants` table with full audit trail
+   444→2. User's `current_tier_id` updated to selected tier
+   445→3. `free_access_granted_by`, `free_access_granted_at`, `free_access_reason` populated
+   446→4. If "Include referral link" checked → token created automatically (Ambassador type)
+   447→5. Email sent to user with welcome message + login link
+   448→6. Stripe: $0 subscription created (for tracking, not billing)
+   449→7. `subscription_events` row inserted: `event_type='modified'`, `initiated_by='admin'`
+   450→
+   451→---
+   452→
+   453→### Screen C: Customer Detail / Subscription Management
+   454→
+   455→```
+   456→┌─────────────────────────────────────────────────────────────────────────────┐
+   457→│  SRC Advisory    Dashboard  Content  Users  Subscriptions  Tokens  CRM  ⚙️  │
+   458→├─────────────────────────────────────────────────────────────────────────────┤
+   459→│                                                                             │
+   460→│  ← Back to Users                                                            │
+   461→│                                                                             │
+   462→│  ┌─────────────────────────────────────────────────────────────────────┐   │
+   463→│  │  ┌────┐  Sarah Mitchell                                              │   │
+   464→│  │  │ SM │  sarah@consilium.eu  •  +41 79 123 4567                     │   │
+   465→│  │  └────┘  🇬🇧 London, UK  •  LinkedIn  •  Joined Jun 15, 2026        │   │
+   466→│  │                                                                       │   │
+   467→│  │  Tags:  [high_value] [summit_invitee] [referrer]                     │   │
+   468→│  │  Engagement:  85/100 🟢  |  Last active: 2 hours ago                 │   │
+   469→│  │                                                                       │   │
+   470→│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────┐ │   │
+   471→│  │  │ 👁 Impersonate│  │ ✏ Edit User  │  │ 🚫 Ban/Suspend│  │ 📝 Add Note│ │   │
+   472→│  │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────┘ │   │
+   473→│  └─────────────────────────────────────────────────────────────────────┘   │
+   474→│                                                                             │
+   475→│  ┌────────────────────────────┐  ┌──────────────────────────────────────┐  │
+   476→│  │  💳 Subscription            │  │  📋 Activity Timeline                 │  │
+   477→│  │  ━━━━━━━━━━━━━━━            │  │  ━━━━━━━━━━━━━━━━━━                  │  │
+   478→│  │                             │  │                                       │  │
+   479→│  │  Current:  🔵 Executive     │  │  Jun 26  14:30  📧 Opened Daily Brief │  │
+   480→│  │  Status:   ✅ Active        │  │  Jun 26  11:00  📑 Downloaded report  │  │
+   481→│  │  Since:    Jan 15, 2026     │  │  Jun 25  18:00  🎥 Watched vAvatar    │  │
+   482→│  │  Renews:   Jan 15, 2027     │  │  Jun 25  09:00  💬 Attended live call │  │
+   483→│  │  Amount:   CHF 1,490/year   │  │  Jun 20  ———    💳 Payment succeeded  │  │
+   484→│  │  Stripe:   sub_abc123       │  │  Jun 15  ———    🔔 Alert: Europe      │  │
+   485→│  │                             │  │  Jun 01  ———    📧 Weekly Deep-Dive   │  │
+   486→│  │  ┌──────────────────────┐   │  │  May 28  ———    📑 Saved 3 articles   │  │
+   487→│  │  │ ▶ Payment History    │   │  │  May 15  ———    🔗 Shared via LinkedIn│  │
+   488→│  │  │   Jan 15: CHF 1,490 ✅│   │  │                                       │  │
+   489→│  │  └──────────────────────┘   │  │                                       │  │
+   490→│  │                             │  └──────────────────────────────────────┘  │
+   491→│  │  [ Change Tier ]  [ Pause ]  [ Cancel ]  [ Refund ]                      │
+   492→│  │  (admin override)                                                                 │
+   493→│  │                             │                                            │
+   494→│  │  ── Scheduled Changes ──    │  ┌──────────────────────────────────────┐  │
+   495→│  │  None                       │  │  🔗 Referrals                         │  │
+   496→│  │                             │  │  ━━━━━━━━━━━━                        │  │
+   497→│  │  [ + Schedule Change ]      │  │  Personal link: src-advisory.ch/r/.. │  │
+   498→│  │                             │  │  Referrals: 4 | Converted: 2         │  │
+   499→│  └────────────────────────────┘  │  Revenue attributed: CHF 1,580       │  │
+   500→│                                   └──────────────────────────────────────┘  │
+   501→│                                                                             │
+   502→│  ┌──────────────────────────────────────────────────────────────────────┐  │
+   503→│  │  📝 Customer Notes                                                    │  │
+   504→│  │  ━━━━━━━━━━━━━━━━━                                                   │  │
+   505→│  │                                                                       │  │
+   506→│  │  Jun 20  —  Admin: "Called about summit attendance. Confirmed."       │  │
+   507→│  │  Jun 10  —  Admin: "Offered upgrade to Corporate. Declined for now."  │  │
+   508→│  │  May 15  —  System: "Engagement spike: 3 shares in one week."         │  │
+   509→│  │                                                                       │  │
+   510→│  │  [ + Add Note ]                                                       │  │
+   511→│  └──────────────────────────────────────────────────────────────────────┘  │
+   512→│                                                                             │
+   513→└─────────────────────────────────────────────────────────────────────────────┘
+   514→```
+   515→
+   516→**Admin actions on subscription:**
+   517→- **Change Tier**: Immediate or scheduled at period end. Logs `subscription_events` row.
+   518→- **Pause**: Temporarily deactivate (e.g., customer traveling). Content access frozen.
+   519→- **Cancel**: Immediate or at period end. Churn survey shown to user.
+   520→- **Refund**: Partial or full via Stripe. `subscription_events` row with `event_type='refunded'`.
+   521→- **Impersonate**: Login as user to see exactly what they see. Every action logged in `impersonation_logs`.
+   522→- **Schedule Change**: Plan upgrade/downgrade/cancel for future date (e.g., "downgrade to Professional at next renewal")
+   523→
+   524→---
+   525→
+   526→### Screen D: Subscription Management (Admin Overview)
+   527→
+   528→```
+   529→┌─────────────────────────────────────────────────────────────────────────────┐
+   530→│  SRC Advisory    Dashboard  Content  Users  Subscriptions  Tokens  CRM  ⚙️  │
+   531→├─────────────────────────────────────────────────────────────────────────────┤
+   532→│                                                                             │
+   533→│  💳 Subscription Management                                                   │
+   534→│  ━━━━━━━━━━━━━━━━━━━━━━━━━                                                    │
+   535→│                                                                             │
+   536→│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
+   537→│  │   Active    │  │   Paused    │  │  Past Due   │  │  Churned    │       │
+   538→│  │    742      │  │     12      │  │     8       │  │    156      │       │
+   539→│  │  CHF 48K/mo │  │             │  │  CHF 640/mo │  │             │       │
+   540→│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘       │
+   541→│                                                                             │
+   542→│  ┌────────────────────────────────────────────────────────────────────────┐ │
+   543→│  │ MRR Trend (6 months)                                                   │ │
+   544→│  │  CHF 60K │                                      ╭──────               │ │
+   545→│  │  CHF 50K │                              ╭──────╯                      │ │
+   546→│  │  CHF 40K │                        ╭────╯                             │ │
+   547→│  │  CHF 30K │                  ╭────╯                                    │ │
+   548→│  │  CHF 20K │            ╭────╯                                         │ │
+   549→│  │  CHF 10K │      ╭────╯                                                │ │
+   550→│  │        0 └─────╯   Jan   Feb   Mar   Apr   May   Jun                 │ │
+   551→│  └────────────────────────────────────────────────────────────────────────┘ │
+   552→│                                                                             │
+   553→│  Filters:  [All Tiers ▼]  [Active ▼]  [Billing Cycle ▼]  [🔍 Search]      │
+   554→│                                                                             │
+   555→│  ┌──────────┬──────────┬────────┬──────────┬────────┬────────┬──────────┐ │
+   556→│  │ User     │ Tier     │ Amount │ Cycle    │ Status │ Renews │ Actions  │ │
+   557→│  ├──────────┼──────────┼────────┼──────────┼────────┼────────┼──────────┤ │
+   558→│  │ Sarah M. │ Executive│ CHF149 │ Annual   │ Active │ Jan 27 │ 👁 ✏ ⏸ 🔁 │
+   559→│  │ Hans K.  │ Pro      │ CHF 79 │ Monthly  │ Active │ Jul 15 │ 👁 ✏ ⏸ 🔁 │
+   560→│  │ Pierre L │ Executive│ CHF  0 │ Annual   │ Free   │ Jun 27 │ 👁 ✏ ⏸ ✕ │ │
+   561→│  │          │          │        │          │ Admin  │        │ (admin)  │ │
+   562→│  │ Elena R. │ Pro      │ CHF 79 │ Annual   │ Active │ Mar 12 │ 👁 ✏ ⏸ 🔁 │
+   563→│  │ Acme Inc │ Entrepr. │ CHF2,49│ Annual   │ Active │ Sep 01 │ 👁 ✏ ⏸ 📄 │
+   564→│  └──────────┴──────────┴────────┴──────────┴────────┴────────┴──────────┘ │
+   565→│                                                                             │
+   566→│  [Export All]  [Bulk: Pause Selected]  [Bulk: Tag as Churn Risk]          │
+   567→│                                                                             │
+   568→└─────────────────────────────────────────────────────────────────────────────┘
+   569→```
+   570→
+   571→---
+   572→
+   573→## 3. Save & Share System (IP-Protected)
+   574→
+   575→### How Saving Works
+   576→
+   577→```
+   578→User clicks 🔖 Save on article
+   579→  → Row inserted into saved_content (user_id + content_id + timestamp)
+   580→  → Button changes to "✓ Saved"
+   581→  → Article appears in user's "Saved" folder in sidebar
+   582→  → Can add personal note: "Use for Q3 report" 
+   583→  → Organize into folders (future: "Energy Research", "AI Governance")
+   584→```
+   585→
+   586→### How Sharing Works (IP-Protected)
+   587→
+   588→```
+   589→User clicks 🔗 Share
+   590→  → Share modal opens with 4 tabs: Email | Social | Copy Link | Embed
+   591→  →
+   592→  ┌────────────────────────────────────────────────────────────┐
+   593→  │  Share: "Energy Security in the Baltics"         [× Close] │
+   594→  ├────────────────────────────────────────────────────────────┤
+   595→  │  [ Email ]  [ Social ]  [ Copy Link ]  [ Embed ]          │
+   596→  │                                                             │
+   597→  │  ┌────────────────────────────────────────────────────┐    │
+   598→  │  │ To: [ colleague@company.com, ... ]                  │    │
+   599→  │  │ Subject: Energy Security in the Baltics — SRC      │    │
+   600→  │  │                                                     │    │
+   601→  │  │ Hi,                                                 │    │
+   602→  │  │                                                     │    │
+   603→  │  │ I thought you'd find this interesting:              │    │
+   604→  │  │                                                     │    │
+   605→  │  │ **Energy Security in the Baltics** by Dr. Klaus M. │    │
+   606→  │  │                                                     │    │
+   607→  │  │ This report examines the implications of...         │    │
+   608→  │  │                                                     │    │
+   609→  │  │ Read more: https://src-advisory.ch/s/a1b2c3d4       │    │
+   610→  │  │                                                     │    │
+   611→  │  │ — Shared via SRC Advisory — Security & Resilience   │    │
+   612→  │  │   Counsel. Swiss Independence.                      │    │
+   613→  │  │   © SRC Advisory AG. All rights reserved.           │    │
+   614→  │  │   Full article: src-advisory.ch | Subscribe         │    │
+   615→  │  └────────────────────────────────────────────────────┘    │
+   616→  │                                                             │
+   617→  │  [✓] Include executive summary (200 words)                  │
+   618→  │  [✓] Include author bio                                     │
+   619→  │  [ ] Request read receipt                                   │
+   620→  │                                                             │
+   621→  │  [ Cancel ]              [ ✓ Send Email ]                    │
+   622→  │                                                             │
+   623→  │  ── IP Protection ──                                         │
+   624→  │  Every share includes: © notice, tracked URL, SRC branding. │
+   625→  │  Recipients without SRC accounts see a preview + subscribe CTA│
+   626→└────────────────────────────────────────────────────────────┘
+   627→```
+   628→
+   629→### Share URL System (IP Protection Engine)
+   630→
+   631→```
+   632→Original URL: https://src-advisory.ch/reports/energy-security-baltics
+   633→Share URL:    https://src-advisory.ch/s/a1b2c3d4
+   634→
+   635→How it works:
+   636→1. Unique token `a1b2c3d4` created in content_shares table
+   637→2. Token maps to: content_id + sharer_user_id + share_channel + timestamp
+   638→3. When recipient visits /s/a1b2c3d4:
+   639→   - Content shown with FULL branding (SRC logo, header, footer)
+   640→   - "Shared by Sarah Mitchell" attribution badge
+   641→   - Excerpt displayed (not full article unless recipient has account)
+   642→   - "Read the full article — subscribe or log in" CTA
+   643→   - Click tracked in content_shares.clicks
+   644→   - If new user signs up: attributed to Sarah as a referral
+   645→```
+   646→
+   647→### Social Share (IP-Protected)
+   648→
+   649→| Platform | What Gets Shared | IP Protection |
+   650→|---|---|---|
+   651→| **Twitter/X** | Auto-composed tweet with title, excerpt, tracked URL, `@SRC_Advisory` tag, hashtags | URL routes through src-advisory.ch, preview card shows SRC branding |
+   652→| **LinkedIn** | Post with title, excerpt, tracked URL, SRC logo in preview | LinkedIn preview card always shows SRC header image |
+   653→| **WhatsApp** | Formatted message with excerpt, tracked URL, "— via SRC Advisory" footer | URL is tracked; recipient sees branded preview |
+   654→| **Copy Link** | Tracked URL copied to clipboard | URL includes share token; every click logged |
+   655→| **Embed** | `<iframe>` code for websites | Frame includes SRC header/footer; content truncated without account |
+   656→
+   657→### The Share Footer (Always Present)
+   658→
+   659→```
+   660→─────────────────────────────────────────────
+   661→© SRC Advisory AG | Global Security Intelligence. Swiss Independence.
+   662→Based in Zug, Switzerland | www.src-advisory.ch
+   663→
+   664→This content is the intellectual property of SRC Advisory AG.
+   665→Unauthorized reproduction or distribution is prohibited.
+   666→
+   667→Read the full article: https://src-advisory.ch/s/a1b2c3d4
+   668→Subscribe: https://src-advisory.ch/join
+   669→Shared by: Sarah Mitchell (sarah@consilium.eu)
+   670→─────────────────────────────────────────────
+   671→```
+   672→
+   673→---
+   674→
+   675→## 4. API Endpoints (New & Updated)
+   676→
+   677→### User Management (Admin-only)
+   678→
+   679→```
+   680→GET    /api/admin/users                    # List all users (paginated, filterable)
+   681→GET    /api/admin/users/:id                # Get full user profile
+   682→PATCH  /api/admin/users/:id                # Update user fields, tier, status
+   683→PATCH  /api/admin/users/:id/tier           # Change tier (immediate or scheduled)
+   684→POST   /api/admin/users/:id/grant-access   # Grant free access (access_grants table)
+   685→DELETE /api/admin/users/:id/grant-access   # Revoke free access
+   686→POST   /api/admin/users/:id/impersonate    # Start impersonation session
+   687→DELETE /api/admin/users/:id/impersonate    # End impersonation session
+   688→POST   /api/admin/users/:id/notes          # Add customer note
+   689→GET    /api/admin/users/:id/subscriptions  # Get subscription history
+   690→GET    /api/admin/users/:id/activities     # Get CRM activity feed
+   691→GET    /api/admin/users/:id/shares         # Get content shares by this user
+   692→GET    /api/admin/users/:id/saved          # Get saved content by this user
+   693→```
+   694→
+   695→### Subscription Management (Admin + User)
+   696→
+   697→```
+   698→GET    /api/admin/subscriptions            # List all subscriptions
+   699→GET    /api/admin/subscriptions/:id        # Get subscription detail
+   700→GET    /api/admin/subscriptions/:id/events # Get event history
+   701→POST   /api/admin/subscriptions/:id/change-tier   # Change tier
+   702→POST   /api/admin/subscriptions/:id/pause         # Pause
+   703→POST   /api/admin/subscriptions/:id/resume        # Resume
+   704→POST   /api/admin/subscriptions/:id/cancel        # Cancel (now or at period end)
+   705→POST   /api/admin/subscriptions/:id/refund        # Process refund
+   706→POST   /api/admin/subscriptions/:id/schedule      # Schedule future change
+   707→GET    /api/admin/subscriptions/stats             # MRR, churn, etc.
+   708→```
+   709→
+   710→### Save & Share (Authenticated Users)
+   711→
+   712→```
+   713→POST   /api/content/:id/save               # Bookmark content
+   714→DELETE /api/content/:id/save               # Remove bookmark
+   715→GET    /api/me/saved                       # List saved content
+   716→PATCH  /api/me/saved/:id/note              # Update personal note
+   717→
+   718→POST   /api/content/:id/share              # Create share
+   719→       Body: { channel: "email", recipients: [...], message: "..." }
+   720→GET    /api/me/shares                      # List my shares
+   721→GET    /api/shares/:token                  # Public: view shared content
+   722→POST   /api/shares/:token/track            # Public: record click
+   723→```
+   724→
+   725→---
+   726→
+   727→## 5. The Complete System Map
+   728→
+   729→```
+   730→┌─────────────────────────────────────────────────────────────────────────────┐
+   731→│                         SRC ADVISORY — MCMS v2.0                            │
+   732→│                                                                             │
+   733→│  ┌─────────────────────────────────────────────────────────────────────┐   │
+   734→│  │                         DATA LAYER                                   │   │
+   735→│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │   │
+   736→│  │  │  users   │ │subscriptions│ │ tokens  │ │ content │ │ access_  │  │   │
+   737→│  │  │ +roles   │ │  +events   │ │         │ │ +shares │ │ grants   │  │   │
+   738→│  │  │ +admin   │ │ +schedules │ │         │ │ +saves  │ │          │  │   │
+   739→│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │   │
+   740→│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │   │
+   741→│  │  │  emails  │ │  alerts  │ │ crm_acts │ │crm_tasks │ │  notes   │  │   │
+   742→│  │  │+deliveries│ │+deliveries│ │+scores   │ │          │ │  +tags   │  │   │
+   743→│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │   │
+   744→│  └─────────────────────────────────────────────────────────────────────┘   │
+   745→│                              │                                              │
+   746→│  ┌───────────────────────────┼───────────────────────────────────────┐   │
+   747→│  │                    API LAYER (Next.js + Vercel)                    │   │
+   748→│  │                         │                                          │   │
+   749→│  │    ┌────────────────────┼────────────────────┐                   │   │
+   750→│  │    │  PUBLIC            │  AUTHENTICATED     │  ADMIN ONLY       │   │
+   751→│  │    │                    │                    │                   │   │
+   752→│  │    │  /content (public) │  /dashboard        │  /admin/users     │   │
+   753→│  │    │  /content/:id      │  /content/:id      │  /admin/subs      │   │
+   754→│  │    │  /pricing          │  /saved            │  /admin/crm       │   │
+   755→│  │    │  /s/:token         │  /settings         │  /admin/tokens    │   │
+   756→│  │    │  /register         │  /billing          │  /admin/alerts    │   │
+   757→│  │    │  /login            │  /referrals        │  /admin/analytics │   │
+   758→│  │    │  /activate/:code   │  /share/:id        │  /admin/content   │   │
+   759→│  │    └────────────────────┴────────────────────┘                   │   │
+   760→│  └──────────────────────────────────────────────────────────────────┘   │
+   761→│                              │                                              │
+   762→│  ┌───────────────────────────┼───────────────────────────────────────┐   │
+   763→│  │                    INTEGRATION LAYER                                 │   │
+   764→│  │                                                                      │   │
+   765→│  │   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐       │   │
+   766→│  │   │  Stripe  │   │ Postmark │   │Synthesia │   │ OneSignal│       │   │
+   767→│  │   │ Payments │   │  Email   │   │ vAvatar  │   │  Push    │       │   │
+   768→│  │   └──────────┘   └──────────┘   └──────────┘   └──────────┘       │   │
+   769→│  └──────────────────────────────────────────────────────────────────┘   │
+   770→│                                                                             │
+   771→└─────────────────────────────────────────────────────────────────────────────┘
+   772→```
+   773→
+   774→---
+   775→
+   776→## 6. Implementation Priority
+   777→
+   778→### Week 1-2: Core User Management
+   779→- [ ] Enhanced `users` table with roles, admin flags, free access columns
+   780→- [ ] `user_roles` table + middleware for route protection
+   781→- [ ] `/admin/users` screen: list, filter, search, bulk actions
+   782→- [ ] User detail screen: view profile, edit, impersonate, add notes
+   783→
+   784→### Week 3-4: Subscription Management
+   785→- [ ] `subscription_events` + `subscription_schedules` tables
+   786→- [ ] Admin tier change (immediate + scheduled), pause, cancel, refund
+   787→- [ ] `/admin/subscriptions` screen with MRR dashboard
+   788→- [ ] Customer detail screen with subscription history + activity timeline
+   789→
+   790→### Week 5: Free Access Granting
+   791→- [ ] `access_grants` table + UI modal for admin
+   792→- [ ] "Grant Free Access" button on user list and detail screens
+   793→- [ ] Automatic email notification to granted user
+   794→- [ ] Stripe $0 subscription creation for tracking
+   795→
+   796→### Week 6: Save & Share
+   797→- [ ] `saved_content` table + bookmark button on all content
+   798→- [ ] "My Saved" page in member sidebar
+   799→- [ ] `content_shares` + `share_templates` tables
+   800→- [ ] Share modal: Email / Social / Copy Link / Embed tabs
+   801→- [ ] Tracked share URLs (`/s/:token`) with branded preview page
+   802→- [ ] Mandatory SRC copyright footer on all shares
+   803→
+   804→### Week 7-8: CRM Polish
+   805→- [ ] `customer_notes` + `customer_tags` tables
+   806→- [ ] Engagement score calculation (daily cron)
+   807→- [ ] CRM task auto-generation ("Follow up with churn risk user X")
+   808→- [ ] Analytics dashboard: MRR, churn rate, LTV, content performance
+   809→- [ ] Referral leaderboard in admin
+   810→

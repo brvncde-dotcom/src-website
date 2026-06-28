@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRC MCMS v2.0 — Membership & Content Management System Wireframe</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f0f0;
+    color: #333;
+    line-height: 1.4;
+  }
+  .page { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 14px; margin-bottom: 30px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 50px 0 20px;
+    color: #1a1a1a;
+    border-bottom: 3px solid #333;
+    padding-bottom: 8px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin: 30px 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .nav-jump {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #1a1a1a;
+    padding: 12px 20px;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+  }
+  .nav-jump a {
+    color: #ccc;
+    text-decoration: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .nav-jump a:hover { color: #fff; background: #333; }
+
+  .screen {
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+  .screen-header {
+    background: #e8e8e8;
+    border-bottom: 2px solid #ccc;
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .screen-dots { display: flex; gap: 6px; }
+  .screen-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; border: 1px solid #bbb; }
+
+  /* ---- ADMIN LAYOUT ---- */
+  .admin-topbar {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: #1a1a1a;
+    color: #fff;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .admin-topbar a {
+    color: #ccc;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+  }
+  .admin-topbar a:hover, .admin-topbar a.active { color: #fff; background: #333; }
+  .admin-topbar .logo { font-weight: 700; margin-right: 16px; color: #fff; }
+
+  .admin-page { padding: 24px; }
+  .admin-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .admin-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .admin-btn {
+    padding: 8px 16px;
+    background: #555;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .admin-btn.primary { background: #2a7a2a; }
+  .admin-btn.danger { background: #8a2a2a; }
+  .admin-btn.small { padding: 5px 10px; font-size: 11px; }
+
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-pill {
+    padding: 6px 14px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #555;
+  }
+  .filter-search {
+    padding: 6px 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 200px;
+    color: #888;
+  }
+
+  /* Tables */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .data-table th {
+    background: #f0f0f0;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #ccc;
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: #f8f8f8; }
+  .data-table .actions { white-space: nowrap; }
+  .data-table .actions span {
+    cursor: pointer;
+    margin: 0 4px;
+    font-size: 14px;
+    opacity: 0.5;
+  }
+  .data-table .actions span:hover { opacity: 1; }
+
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill.tier-exec { background: #cce5ff; color: #004085; }
+  .pill.tier-pro { background: #d1ecf1; color: #0c5460; }
+  .pill.tier-ess { background: #d4edda; color: #155724; }
+  .pill.tier-obs { background: #e2e3e5; color: #383d41; }
+  .pill.tier-token { background: #fff3cd; color: #856404; }
+  .pill.status-active { background: #d4edda; color: #155724; }
+  .pill.status-churned { background: #f8d7da; color: #721c24; }
+  .pill.status-paused { background: #fff3cd; color: #856404; }
+  .pill.access-paid { background: #d4edda; color: #155724; }
+  .pill.access-token { background: #fff3cd; color: #856404; }
+  .pill.access-free { background: #cce5ff; color: #004085; }
+  .pill.access-admin { background: #d1c4e9; color: #311b92; }
+
+  .engagement-bar {
+    width: 50px;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .engagement-bar .fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+  .engagement-bar .fill.high { background: #28a745; }
+  .engagement-bar .fill.medium { background: #ffc107; }
+  .engagement-bar .fill.low { background: #dc3545; }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #888;
+  }
+  .stat-change {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .stat-change.up { color: #28a745; }
+  .stat-change.down { color: #dc3545; }
+
+  /* Detail layout */
+  .detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+  }
+  .detail-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .detail-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 12px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: #888; }
+  .detail-value { font-weight: 500; color: #333; }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 24px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    font-size: 12px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+  .timeline-item.event-green::before { background: #28a745; }
+  .timeline-item.event-blue::before { background: #007bff; }
+  .timeline-item.event-yellow::before { background: #ffc107; }
+  .timeline-time { color: #888; font-size: 11px; }
+  .timeline-text { color: #333; }
+
+  /* Modal */
+  .modal-overlay {
+    position: relative;
+    background: rgba(0,0,0,0.5);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+  }
+  .modal-box {
+    background: #fff;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 560px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #555;
+    background: #fafafa;
+  }
+  .form-select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fafafa;
+    min-width: 200px;
+  }
+  .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    min-height: 80px;
+    color: #555;
+    background: #fafafa;
+    resize: vertical;
+  }
+  .radio-group { display: flex; gap: 20px; }
+  .radio-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .radio-circle {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+  }
+  .radio-item.active .radio-circle { border-color: #555; background: #555; box-shadow: inset 0 0 0 3px #fff; }
+
+  .annotation {
+    background: #fff9e6;
+    border-left: 3px solid #f0c040;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #665500;
+    border-radius: 0 4px 4px 0;
+  }
+  .annotation strong { color: #332b00; }
+
+  .share-preview {
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #555;
+  }
+  .share-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 11px;
+    color: #888;
+  }
+
+  .tabs { display: flex; border-bottom: 1px solid #e0e0e0; margin-bottom: 20px; }
+  .tab {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active {
+    color: #333;
+    font-weight: 600;
+    border-bottom-color: #555;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  @media print {
+    .nav-jump { display: none; }
+    .page { padding: 20px; }
+    h2 { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-jump">
+  <span class="logo" style="color:#fff;font-weight:700;margin-right:8px;">SRC MCMS 2.0</span>
+  <a href="#s-users">User Mgmt</a>
+  <a href="#s-grant">Grant Access</a>
+  <a href="#s-customer">Customer Detail</a>
+  <a href="#s-subs">Subscriptions</a>
+  <a href="#s-share">Save & Share</a>
+  <a href="#s-mobile">Mobile</a>
+</div>
+
+<div class="page" style="padding-top:70px;">
+
+<h1>SRC MCMS v2.0 — Wireframe</h1>
+<p class="subtitle">Membership & Content Management System | User Mgmt, Subscription Control, Free Access, Save & IP-Protected Share</p>
+
+<!-- ========================= SCREEN A: USER MANAGEMENT ========================= -->
+<h2 id="s-users">Screen A: Admin — User Management</h2>
+<div class="screen">
+  <div class="screen-header"><span>admin.src-advisory.ch / users</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div class="admin-topbar">
+    <span class="logo">SRC</span>
+    <a href="#">Dashboard</a>
+    <a href="#">Content</a>
+    <a href="#" class="active">Users</a>
+    <a href="#">Subscriptions</a>
+    <a href="#">Tokens</a>
+    <a href="#">CRM</a>
+    <a href="#">⚙️</a>
+  </div>
+
+  <div class="admin-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div class="admin-title">👥 User Management</div>
+        <div style="font-size:12px;color:#888;">1,247 total users · 742 active · 156 churned · 12 paused</div>
+      </div>
+      <div class="admin-actions">
+        <button class="admin-btn primary">+ Grant Free Access</button>
+        <button class="admin-btn">+ Invite User</button>
+        <button class="admin-btn small">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-pill">All Tiers ▼</span>
+      <span class="filter-pill">All Status ▼</span>
+      <span class="filter-pill">All Roles ▼</span>
+      <span class="filter-pill">All Tags ▼</span>
+      <input class="filter-search" value="🔍 Search users..." />
+      <span class="filter-pill" style="margin-left:auto;">Engagement ▼</span>
+      <span class="filter-pill">Date Range ▼</span>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox"></th>
+          <th>Member</th>
+          <th>Tier</th>
+          <th>Status</th>
+          <th>Access Source</th>
+          <th>Engagement</th>
+          <th>Last Active</th>
+          <th>Referrals</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td><strong>Sarah Mitchell</strong><br><span style="color:#888;font-size:11px;">sarah@consilium.eu</span></td>
+          <td><span class="pill tier-exec">Executive</span></td>
+          <td><span class="pill status-active">Active</span></td>
+          <td><span class="pill access-paid">Paid · Stripe</span></td>
+          <td><div class="engagement-bar"><div class="fill high" style="width:85%"></div></div> <span style="font-size:11px;">85</span></td>
+          <td style="font-size:12px;">2 hours ago</td>
+          <td style="font-size:12px;">4 / 2 conv.</td>
+          <td class="actions"><span title="View">👁</span><span title="Edit">✏️</span><span title="Grant Access">⚡</span><span title="Impersonate">🎭</span><span title="Ban">🚫</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td><strong>Hans Keller</strong><br><span style="color:#888;font-size:11px;">hans@dgap.org</span></td>
+          <td><span class="pill tier-pro">Professional</span></td>
+          <td><span class="pill status-active">Active</span></td>
+          <td><span class="pill access-paid">Paid · Stripe</span></td>
+          <td><div class="engagement-bar"><div class="fill medium" style="width:45%"></div></div> <span style="font-size:11px;">45</span></td>
+          <td style="font-size:12px;">3 days ago</td>
+          <td style="font-size:12px;">—</td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⚡</span><span>🎭</span><span>🚫</span></td>
+        </tr>
+        <tr style="background:#fffdf5;">
+          <td><input type="checkbox"></td>
+          <td><strong>Aisha Bakhsh</strong><br><span style="color:#888;font-size:11px;">aisha@rai.ae</span></td>
+          <td><span class="pill tier-token">Token</span></td>
+          <td><span class="pill status-active">Active</span></td>
+          <td><span class="pill access-token">Founder Token</span></td>
+          <td><div class="engagement-bar"><div class="fill low" style="width:18%"></div></div> <span style="font-size:11px;color:#dc3545;">18</span></td>
+          <td style="font-size:12px;">14 days ago</td>
+          <td style="font-size:12px;">0 / 0</td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⚡</span><span title="Nudge">🔔</span><span>🚫</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td><strong>Marcus Turner</strong><br><span style="color:#888;font-size:11px;">marcus@bloomberg.net</span></td>
+          <td><span class="pill tier-obs">Observer</span></td>
+          <td><span class="pill status-churned">Churned</span></td>
+          <td><span style="font-size:11px;color:#888;">Free</span></td>
+          <td><div class="engagement-bar"><div class="fill low" style="width:5%"></div></div> <span style="font-size:11px;color:#dc3545;">5</span></td>
+          <td style="font-size:12px;">28 days ago</td>
+          <td style="font-size:12px;">—</td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⚡</span><span title="Win-back">🔄</span></td>
+        </tr>
+        <tr style="background:#f0f7ff;">
+          <td><input type="checkbox"></td>
+          <td><strong>Pierre Lefevre</strong><br><span style="color:#888;font-size:11px;">pierre@government.ch</span></td>
+          <td><span class="pill tier-exec">Executive</span></td>
+          <td><span class="pill status-active">Active</span></td>
+          <td><span class="pill access-admin">Free · Admin</span></td>
+          <td><div class="engagement-bar"><div class="fill high" style="width:62%"></div></div> <span style="font-size:11px;">62</span></td>
+          <td style="font-size:12px;">Yesterday</td>
+          <td style="font-size:12px;">—</td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⚡</span><span>🎭</span><span>🚫</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td><strong>Elena Rossi</strong><br><span style="color:#888;font-size:11px;">elena@uni.ch</span></td>
+          <td><span class="pill tier-pro">Professional</span></td>
+          <td><span class="pill status-active">Active</span></td>
+          <td><span class="pill access-paid">Paid · Stripe</span></td>
+          <td><div class="engagement-bar"><div class="fill high" style="width:92%"></div></div> <span style="font-size:11px;">92</span></td>
+          <td style="font-size:12px;">Yesterday</td>
+          <td style="font-size:12px;">1 / 1 conv.</td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⚡</span><span>🎭</span><span>🚫</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:12px;">
+      <span style="color:#888;">Showing 1-6 of 1,247</span>
+      <div style="display:flex;gap:4px;">
+        <span style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;color:#888;">← Prev</span>
+        <span style="padding:4px 10px;background:#555;color:#fff;border-radius:4px;">1</span>
+        <span style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">2</span>
+        <span style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;cursor:pointer;">3</span>
+        <span style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;color:#888;">Next →</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <span style="font-size:11px;color:#888;">Bulk:</span>
+        <span class="filter-pill" style="cursor:pointer;">Change Tier ▼</span>
+        <span class="filter-pill" style="cursor:pointer;">Add Tag ▼</span>
+        <span class="filter-pill" style="cursor:pointer;">Export Selected</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen A — User Management:</strong> The command center for all users. The <strong>Access Source</strong> column is critical — 
+  it shows HOW the user got their access: <em>Paid (Stripe)</em>, <em>Token (Founder/Ambassador/Academic)</em>, 
+  <em>Free · Admin</em> (manually granted), or <em>Free</em> (registered). Yellow rows = token holders with low engagement (nudge candidates). 
+  Blue rows = admin-granted free access. Bulk actions allow mass tier changes, tagging, and export. 
+  <strong>Impersonate (🎭)</strong> lets admins login as the user to see exactly what they see.
+</div>
+
+
+<!-- ========================= SCREEN B: GRANT FREE ACCESS ========================= -->
+<h2 id="s-grant">Screen B: Grant Free Access (Admin Modal)</h2>
+<div class="screen" style="max-width:600px;margin:0 auto;">
+  <div class="screen-header"><span>Modal: Grant Free Access</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div class="modal-box" style="border-radius:0;">
+    <div class="modal-header">
+      <span>⚡ Grant Free Access</span>
+      <span style="color:#888;cursor:pointer;">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px;background:#f0f7ff;border-radius:6px;">
+        <div style="width:36px;height:36px;background:#bbb;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;">PL</div>
+        <div>
+          <div style="font-weight:600;font-size:13px;">Pierre Lefevre</div>
+          <div style="font-size:11px;color:#888;">pierre@government.ch · Current: Observer (free)</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Access Type *</label>
+        <div class="radio-group">
+          <div class="radio-item active"><div class="radio-circle"></div> Free Tier Access</div>
+          <div class="radio-item"><div class="radio-circle"></div> Complimentary Period</div>
+          <div class="radio-item"><div class="radio-circle"></div> Content Unlock</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Select Tier *</label>
+          <select class="form-select">
+            <option>🔵 Executive</option>
+            <option>🔵 Professional</option>
+            <option>🟢 Essential</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration *</label>
+          <select class="form-select">
+            <option>Indefinite</option>
+            <option>12 months</option>
+            <option>6 months</option>
+            <option>3 months</option>
+            <option>1 month</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Reason (required) *</label>
+        <textarea class="form-textarea" style="min-height:60px;">Swiss Federal Department of Defence liaison. Attending SRC Summit 2026 as keynote speaker. Strategic government relationship.</textarea>
+      </div>
+
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label"><input type="checkbox" checked> Notify user by email</label>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><input type="checkbox" checked> Include referral link (Ambassador token)</label>
+        </div>
+      </div>
+
+      <div style="background:#fff9e6;border:1px solid #f0e0a0;border-radius:6px;padding:12px;font-size:11px;color:#665500;">
+        <strong>Audit trail:</strong> This grant will be recorded in <code>access_grants</code> table. 
+        Reason is mandatory and visible to superadmins. A $0 Stripe subscription will be created for tracking.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="admin-btn" style="background:#e0e0e0;color:#666;">Cancel</button>
+      <button class="admin-btn primary">✓ Grant Access</button>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen B — Grant Free Access:</strong> Admins can grant any tier to any user with full audit trail. 
+  <strong>Reason is mandatory</strong> — no anonymous free handouts. The system creates an <code>access_grants</code> row, 
+  updates the user's tier, optionally creates an Ambassador token (for referral tracking), and sends a welcome email. 
+  A $0 Stripe subscription is created so the user appears in subscription reports. All admin actions are logged in 
+  <code>subscription_events</code> with <code>initiated_by='admin'</code>.
+</div>
+
+
+<!-- ========================= SCREEN C: CUSTOMER DETAIL ========================= -->
+<h2 id="s-customer">Screen C: Admin — Customer Detail & Subscription Management</h2>
+<div class="screen">
+  <div class="screen-header"><span>admin.src-advisory.ch / users / sarah-mitchell</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div class="admin-topbar">
+    <span class="logo">SRC</span>
+    <a href="#">Dashboard</a>
+    <a href="#">Content</a>
+    <a href="#" class="active">Users</a>
+    <a href="#">Subscriptions</a>
+    <a href="#">Tokens</a>
+    <a href="#">CRM</a>
+  </div>
+
+  <div class="admin-page">
+    <div style="font-size:12px;color:#888;margin-bottom:16px;">← Back to Users</div>
+
+    <!-- Profile Header -->
+    <div class="detail-card" style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div style="width:56px;height:56px;background:#888;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:600;">SM</div>
+      <div style="flex:1;">
+        <div style="font-size:18px;font-weight:600;">Sarah Mitchell <span style="font-size:12px;font-weight:400;color:#888;">sarah@consilium.eu · +44 7700 900123</span></div>
+        <div style="font-size:12px;color:#888;margin-top:4px;">🇬🇧 London, UK · LinkedIn · Joined Jan 15, 2026</div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <span class="pill" style="background:#e8e8e8;color:#555;">high_value</span>
+          <span class="pill" style="background:#e8e8e8;color:#555;">summit_invitee</span>
+          <span class="pill" style="background:#e8e8e8;color:#555;">referrer</span>
+          <span style="font-size:11px;color:#888;margin-left:12px;cursor:pointer;text-decoration:underline;">+ Add Tag</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="admin-btn small">🎭 Impersonate</button>
+        <button class="admin-btn small">✏️ Edit</button>
+        <button class="admin-btn small danger">🚫 Ban</button>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Left Column -->
+      <div>
+        <!-- Subscription Card -->
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <span>💳 Subscription</span>
+            <span class="pill status-active">Active</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Current Tier</span>
+            <span class="detail-value"><span class="pill tier-exec">Executive</span></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Billing</span>
+            <span class="detail-value">CHF 1,490 / year</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Started</span>
+            <span class="detail-value">January 15, 2026</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Renews</span>
+            <span class="detail-value">January 15, 2027</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Stripe ID</span>
+            <span class="detail-value" style="font-family:monospace;font-size:11px;">sub_1ABCdefGHIjklMNOpqrSTUvw</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Lifetime Value</span>
+            <span class="detail-value" style="font-weight:700;">CHF 1,490</span>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="admin-btn small">Change Tier</button>
+            <button class="admin-btn small">⏸ Pause</button>
+            <button class="admin-btn small">Cancel</button>
+            <button class="admin-btn small" style="background:#8a2a2a;">Refund</button>
+          </div>
+        </div>
+
+        <!-- Scheduled Changes -->
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <span>📅 Scheduled Changes</span>
+            <span style="font-size:11px;color:#888;">None scheduled</span>
+          </div>
+          <button class="admin-btn small" style="width:100%;">+ Schedule Tier Change / Cancellation</button>
+        </div>
+
+        <!-- Payment History -->
+        <div class="detail-card">
+          <div class="detail-card-title">💰 Payment History</div>
+          <div class="detail-row">
+            <span class="detail-label">Jan 15, 2026</span>
+            <span class="detail-value">CHF 1,490 · Annual Executive</span>
+            <span style="color:#28a745;font-size:11px;">✓ Paid</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Jan 15, 2026</span>
+            <span class="detail-value">10-day trial started</span>
+            <span style="color:#888;font-size:11px;">Converted</span>
+          </div>
+        </div>
+
+        <!-- Customer Notes -->
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <span>📝 Customer Notes</span>
+            <button class="admin-btn small primary" style="padding:3px 10px;font-size:10px;">+ Add Note</button>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid #f5f5f5;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;">Admin (you)</span>
+              <span style="font-size:10px;color:#888;">Jun 20, 2026</span>
+            </div>
+            <div style="font-size:12px;color:#555;">Called about summit attendance. Confirmed for both days. Interested in bringing colleague — potential Corporate upsell.</div>
+            <div style="font-size:10px;color:#007bff;margin-top:4px;cursor:pointer;">📅 Follow-up: Jul 5</div>
+          </div>
+          <div style="padding:10px 0;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;">System</span>
+              <span style="font-size:10px;color:#888;">May 15, 2026</span>
+            </div>
+            <div style="font-size:12px;color:#555;">Engagement spike detected: 3 content shares in one week. Upgraded engagement score from 72 → 85.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Engagement Score -->
+        <div class="detail-card" style="text-align:center;">
+          <div style="font-size:11px;color:#888;margin-bottom:8px;">Engagement Score</div>
+          <div style="font-size:42px;font-weight:700;color:#28a745;">85</div>
+          <div style="width:120px;height:12px;background:#e0e0e0;border-radius:6px;margin:8px auto;overflow:hidden;">
+            <div style="width:85%;height:100%;background:#28a745;border-radius:6px;"></div>
+          </div>
+          <div style="font-size:11px;color:#28a745;">High engagement 🟢</div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="detail-card">
+          <div class="detail-card-title">📋 Activity Timeline</div>
+          <div class="timeline">
+            <div class="timeline-item event-blue">
+              <div class="timeline-time">Jun 26, 14:30</div>
+              <div class="timeline-text">📧 Opened Daily Brief</div>
+            </div>
+            <div class="timeline-item event-green">
+              <div class="timeline-time">Jun 26, 11:00</div>
+              <div class="timeline-text">📑 Downloaded "Energy Security" report</div>
+            </div>
+            <div class="timeline-item event-blue">
+              <div class="timeline-time">Jun 25, 18:00</div>
+              <div class="timeline-text">🎥 Watched vAvatar briefing (DE)</div>
+            </div>
+            <div class="timeline-item event-yellow">
+              <div class="timeline-time">Jun 25, 09:00</div>
+              <div class="timeline-text">💬 Attended live Executive call</div>
+            </div>
+            <div class="timeline-item event-green">
+              <div class="timeline-time">Jun 20, 08:00</div>
+              <div class="timeline-text">💳 Payment succeeded · CHF 1,490</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">Jun 15, 06:00</div>
+              <div class="timeline-text">🔔 Read breaking alert: Europe</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">May 28, 10:00</div>
+              <div class="timeline-text">🔗 Shared via LinkedIn (1 click)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referrals -->
+        <div class="detail-card">
+          <div class="detail-card-title">🔗 Referrals</div>
+          <div class="detail-row">
+            <span class="detail-label">Personal link</span>
+            <span class="detail-value" style="font-family:monospace;font-size:11px;">src-advisory.ch/r/sarah-m-2847</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total referrals</span>
+            <span class="detail-value">4 signups</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Converted to paid</span>
+            <span class="detail-value" style="color:#28a745;font-weight:600;">2 members</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Revenue attributed</span>
+            <span class="detail-value" style="font-weight:700;">CHF 1,580</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen C — Customer Detail:</strong> The single source of truth for every customer. Left column shows subscription details 
+  with admin actions (change tier, pause, cancel, refund), scheduled changes, payment history, and customer notes. 
+  Right column shows engagement score, full activity timeline, and referral performance. 
+  <strong>Impersonate (🎭)</strong> lets the admin click once and see exactly what Sarah sees — critical for support. 
+  Every admin action is logged in <code>subscription_events</code> and <code>impersonation_logs</code>.
+</div>
+
+
+<!-- ========================= SCREEN D: SUBSCRIPTION MANAGEMENT ========================= -->
+<h2 id="s-subs">Screen D: Admin — Subscription Overview</h2>
+<div class="screen">
+  <div class="screen-header"><span>admin.src-advisory.ch / subscriptions</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div class="admin-topbar">
+    <span class="logo">SRC</span>
+    <a href="#">Dashboard</a>
+    <a href="#">Content</a>
+    <a href="#">Users</a>
+    <a href="#" class="active">Subscriptions</a>
+    <a href="#">Tokens</a>
+    <a href="#">CRM</a>
+  </div>
+
+  <div class="admin-page">
+    <div class="admin-title" style="margin-bottom:20px;">💳 Subscription Management</div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">742</div>
+        <div class="stat-label">Active Subscriptions</div>
+        <div class="stat-change up">+12 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:#856404;">12</div>
+        <div class="stat-label">Paused</div>
+        <div class="stat-change">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:#721c24;">8</div>
+        <div class="stat-label">Past Due</div>
+        <div class="stat-change down">CHF 640 at risk</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:#383d41;">156</div>
+        <div class="stat-label">Churned (all time)</div>
+        <div class="stat-change">—</div>
+      </div>
+    </div>
+
+    <!-- MRR Chart Placeholder -->
+    <div class="detail-card" style="margin-bottom:20px;">
+      <div class="detail-card-title">📈 MRR Trend — Last 6 Months</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding:20px 0;">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;">CHF12K</span>
+          <div style="width:100%;height:20px;background:#e0e0e0;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#888;">Jan</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;">CHF19K</span>
+          <div style="width:100%;height:35px;background:#d0d0d0;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#888;">Feb</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;">CHF26K</span>
+          <div style="width:100%;height:50px;background:#c0c0c0;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#888;">Mar</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;">CHF34K</span>
+          <div style="width:100%;height:65px;background:#b0b0b0;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#888;">Apr</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;">CHF42K</span>
+          <div style="width:100%;height:80px;background:#909090;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#888;">May</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:10px;color:#888;font-weight:600;">CHF48K</span>
+          <div style="width:100%;height:100px;background:#555;border-radius:4px 4px 0 0;"></div>
+          <span style="font-size:10px;color:#333;font-weight:600;">Jun</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter + Table -->
+    <div class="filter-bar">
+      <span class="filter-pill">All Tiers ▼</span>
+      <span class="filter-pill">Active ▼</span>
+      <span class="filter-pill">Annual ▼</span>
+      <input class="filter-search" value="🔍 Search subscriptions..." />
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Tier</th>
+          <th>Amount</th>
+          <th>Cycle</th>
+          <th>Status</th>
+          <th>Renews</th>
+          <th>Access Source</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sarah M.</strong><br><span style="color:#888;font-size:11px;">sarah@consilium.eu</span></td>
+          <td><span class="pill tier-exec">Executive</span></td>
+          <td style="font-weight:600;">CHF 1,490</td>
+          <td>Yearly</td>
+          <td><span class="pill status-active">Active</span></td>
+          <td>Jan 15, 2027</td>
+          <td><span class="pill access-paid">Stripe</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⏸</span><span>🔁</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hans K.</strong><br><span style="color:#888;font-size:11px;">hans@dgap.org</span></td>
+          <td><span class="pill tier-pro">Professional</span></td>
+          <td style="font-weight:600;">CHF 79</td>
+          <td>Monthly</td>
+          <td><span class="pill status-active">Active</span></td>
+          <td>Jul 15, 2026</td>
+          <td><span class="pill access-paid">Stripe</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⏸</span><span>🔁</span></td>
+        </tr>
+        <tr style="background:#f0f7ff;">
+          <td><strong>Pierre L.</strong><br><span style="color:#888;font-size:11px;">pierre@government.ch</span></td>
+          <td><span class="pill tier-exec">Executive</span></td>
+          <td style="font-weight:600;color:#888;">CHF 0</td>
+          <td>Yearly</td>
+          <td><span class="pill status-active">Active</span></td>
+          <td>Jun 26, 2027</td>
+          <td><span class="pill access-admin">Admin Grant</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⏸</span><span>✕</span></td>
+        </tr>
+        <tr>
+          <td><strong>Elena R.</strong><br><span style="color:#888;font-size:11px;">elena@uni.ch</span></td>
+          <td><span class="pill tier-pro">Professional</span></td>
+          <td style="font-weight:600;">CHF 790</td>
+          <td>Yearly</td>
+          <td><span class="pill status-active">Active</span></td>
+          <td>Mar 12, 2027</td>
+          <td><span class="pill access-paid">Stripe</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⏸</span><span>🔁</span></td>
+        </tr>
+        <tr>
+          <td><strong>Acme Corp</strong><br><span style="color:#888;font-size:11px;">legal@acme.com</span></td>
+          <td><span class="pill tier-exec">Enterprise</span></td>
+          <td style="font-weight:600;">CHF 24,900</td>
+          <td>Yearly</td>
+          <td><span class="pill status-active">Active</span></td>
+          <td>Sep 01, 2026</td>
+          <td><span class="pill access-paid">Stripe</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span>⏸</span><span>📄</span></td>
+        </tr>
+        <tr style="background:#fff5f5;">
+          <td><strong>James W.</strong><br><span style="color:#888;font-size:11px;">james@hedge.fund</span></td>
+          <td><span class="pill tier-pro">Professional</span></td>
+          <td style="font-weight:600;">CHF 79</td>
+          <td>Monthly</td>
+          <td><span class="pill status-churned">Past Due</span></td>
+          <td>—</td>
+          <td><span class="pill access-paid">Stripe</span></td>
+          <td class="actions"><span>👁</span><span>✏️</span><span style="color:#c44;font-size:14px;">💳</span><span>🚫</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen D — Subscription Management:</strong> MRR chart at top for financial overview. 
+  The <strong>Access Source</strong> column distinguishes Stripe-paid from Admin-granted free subscriptions. 
+  Free subscriptions show CHF 0 and "Admin Grant" badge — they appear in reports but don't contribute to MRR. 
+  Past due accounts highlighted in red. Enterprise clients show a document icon for contract management.
+</div>
+
+
+<!-- ========================= SCREEN E: SAVE & SHARE ========================= -->
+<h2 id="s-share">Screen E: Save & IP-Protected Share (Member View)</h2>
+
+<h3>Ea: Save Button + "My Saved" Page</h3>
+<div class="screen" style="max-width:800px;margin:0 auto;">
+  <div class="screen-header"><span>member.src-advisory.ch / saved</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div style="padding:24px;">
+    <div style="font-size:18px;font-weight:600;margin-bottom:4px;">🔖 My Saved Content</div>
+    <div style="font-size:12px;color:#888;margin-bottom:20px;">12 articles saved · Organized by date</div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:16px;padding:16px;border:1px solid #e0e0e0;border-radius:8px;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span class="pill tier-pro" style="font-size:9px;">Study</span>
+            <span style="font-size:11px;color:#888;">Saved Jun 20</span>
+          </div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Energy Security in the Baltics: A 2026 Assessment</div>
+          <div style="font-size:11px;color:#888;">Dr. Klaus M. · 24 min read · PDF available</div>
+          <div style="margin-top:6px;padding:6px 10px;background:#f5f5f5;border-radius:4px;font-size:11px;color:#666;font-style:italic;">💬 "Use for Q3 report — check section on LNG terminals"</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button class="admin-btn small" style="background:#555;">🔗 Share</button>
+          <button class="admin-btn small" style="background:#e0e0e0;color:#666;">⬇ Download</button>
+          <button class="admin-btn small" style="background:#e0e0e0;color:#666;">🗑 Remove</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr auto;gap:16px;padding:16px;border:1px solid #e0e0e0;border-radius:8px;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span class="pill tier-exec" style="font-size:9px;">Report</span>
+            <span style="font-size:11px;color:#888;">Saved Jun 15</span>
+          </div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;">AI Governance Framework: Swiss Model</div>
+          <div style="font-size:11px;color:#888;">SRC Editorial · 18 min read</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button class="admin-btn small" style="background:#555;">🔗 Share</button>
+          <button class="admin-btn small" style="background:#e0e0e0;color:#666;">⬇ Download</button>
+          <button class="admin-btn small" style="background:#e0e0e0;color:#666;">🗑 Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>Eb: Share Modal (IP-Protected)</h3>
+<div class="screen" style="max-width:620px;margin:0 auto 30px;">
+  <div class="screen-header"><span>Modal: Share Content (IP-Protected)</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+
+  <div class="modal-box" style="border-radius:0;">
+    <div class="modal-header">
+      <span>🔗 Share: Energy Security in the Baltics</span>
+      <span style="color:#888;cursor:pointer;">✕</span>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">✉️ Email</div>
+      <div class="tab">📱 Social</div>
+      <div class="tab">📋 Copy Link</div>
+      <div class="tab">📎 Embed</div>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">To:</label>
+        <div class="form-input">colleague@company.com, boss@organization.gov</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Subject:</label>
+        <div class="form-input">Energy Security in the Baltics — SRC Advisory</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Message Preview (editable):</label>
+        <div class="share-preview">
+          <div>Hi,</div>
+          <div style="margin:8px 0;">I thought you'd find this interesting:</div>
+          <div style="font-weight:600;margin:8px 0;">Energy Security in the Baltics: A 2026 Assessment<br><span style="font-weight:400;color:#888;">by Dr. Klaus M.</span></div>
+          <div style="margin:8px 0;">This report examines the implications of shifting energy dependencies in the Baltic region following recent geopolitical developments. Key findings include LNG infrastructure gaps, Nord Stream alternatives, and Swiss-mediated diplomatic channels.</div>
+          <div style="margin:12px 0;"><strong>Read more:</strong> <span style="color:#007bff;">https://src-advisory.ch/s/a1b2c3d4</span></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:8px;"><input type="checkbox" checked> Include executive summary (200 words)</label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:8px;"><input type="checkbox" checked> Include author bio and photo</label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;"><input type="checkbox"> Request read receipt</label>
+      </div>
+
+      <!-- IP Protection Footer (Always Present) -->
+      <div style="border:1px solid #d0d0a0;border-radius:6px;padding:12px;background:#fffff0;">
+        <div style="font-size:11px;font-weight:600;color:#665500;margin-bottom:6px;">🛡️ IP Protection — This share will include:</div>
+        <div class="share-footer" style="border-top:none;margin-top:0;padding-top:0;font-size:11px;">
+          <div>© SRC Advisory AG | Global Security Intelligence. Swiss Independence.</div>
+          <div>Based in Zug, Switzerland | <span style="color:#007bff;">www.src-advisory.ch</span></div>
+          <div style="margin-top:6px;font-style:italic;">This content is the intellectual property of SRC Advisory AG. Unauthorized reproduction or distribution is prohibited.</div>
+          <div style="margin-top:6px;">Full article: <span style="color:#007bff;">src-advisory.ch</span> | Subscribe: <span style="color:#007bff;">src-advisory.ch/join</span></div>
+          <div style="margin-top:6px;font-size:10px;color:#888;">Shared by Sarah Mitchell (sarah@consilium.eu) · Tracked share #SRC-a1b2c3d4</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;font-size:11px;color:#888;">
+        Recipients without SRC accounts will see a preview + subscribe CTA. Every click is tracked.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="admin-btn" style="background:#e0e0e0;color:#666;">Cancel</button>
+      <button class="admin-btn primary">✓ Send Email</button>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen E — Save & Share:</strong> Members can save any content with personal notes ("Use for Q3 report"). 
+  The share modal has 4 tabs: Email, Social, Copy Link, Embed. <strong>The IP protection footer is always present and non-editable</strong> — 
+  it includes © notice, SRC branding, tracked URL, and "Shared by [name]" attribution. 
+  Recipients without accounts see a branded preview + subscribe CTA. The tracked URL <code>/s/a1b2c3d4</code> logs every click 
+  and attributes signups to the sharer as referrals.
+</div>
+
+
+<!-- ========================= SCREEN F: MOBILE SAVE/SHARE ========================= -->
+<h2 id="s-mobile">Screen F: Mobile — Save, Share & Alert</h2>
+<div style="display:flex;gap:30px;justify-content:center;">
+
+  <!-- Mobile: Article with Save/Share buttons -->
+  <div class="screen" style="width:360px;flex-shrink:0;">
+    <div class="screen-header"><span>Mobile: Article View</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+    <div style="padding:16px;">
+      <div style="font-size:10px;color:#888;margin-bottom:8px;">📑 Report · Digital Power · 18 min read</div>
+      <div style="font-size:16px;font-weight:700;line-height:1.3;margin-bottom:12px;">AI Governance Framework: Swiss Model for 2026</div>
+      <div style="font-size:11px;color:#888;margin-bottom:16px;">By SRC Editorial · June 20, 2026</div>
+      <div style="height:160px;background:#e0e0e0;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:32px;color:#bbb;">📊</span>
+      </div>
+      <div style="font-size:13px;line-height:1.6;color:#444;margin-bottom:16px;">
+        <div style="height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:8px;"></div>
+        <div style="height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:8px;"></div>
+        <div style="height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:8px;width:85%"></div>
+        <div style="height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:8px;"></div>
+        <div style="height:10px;background:#e8e8e8;border-radius:2px;margin-bottom:8px;width:70%"></div>
+      </div>
+      <!-- Sticky action bar -->
+      <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e0e0;padding:10px 0;display:flex;justify-content:space-around;">
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:4px;">🔖 Save</span>
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:4px;">🔗 Share</span>
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:4px;">⬇ PDF</span>
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:4px;">💬 Comment</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: Share sheet -->
+  <div class="screen" style="width:360px;flex-shrink:0;">
+    <div class="screen-header"><span>Mobile: Share Sheet</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+    <div style="padding:20px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Share This Article</div>
+        <div style="font-size:11px;color:#888;">AI Governance Framework: Swiss Model</div>
+      </div>
+
+      <!-- Share options grid -->
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:24px;">
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#e3f2fd;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">✉️</div>
+          <div style="font-size:10px;">Email</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#e8f5e9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">💬</div>
+          <div style="font-size:10px;">WhatsApp</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#e3f2fd;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">💼</div>
+          <div style="font-size:10px;">LinkedIn</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#f3e5f5;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">🐦</div>
+          <div style="font-size:10px;">X/Twitter</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#fff3e0;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">📋</div>
+          <div style="font-size:10px;">Copy Link</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="width:48px;height:48px;background:#fbe9e7;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:20px;">📎</div>
+          <div style="font-size:10px;">Embed</div>
+        </div>
+      </div>
+
+      <!-- Tracked link preview -->
+      <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">Your tracked share link:</div>
+        <div style="font-family:monospace;font-size:11px;word-break:break-all;">src-advisory.ch/s/a1b2c3d4</div>
+      </div>
+
+      <!-- IP notice -->
+      <div style="background:#fffff0;border:1px solid #f0e0a0;border-radius:6px;padding:10px;font-size:10px;color:#665500;">
+        <strong>© SRC Advisory AG</strong> — This share includes copyright notice and SRC branding. Recipients see a preview + subscribe CTA.
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: Push alert -->
+  <div class="screen" style="width:360px;flex-shrink:0;">
+    <div class="screen-header"><span>Mobile: Flash Alert</span><div class="screen-dots"><div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div></div></div>
+    <div style="padding:20px;">
+      <!-- Push notification -->
+      <div style="background:#1a1a1a;border-radius:20px;padding:16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;background:#dc3545;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">!</div>
+          <div>
+            <div style="color:#fff;font-size:12px;font-weight:600;">SRC Advisory</div>
+            <div style="color:#888;font-size:10px;">now · Flash Alert</div>
+          </div>
+        </div>
+        <div style="color:#fff;font-size:13px;font-weight:600;line-height:1.3;">Regional security escalation — initial assessment</div>
+        <div style="color:#aaa;font-size:11px;margin-top:6px;">European energy security implications...</div>
+      </div>
+
+      <!-- In-app alert -->
+      <div style="border:1px solid #e0e0e0;border-radius:10px;padding:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span class="pill" style="background:#dc3545;color:#fff;font-size:9px;">FLASH</span>
+          <span style="font-size:11px;color:#888;">Jun 26, 14:32 CET · Executive Only</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:10px;line-height:1.3;">Regional Security Escalation: Initial Assessment</div>
+        <div style="font-size:12px;line-height:1.6;color:#555;margin-bottom:12px;">
+          Analyst-validated flash brief on developing situation. Key points: border movements detected, diplomatic channels activated, Swiss mediation on standby. Full analysis within 4 hours.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="admin-btn small" style="background:#555;flex:1;">Full Analysis</button>
+          <button class="admin-btn small" style="background:#e0e0e0;color:#666;flex:1;">🔗 Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Screen F — Mobile:</strong> Sticky action bar on articles (Save / Share / PDF / Comment). Share sheet shows 6 options with 
+  tracked link auto-generated. The IP protection notice is compact but always visible. Flash alerts for Executive tier appear as 
+  dark-mode push notifications with the red SRC badge. In-app alert view shows priority level, analyst validation status, and 
+  share button — all respecting the user's tier.
+</div>
+
+<div style="margin-top:50px;padding:30px 0;border-top:3px solid #333;text-align:center;">
+  <p style="font-size:14px;font-weight:600;margin-bottom:8px;">SRC Advisory — MCMS v2.0 Wireframe</p>
+  <p style="font-size:12px;color:#888;">6 screens: User Management · Grant Free Access · Customer Detail · Subscriptions · Save & Share · Mobile</p>
+  <p style="font-size:12px;color:#888;margin-top:4px;">Every action is audited. Every share is IP-protected. Every user is tracked.</p>
+</div>
+
+</div>
+</body>
+</html>

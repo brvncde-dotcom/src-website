@@ -32,6 +32,8 @@ model User {
   contentShares ContentShare[]
   savedContents SavedContent[]
   accessGrants  AccessGrant[]
+  customerNotes CustomerNote[]
+  customerTags  CustomerTag[]
 }
 
 model Member {
@@ -190,4 +192,31 @@ model AccessGrant {
   @@index([grantType])
   @@index([status])
   @@index([expiresAt])
+}
+
+model CustomerNote {
+  id        String   @id @default(cuid())
+  userId    String
+  noteType  String   @default("general")
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CustomerTag {
+  id      String   @id @default(cuid())
+  userId  String
+  tag     String
+  addedBy String
+  addedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tag])
+  @@index([userId])
 }

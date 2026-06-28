@@ -1,0 +1,1046 @@
+     1→"use client";
+     2→
+     3→import { useState, useEffect, useCallback } from "react";
+     4→import { Button } from "@/components/ui/button";
+     5→import { Badge } from "@/components/ui/badge";
+     6→import { Textarea } from "@/components/ui/textarea";
+     7→import { Input } from "@/components/ui/input";
+     8→import {
+     9→  Select,
+    10→  SelectContent,
+    11→  SelectItem,
+    12→  SelectTrigger,
+    13→  SelectValue,
+    14→} from "@/components/ui/select";
+    15→import {
+    16→  Dialog,
+    17→  DialogContent,
+    18→  DialogHeader,
+    19→  DialogTitle,
+    20→  DialogFooter,
+    21→  DialogDescription,
+    22→} from "@/components/ui/dialog";
+    23→import {
+    24→  Table,
+    25→  TableBody,
+    26→  TableCell,
+    27→  TableHead,
+    28→  TableHeader,
+    29→  TableRow,
+    30→} from "@/components/ui/table";
+    31→import {
+    32→  Popover,
+    33→  PopoverContent,
+    34→  PopoverTrigger,
+    35→} from "@/components/ui/popover";
+    36→import {
+    37→  Eye,
+    38→  Search,
+    39→  RefreshCw,
+    40→  ChevronDown,
+    41→  ChevronUp,
+    42→  Shield,
+    43→  UserCog,
+    44→  Unlock,
+    45→  ArrowRightLeft,
+    46→  X,
+    47→  Check,
+    48→  Loader2,
+    49→} from "lucide-react";
+    50→
+    51→// ── Types ──
+    52→
+    53→interface TierInfo {
+    54→  id: string;
+    55→  slug: string;
+    56→  name: string;
+    57→}
+    58→
+    59→interface UserRow {
+    60→  id: string;
+    61→  email: string;
+    62→  name: string | null;
+    63→  role: string;
+    64→  isMember: boolean;
+    65→  currentTierId: string | null;
+    66→  trialStart: string | null;
+    67→  trialEnd: string | null;
+    68→  phone: string | null;
+    69→  organization: string | null;
+    70→  country: string | null;
+    71→  languagePref: string;
+    72→  createdAt: string;
+    73→  updatedAt: string;
+    74→  currentTier: TierInfo | null;
+    75→  _count: {
+    76→    subscriptions: number;
+    77→    accessGrants: number;
+    78→    savedContents: number;
+    79→  };
+    80→}
+    81→
+    82→interface UserProfile extends UserRow {
+    83→  _count: UserRow["_count"] & { contentShares: number };
+    84→  phone: string | null;
+    85→  organization: string | null;
+    86→  country: string | null;
+    87→  languagePref: string;
+    88→  marketingConsent: boolean;
+    89→  stripeCustomerId: string | null;
+    90→  stripeSubscriptionId: string | null;
+    91→  subscriptions: {
+    92→    id: string;
+    93→    status: string;
+    94→    billingInterval: string;
+    95→    currentPeriodStart: string;
+    96→    currentPeriodEnd: string;
+    97→    cancelAtPeriodEnd: boolean;
+    98→    amountChf: string;
+    99→    stripeStatus: string | null;
+   100→    tier: TierInfo;
+   101→  }[];
+   102→  accessGrants: {
+   103→    id: string;
+   104→    grantType: string;
+   105→    startsAt: string;
+   106→    expiresAt: string | null;
+   107→    isPermanent: boolean;
+   108→    grantedBy: string;
+   109→    reason: string;
+   110→    status: string;
+   111→    createdAt: string;
+   112→    tier: TierInfo | null;
+   113→  }[];
+   114→  accessType: string;
+   115→}
+   116→
+   117→// ── Constants ──
+   118→
+   119→const TIER_OPTIONS: { slug: string; label: string }[] = [
+   120→  { slug: "observer", label: "Observer" },
+   121→  { slug: "essential", label: "Essential" },
+   122→  { slug: "professional", label: "Professional" },
+   123→  { slug: "executive", label: "Executive" },
+   124→];
+   125→
+   126→const TIER_COLORS: Record<string, string> = {
+   127→  observer: "bg-gray-100 text-gray-700 border-gray-300",
+   128→  essential: "bg-emerald-100 text-emerald-800 border-emerald-300",
+   129→  professional: "bg-blue-100 text-blue-800 border-blue-300",
+   130→  executive: "bg-amber-100 text-amber-800 border-amber-300",
+   131→};
+   132→
+   133→const ACCESS_TYPE_LABELS: Record<string, string> = {
+   134→  subscription: "Subscription",
+   135→  grant: "Granted",
+   136→  trial: "Trial",
+   137→  none: "None",
+   138→};
+   139→
+   140→const ACCESS_TYPE_COLORS: Record<string, string> = {
+   141→  subscription: "bg-green-100 text-green-800 border-green-300",
+   142→  grant: "bg-purple-100 text-purple-800 border-purple-300",
+   143→  trial: "bg-yellow-100 text-yellow-800 border-yellow-300",
+   144→  none: "bg-gray-100 text-gray-500 border-gray-200",
+   145→};
+   146→
+   147→const GRANT_TYPE_LABELS: Record<string, string> = {
+   148→  free_tier: "Free Tier",
+   149→  complimentary_period: "Complimentary Period",
+   150→  content_unlock: "Content Unlock",
+   151→};
+   152→
+   153→// ── Component ──
+   154→
+   155→export default function AdminUsersPage() {
+   156→  const [users, setUsers] = useState<UserRow[]>([]);
+   157→  const [total, setTotal] = useState(0);
+   158→  const [loading, setLoading] = useState(true);
+   159→  const [search, setSearch] = useState("");
+   160→  const [expandedId, setExpandedId] = useState<string | null>(null);
+   161→  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+   162→  const [profileLoading, setProfileLoading] = useState(false);
+   163→  const [tierPopoverUserId, setTierPopoverUserId] = useState<string | null>(null);
+   164→  const [tierChanging, setTierChanging] = useState(false);
+   165→
+   166→  // Grant access modal
+   167→  const [grantModal, setGrantModal] = useState<{
+   168→    open: boolean;
+   169→    user: UserRow | null;
+   170→  }>({ open: false, user: null });
+   171→  const [grantForm, setGrantForm] = useState({
+   172→    grantType: "",
+   173→    tierSlug: "",
+   174→    durationDays: "30",
+   175→    reason: "",
+   176→  });
+   177→  const [grantSubmitting, setGrantSubmitting] = useState(false);
+   178→
+   179→  // Auth
+   180→  const [apiKey, setApiKey] = useState(() => {
+   181→    if (typeof window !== "undefined") {
+   182→      return sessionStorage.getItem("src_admin_key") || "";
+   183→    }
+   184→    return "";
+   185→  });
+   186→  const [isAuthenticated, setIsAuthenticated] = useState(false);
+   187→
+   188→  // ── Fetch users ──
+   189→
+   190→  const fetchUsers = useCallback(async () => {
+   191→    if (!apiKey) return;
+   192→    try {
+   193→      const params = new URLSearchParams();
+   194→      if (search.trim()) params.set("search", search.trim());
+   195→
+   196→      const res = await fetch(`/api/admin/users?${params.toString()}`, {
+   197→        headers: { Authorization: `Bearer ${apiKey}` },
+   198→      });
+   199→
+   200→      if (res.status === 401) {
+   201→        setIsAuthenticated(false);
+   202→        return;
+   203→      }
+   204→
+   205→      if (!res.ok) {
+   206→        // API not available — fallback to empty
+   207→        setUsers([]);
+   208→        setTotal(0);
+   209→        return;
+   210→      }
+   211→
+   212→      const data = await res.json();
+   213→      setUsers(data.users || []);
+   214→      setTotal(data.total || 0);
+   215→    } catch {
+   216→      // Network error or API not available — fallback to empty
+   217→      setUsers([]);
+   218→      setTotal(0);
+   219→    } finally {
+   220→      setLoading(false);
+   221→    }
+   222→  }, [apiKey, search]);
+   223→
+   224→  useEffect(() => {
+   225→    if (apiKey) {
+   226→      setIsAuthenticated(true);
+   227→      fetchUsers();
+   228→    } else {
+   229→      setLoading(false);
+   230→    }
+   231→  }, [apiKey, fetchUsers]);
+   232→
+   233→  // ── Fetch user profile ──
+   234→
+   235→  const fetchUserProfile = async (userId: string) => {
+   236→    if (expandedId === userId) {
+   237→      setExpandedId(null);
+   238→      setUserProfile(null);
+   239→      return;
+   240→    }
+   241→    setExpandedId(userId);
+   242→    setProfileLoading(true);
+   243→    setUserProfile(null);
+   244→    try {
+   245→      const res = await fetch(`/api/admin/users/${userId}`, {
+   246→        headers: { Authorization: `Bearer ${apiKey}` },
+   247→      });
+   248→      if (res.ok) {
+   249→        const data = await res.json();
+   250→        setUserProfile(data);
+   251→      }
+   252→    } catch {
+   253→      // Silently fail
+   254→    } finally {
+   255→      setProfileLoading(false);
+   256→    }
+   257→  };
+   258→
+   259→  // ── Change tier ──
+   260→
+   261→  const handleChangeTier = async (userId: string, tierSlug: string) => {
+   262→    setTierChanging(true);
+   263→    try {
+   264→      const res = await fetch(`/api/admin/users/${userId}`, {
+   265→        method: "PATCH",
+   266→        headers: {
+   267→          "Content-Type": "application/json",
+   268→          Authorization: `Bearer ${apiKey}`,
+   269→        },
+   270→        body: JSON.stringify({ field: "tier", tierSlug }),
+   271→      });
+   272→      if (res.ok) {
+   273→        setTierPopoverUserId(null);
+   274→        fetchUsers();
+   275→        // If expanded, refresh profile
+   276→        if (expandedId === userId) {
+   277→          fetchUserProfile(userId);
+   278→        }
+   279→      } else {
+   280→        const data = await res.json();
+   281→        alert(data.error || "Failed to change tier");
+   282→      }
+   283→    } catch {
+   284→      alert("Failed to change tier");
+   285→    } finally {
+   286→      setTierChanging(false);
+   287→    }
+   288→  };
+   289→
+   290→  // ── Grant access ──
+   291→
+   292→  const handleGrantAccess = async () => {
+   293→    if (!grantModal.user) return;
+   294→
+   295→    if (!grantForm.reason.trim()) {
+   296→      alert("Reason is required");
+   297→      return;
+   298→    }
+   299→
+   300→    setGrantSubmitting(true);
+   301→    try {
+   302→      const body: Record<string, unknown> = {
+   303→        grantType: grantForm.grantType,
+   304→        reason: grantForm.reason.trim(),
+   305→      };
+   306→
+   307→      if (grantForm.grantType === "free_tier" && grantForm.tierSlug) {
+   308→        body.tierSlug = grantForm.tierSlug;
+   309→      }
+   310→      if (grantForm.grantType === "complimentary_period") {
+   311→        if (grantForm.tierSlug) body.tierSlug = grantForm.tierSlug;
+   312→        body.durationDays = parseInt(grantForm.durationDays, 10) || 30;
+   313→      }
+   314→
+   315→      const res = await fetch(
+   316→        `/api/admin/users/${grantModal.user.id}/grant-access`,
+   317→        {
+   318→          method: "POST",
+   319→          headers: {
+   320→            "Content-Type": "application/json",
+   321→            Authorization: `Bearer ${apiKey}`,
+   322→          },
+   323→          body: JSON.stringify(body),
+   324→        }
+   325→      );
+   326→
+   327→      if (res.ok) {
+   328→        setGrantModal({ open: false, user: null });
+   329→        setGrantForm({ grantType: "", tierSlug: "", durationDays: "30", reason: "" });
+   330→        fetchUsers();
+   331→        if (expandedId === grantModal.user.id) {
+   332→          fetchUserProfile(grantModal.user.id);
+   333→        }
+   334→      } else {
+   335→        const data = await res.json();
+   336→        alert(data.error || "Failed to create access grant");
+   337→      }
+   338→    } catch {
+   339→      alert("Failed to create access grant");
+   340→    } finally {
+   341→      setGrantSubmitting(false);
+   342→    }
+   343→  };
+   344→
+   345→  // ── Helpers ──
+   346→
+   347→  const formatDate = (dateStr: string | null) => {
+   348→    if (!dateStr) return "—";
+   349→    return new Date(dateStr).toLocaleDateString("en-GB", {
+   350→      day: "2-digit",
+   351→      month: "short",
+   352→      year: "numeric",
+   353→    });
+   354→  };
+   355→
+   356→  const getAccessType = (user: UserRow): string => {
+   357→    if (user._count.subscriptions > 0) return "subscription";
+   358→    if (user._count.accessGrants > 0) return "grant";
+   359→    if (user.trialEnd && new Date(user.trialEnd) > new Date()) return "trial";
+   360→    return "none";
+   361→  };
+   362→
+   363→  const openGrantModal = (user: UserRow) => {
+   364→    setGrantModal({ open: true, user });
+   365→    setGrantForm({ grantType: "", tierSlug: "", durationDays: "30", reason: "" });
+   366→  };
+   367→
+   368→  const handleLogin = () => {
+   369→    sessionStorage.setItem("src_admin_key", apiKey);
+   370→    setIsAuthenticated(true);
+   371→    fetchUsers();
+   372→  };
+   373→
+   374→  // ── Login screen ──
+   375→
+   376→  if (!isAuthenticated || !apiKey) {
+   377→    return (
+   378→      <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center px-4">
+   379→        <div className="bg-white border border-[#D8DEE6] rounded-sm p-8 w-full max-w-sm">
+   380→          <div className="flex items-center gap-3 mb-6">
+   381→            <div className="h-10 w-10 bg-[#0A2540] rounded-sm flex items-center justify-center">
+   382→              <ShieldIcon className="h-5 w-5 text-white" />
+   383→            </div>
+   384→            <div>
+   385→              <div className="font-bold text-sm">SRC Admin</div>
+   386→              <div className="text-[10px] uppercase tracking-wider text-[#5A6B7F]">
+   387→                User Management
+   388→              </div>
+   389→            </div>
+   390→          </div>
+   391→          <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
+   392→            Admin API Key
+   393→          </label>
+   394→          <Input
+   395→            type="password"
+   396→            value={apiKey}
+   397→            onChange={(e) => setApiKey(e.target.value)}
+   398→            placeholder="Enter your admin key"
+   399→            className="h-11 mb-4"
+   400→            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+   401→          />
+   402→          <Button
+   403→            onClick={handleLogin}
+   404→            className="w-full bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider h-11"
+   405→          >
+   406→            Access Dashboard
+   407→          </Button>
+   408→        </div>
+   409→      </div>
+   410→    );
+   411→  }
+   412→
+   413→  // ── Main dashboard ──
+   414→
+   415→  return (
+   416→    <div className="min-h-screen bg-[#F4F6F9]">
+   417→      {/* Header */}
+   418→      <header className="bg-white border-b border-[#D8DEE6] sticky top-0 z-30">
+   419→        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+   420→          <div className="flex items-center gap-3">
+   421→            <div className="h-8 w-8 bg-[#0A2540] rounded-sm flex items-center justify-center">
+   422→              <ShieldIcon className="h-4 w-4 text-white" />
+   423→            </div>
+   424→            <div>
+   425→              <h1 className="font-bold text-sm">User Management</h1>
+   426→              <p className="text-[10px] uppercase tracking-wider text-[#5A6B7F]">
+   427→                SRC Admin
+   428→              </p>
+   429→            </div>
+   430→          </div>
+   431→          <Button
+   432→            variant="outline"
+   433→            size="sm"
+   434→            onClick={fetchUsers}
+   435→            disabled={loading}
+   436→            className="gap-1.5 text-xs"
+   437→          >
+   438→            <RefreshCw
+   439→              className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+   440→            />
+   441→            Refresh
+   442→          </Button>
+   443→        </div>
+   444→      </header>
+   445→
+   446→      <div className="mx-auto max-w-7xl px-6 py-8">
+   447→        {/* Search & Filters */}
+   448→        <div className="bg-white border border-[#D8DEE6] rounded-sm p-4 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-wrap">
+   449→          <Search className="h-4 w-4 text-[#5A6B7F] shrink-0" />
+   450→          <div className="relative flex-1 min-w-[200px]">
+   451→            <Input
+   452→              placeholder="Search by name or email..."
+   453→              value={search}
+   454→              onChange={(e) => setSearch(e.target.value)}
+   455→              className="h-9 text-xs pl-3"
+   456→              onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+   457→            />
+   458→          </div>
+   459→          <div className="ml-auto text-xs text-[#5A6B7F]">
+   460→            {total} user{total !== 1 ? "s" : ""}
+   461→          </div>
+   462→        </div>
+   463→
+   464→        {/* User Table */}
+   465→        {loading ? (
+   466→          <div className="text-center py-20 text-sm text-[#5A6B7F]">
+   467→            Loading users...
+   468→          </div>
+   469→        ) : users.length === 0 ? (
+   470→          <div className="text-center py-20">
+   471→            <div className="text-[#5A6B7F] text-sm mb-2">No users found</div>
+   472→            <div className="text-xs text-[#5A6B7F]/60">
+   473→              {search
+   474→                ? "Try adjusting your search query"
+   475→                : "Users will appear here once they register on the platform"}
+   476→            </div>
+   477→          </div>
+   478→        ) : (
+   479→          <div className="bg-white border border-[#D8DEE6] rounded-sm overflow-hidden">
+   480→            <div className="overflow-x-auto">
+   481→              <Table>
+   482→                <TableHeader>
+   483→                  <TableRow className="bg-[#F8F9FA] border-b border-[#D8DEE6] hover:bg-[#F8F9FA]">
+   484→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   485→                      Name
+   486→                    </TableHead>
+   487→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   488→                      Email
+   489→                    </TableHead>
+   490→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   491→                      Role
+   492→                    </TableHead>
+   493→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   494→                      Tier
+   495→                    </TableHead>
+   496→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   497→                      Access Type
+   498→                    </TableHead>
+   499→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   500→                      Status
+   501→                    </TableHead>
+   502→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4">
+   503→                      Joined
+   504→                    </TableHead>
+   505→                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] h-10 px-4 text-right">
+   506→                      Actions
+   507→                    </TableHead>
+   508→                  </TableRow>
+   509→                </TableHeader>
+   510→                <TableBody>
+   511→                  {users.map((user) => {
+   512→                    const accessType = getAccessType(user);
+   513→                    const isExpanded = expandedId === user.id;
+   514→                    return (
+   515→                      <>
+   516→                        <TableRow
+   517→                          key={user.id}
+   518→                          className="border-b border-[#D8DEE6]/60"
+   519→                        >
+   520→                          <TableCell className="px-4 py-3">
+   521→                            <span className="text-sm font-semibold text-[#0A2540]">
+   522→                              {user.name || "—"}
+   523→                            </span>
+   524→                          </TableCell>
+   525→                          <TableCell className="px-4 py-3">
+   526→                            <span className="text-xs font-mono text-[#5A6B7F]">
+   527→                              {user.email}
+   528→                            </span>
+   529→                          </TableCell>
+   530→                          <TableCell className="px-4 py-3">
+   531→                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border bg-[#0A2540] text-white border-[#0A2540]">
+   532→                              {user.role}
+   533→                            </span>
+   534→                          </TableCell>
+   535→                          <TableCell className="px-4 py-3">
+   536→                            {user.currentTier ? (
+   537→                              <span
+   538→                                className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${
+   539→                                  TIER_COLORS[user.currentTier.slug] || "bg-gray-100 text-gray-700 border-gray-300"
+   540→                                }`}
+   541→                              >
+   542→                                {user.currentTier.name}
+   543→                              </span>
+   544→                            ) : (
+   545→                              <span className="text-xs text-[#5A6B7F]/50">—</span>
+   546→                            )}
+   547→                          </TableCell>
+   548→                          <TableCell className="px-4 py-3">
+   549→                            <span
+   550→                              className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${
+   551→                                ACCESS_TYPE_COLORS[accessType] || ""
+   552→                              }`}
+   553→                            >
+   554→                              {ACCESS_TYPE_LABELS[accessType] || accessType}
+   555→                            </span>
+   556→                          </TableCell>
+   557→                          <TableCell className="px-4 py-3">
+   558→                            <span
+   559→                              className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${
+   560→                                user.isMember
+   561→                                  ? "bg-green-100 text-green-800 border-green-300"
+   562→                                  : "bg-gray-100 text-gray-500 border-gray-200"
+   563→                              }`}
+   564→                            >
+   565→                              {user.isMember ? "Active" : "Inactive"}
+   566→                            </span>
+   567→                          </TableCell>
+   568→                          <TableCell className="px-4 py-3">
+   569→                            <span className="text-xs text-[#5A6B7F]">
+   570→                              {formatDate(user.createdAt)}
+   571→                            </span>
+   572→                          </TableCell>
+   573→                          <TableCell className="px-4 py-3 text-right">
+   574→                            <div className="flex items-center justify-end gap-1">
+   575→                              {/* View */}
+   576→                              <Button
+   577→                                size="sm"
+   578→                                variant="ghost"
+   579→                                className="h-7 w-7 p-0"
+   580→                                onClick={() => fetchUserProfile(user.id)}
+   581→                                title="View details"
+   582→                              >
+   583→                                {isExpanded ? (
+   584→                                  <ChevronUp className="h-3.5 w-3.5" />
+   585→                                ) : (
+   586→                                  <Eye className="h-3.5 w-3.5" />
+   587→                                )}
+   588→                              </Button>
+   589→
+   590→                              {/* Change Tier */}
+   591→                              <Popover
+   592→                                open={tierPopoverUserId === user.id}
+   593→                                onOpenChange={(open) =>
+   594→                                  setTierPopoverUserId(open ? user.id : null)
+   595→                                }
+   596→                              >
+   597→                                <PopoverTrigger asChild>
+   598→                                  <Button
+   599→                                    size="sm"
+   600→                                    variant="ghost"
+   601→                                    className="h-7 w-7 p-0"
+   602→                                    title="Change tier"
+   603→                                  >
+   604→                                    <UserCog className="h-3.5 w-3.5" />
+   605→                                  </Button>
+   606→                                </PopoverTrigger>
+   607→                                <PopoverContent
+   608→                                  align="end"
+   609→                                  className="w-48 p-2"
+   610→                                >
+   611→                                  <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-2 px-2">
+   612→                                    Change Tier
+   613→                                  </div>
+   614→                                  <div className="space-y-0.5">
+   615→                                    {TIER_OPTIONS.map((tier) => (
+   616→                                      <button
+   617→                                        key={tier.slug}
+   618→                                        disabled={tierChanging}
+   619→                                        onClick={() =>
+   620→                                          handleChangeTier(user.id, tier.slug)
+   621→                                        }
+   622→                                        className={`w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-[#F4F6F9] transition-colors flex items-center justify-between ${
+   623→                                          user.currentTier?.slug === tier.slug
+   624→                                            ? "text-[#0A2540] font-semibold bg-[#F4F6F9]"
+   625→                                            : "text-[#5A6B7F]"
+   626→                                        }`}
+   627→                                      >
+   628→                                        <span>{tier.label}</span>
+   629→                                        {user.currentTier?.slug === tier.slug && (
+   630→                                          <Check className="h-3 w-3 text-[#0A2540]" />
+   631→                                        )}
+   632→                                      </button>
+   633→                                    ))}
+   634→                                  </div>
+   635→                                </PopoverContent>
+   636→                              </Popover>
+   637→
+   638→                              {/* Grant Access */}
+   639→                              <Button
+   640→                                size="sm"
+   641→                                variant="ghost"
+   642→                                className="h-7 w-7 p-0"
+   643→                                onClick={() => openGrantModal(user)}
+   644→                                title="Grant access"
+   645→                              >
+   646→                                <Unlock className="h-3.5 w-3.5" />
+   647→                              </Button>
+   648→
+   649→                              {/* Impersonate */}
+   650→                              <Button
+   651→                                size="sm"
+   652→                                variant="ghost"
+   653→                                className="h-7 w-7 p-0 text-[#E8272C] hover:text-[#E8272C] hover:bg-red-50"
+   654→                                title="Impersonate"
+   655→                              >
+   656→                                <ArrowRightLeft className="h-3.5 w-3.5" />
+   657→                              </Button>
+   658→                            </div>
+   659→                          </TableCell>
+   660→                        </TableRow>
+   661→
+   662→                        {/* Expanded Profile Row */}
+   663→                        {isExpanded && (
+   664→                          <TableRow key={`${user.id}-detail`}>
+   665→                            <TableCell
+   666→                              colSpan={8}
+   667→                              className="bg-[#F8F9FA] border-b border-[#D8DEE6] p-0"
+   668→                            >
+   669→                              <div className="p-6">
+   670→                                {profileLoading ? (
+   671→                                  <div className="flex items-center gap-2 text-xs text-[#5A6B7F]">
+   672→                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+   673→                                    Loading profile...
+   674→                                  </div>
+   675→                                ) : userProfile ? (
+   676→                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+   677→                                    {/* Column 1: User Info */}
+   678→                                    <div>
+   679→                                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-3">
+   680→                                        User Details
+   681→                                      </div>
+   682→                                      <dl className="space-y-2 text-xs">
+   683→                                        <div className="flex justify-between">
+   684→                                          <dt className="text-[#5A6B7F]">ID</dt>
+   685→                                          <dd className="font-mono text-[#0A2540]">
+   686→                                            {userProfile.id.slice(0, 12)}…
+   687→                                          </dd>
+   688→                                        </div>
+   689→                                        <div className="flex justify-between">
+   690→                                          <dt className="text-[#5A6B7F]">Phone</dt>
+   691→                                          <dd>{userProfile.phone || "—"}</dd>
+   692→                                        </div>
+   693→                                        <div className="flex justify-between">
+   694→                                          <dt className="text-[#5A6B7F]">Org</dt>
+   695→                                          <dd className="max-w-[140px] truncate">
+   696→                                            {userProfile.organization || "—"}
+   697→                                          </dd>
+   698→                                        </div>
+   699→                                        <div className="flex justify-between">
+   700→                                          <dt className="text-[#5A6B7F]">Country</dt>
+   701→                                          <dd>{userProfile.country || "—"}</dd>
+   702→                                        </div>
+   703→                                        <div className="flex justify-between">
+   704→                                          <dt className="text-[#5A6B7F]">Language</dt>
+   705→                                          <dd className="uppercase font-semibold">
+   706→                                            {userProfile.languagePref}
+   707→                                          </dd>
+   708→                                        </div>
+   709→                                        <div className="flex justify-between">
+   710→                                          <dt className="text-[#5A6B7F]">
+   711→                                            Stripe Cust.
+   712→                                          </dt>
+   713→                                          <dd className="font-mono text-[10px]">
+   714→                                            {userProfile.stripeCustomerId || "—"}
+   715→                                          </dd>
+   716→                                        </div>
+   717→                                        <div className="flex justify-between">
+   718→                                          <dt className="text-[#5A6B7F]">
+   719→                                            Trial
+   720→                                          </dt>
+   721→                                          <dd>
+   722→                                            {userProfile.trialStart
+   723→                                              ? `${formatDate(userProfile.trialStart)} → ${formatDate(userProfile.trialEnd)}`
+   724→                                              : "—"}
+   725→                                          </dd>
+   726→                                        </div>
+   727→                                      </dl>
+   728→                                    </div>
+   729→
+   730→                                    {/* Column 2: Subscriptions */}
+   731→                                    <div>
+   732→                                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-3">
+   733→                                        Subscriptions (
+   734→                                        {userProfile.subscriptions.length})
+   735→                                      </div>
+   736→                                      {userProfile.subscriptions.length === 0 ? (
+   737→                                        <div className="text-xs text-[#5A6B7F]/50 italic">
+   738→                                          No subscriptions
+   739→                                        </div>
+   740→                                      ) : (
+   741→                                        <div className="space-y-2">
+   742→                                          {userProfile.subscriptions.map(
+   743→                                            (sub) => (
+   744→                                              <div
+   745→                                                key={sub.id}
+   746→                                                className="bg-white border border-[#D8DEE6] rounded-sm p-3"
+   747→                                              >
+   748→                                                <div className="flex items-center justify-between mb-1">
+   749→                                                  <span className="text-xs font-semibold">
+   750→                                                    {sub.tier.name}
+   751→                                                  </span>
+   752→                                                  <span
+   753→                                                    className={`inline-flex items-center px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-sm border ${
+   754→                                                      sub.status === "active"
+   755→                                                        ? "bg-green-100 text-green-800 border-green-300"
+   756→                                                        : "bg-gray-100 text-gray-500 border-gray-200"
+   757→                                                    }`}
+   758→                                                  >
+   759→                                                    {sub.status}
+   760→                                                  </span>
+   761→                                                </div>
+   762→                                                <div className="text-[10px] text-[#5A6B7F]">
+   763→                                                  {sub.billingInterval}ly ·{" "}
+   764→                                                  {sub.amountChf} CHF
+   765→                                                </div>
+   766→                                                <div className="text-[10px] text-[#5A6B7F]">
+   767→                                                  {formatDate(
+   768→                                                    sub.currentPeriodStart
+   769→                                                  )}{" "}
+   770→                                                  →{" "}
+   771→                                                  {formatDate(
+   772→                                                    sub.currentPeriodEnd
+   773→                                                  )}
+   774→                                                </div>
+   775→                                                {sub.cancelAtPeriodEnd && (
+   776→                                                  <div className="text-[10px] text-[#E8272C] font-semibold mt-1">
+   777→                                                    Cancels at period end
+   778→                                                  </div>
+   779→                                                )}
+   780→                                              </div>
+   781→                                            )
+   782→                                          )}
+   783→                                        </div>
+   784→                                      )}
+   785→                                    </div>
+   786→
+   787→                                    {/* Column 3: Access Grants */}
+   788→                                    <div>
+   789→                                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-3">
+   790→                                        Access Grants (
+   791→                                        {userProfile.accessGrants.length})
+   792→                                      </div>
+   793→                                      {userProfile.accessGrants.length === 0 ? (
+   794→                                        <div className="text-xs text-[#5A6B7F]/50 italic">
+   795→                                          No access grants
+   796→                                        </div>
+   797→                                      ) : (
+   798→                                        <div className="space-y-2 max-h-60 overflow-y-auto">
+   799→                                          {userProfile.accessGrants.map(
+   800→                                            (grant) => (
+   801→                                              <div
+   802→                                                key={grant.id}
+   803→                                                className="bg-white border border-[#D8DEE6] rounded-sm p-3"
+   804→                                              >
+   805→                                                <div className="flex items-center justify-between mb-1">
+   806→                                                  <span className="text-xs font-semibold">
+   807→                                                    {GRANT_TYPE_LABELS[grant.grantType] ||
+   808→                                                      grant.grantType}
+   809→                                                  </span>
+   810→                                                  <span
+   811→                                                    className={`inline-flex items-center px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-sm border ${
+   812→                                                      grant.status === "active"
+   813→                                                        ? "bg-green-100 text-green-800 border-green-300"
+   814→                                                        : "bg-gray-100 text-gray-500 border-gray-200"
+   815→                                                    }`}
+   816→                                                  >
+   817→                                                    {grant.status}
+   818→                                                  </span>
+   819→                                                </div>
+   820→                                                {grant.tier && (
+   821→                                                  <div className="text-[10px] text-[#5A6B7F]">
+   822→                                                    Tier: {grant.tier.name}
+   823→                                                  </div>
+   824→                                                )}
+   825→                                                <div className="text-[10px] text-[#5A6B7F]">
+   826→                                                  {formatDate(grant.startsAt)}
+   827→                                                  {grant.expiresAt &&
+   828→                                                    ` → ${formatDate(grant.expiresAt)}`}
+   829→                                                  {grant.isPermanent &&
+   830→                                                    !grant.expiresAt &&
+   831→                                                    " · Permanent"}
+   832→                                                </div>
+   833→                                                <div className="text-[10px] text-[#5A6B7F] italic mt-1">
+   834→                                                  {grant.reason}
+   835→                                                </div>
+   836→                                              </div>
+   837→                                            )
+   838→                                          )}
+   839→                                        </div>
+   840→                                      )}
+   841→
+   842→                                      {/* Stats */}
+   843→                                      <div className="mt-4 pt-4 border-t border-[#D8DEE6]">
+   844→                                        <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-2">
+   845→                                          Stats
+   846→                                        </div>
+   847→                                        <dl className="space-y-1 text-xs text-[#5A6B7F]">
+   848→                                          <div className="flex justify-between">
+   849→                                            <dt>Saved content</dt>
+   850→                                            <dd className="font-semibold text-[#0A2540]">
+   851→                                              {userProfile._count.savedContents}
+   852→                                            </dd>
+   853→                                          </div>
+   854→                                          <div className="flex justify-between">
+   855→                                            <dt>Content shares</dt>
+   856→                                            <dd className="font-semibold text-[#0A2540]">
+   857→                                              {userProfile._count.contentShares}
+   858→                                            </dd>
+   859→                                          </div>
+   860→                                        </dl>
+   861→                                      </div>
+   862→                                    </div>
+   863→                                  </div>
+   864→                                ) : (
+   865→                                  <div className="text-xs text-[#5A6B7F]/60 italic">
+   866→                                    Could not load profile details
+   867→                                  </div>
+   868→                                )}
+   869→                              </div>
+   870→                            </TableCell>
+   871→                          </TableRow>
+   872→                        )}
+   873→                      </>
+   874→                    );
+   875→                  })}
+   876→                </TableBody>
+   877→              </Table>
+   878→            </div>
+   879→          </div>
+   880→        )}
+   881→      </div>
+   882→
+   883→      {/* Grant Access Modal */}
+   884→      <Dialog
+   885→        open={grantModal.open}
+   886→        onOpenChange={(open) =>
+   887→          !open && setGrantModal({ open: false, user: null })
+   888→        }
+   889→      >
+   890→        <DialogContent>
+   891→          <DialogHeader>
+   892→            <DialogTitle>Grant Access</DialogTitle>
+   893→            <DialogDescription>
+   894→              {grantModal.user && (
+   895→                <>
+   896→                  Create an access grant for{" "}
+   897→                  <span className="font-semibold text-[#0A2540]">
+   898→                    {grantModal.user.name || grantModal.user.email}
+   899→                  </span>
+   900→                </>
+   901→              )}
+   902→            </DialogDescription>
+   903→          </DialogHeader>
+   904→
+   905→          <div className="space-y-4 py-2">
+   906→            {/* Grant Type */}
+   907→            <div>
+   908→              <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
+   909→                Grant Type
+   910→              </label>
+   911→              <Select
+   912→                value={grantForm.grantType}
+   913→                onValueChange={(v) =>
+   914→                  setGrantForm((f) => ({ ...f, grantType: v, tierSlug: "" }))
+   915→                }
+   916→              >
+   917→                <SelectTrigger className="h-10 text-sm">
+   918→                  <SelectValue placeholder="Select grant type" />
+   919→                </SelectTrigger>
+   920→                <SelectContent>
+   921→                  <SelectItem value="free_tier">Free Tier Assignment</SelectItem>
+   922→                  <SelectItem value="complimentary_period">
+   923→                    Complimentary Period
+   924→                  </SelectItem>
+   925→                  <SelectItem value="content_unlock">
+   926→                    Content Unlock
+   927→                  </SelectItem>
+   928→                </SelectContent>
+   929→              </Select>
+   930→            </div>
+   931→
+   932→            {/* Tier Selector (for free_tier and complimentary_period) */}
+   933→            {(grantForm.grantType === "free_tier" ||
+   934→              grantForm.grantType === "complimentary_period") && (
+   935→              <div>
+   936→                <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
+   937→                  Tier
+   938→                  {grantForm.grantType === "complimentary_period" && (
+   939→                    <span className="text-[#5A6B7F] font-normal normal-case tracking-normal ml-1">
+   940→                      (optional)
+   941→                    </span>
+   942→                  )}
+   943→                </label>
+   944→                <Select
+   945→                  value={grantForm.tierSlug}
+   946→                  onValueChange={(v) =>
+   947→                    setGrantForm((f) => ({ ...f, tierSlug: v }))
+   948→                  }
+   949→                >
+   950→                  <SelectTrigger className="h-10 text-sm">
+   951→                    <SelectValue placeholder="Select tier" />
+   952→                  </SelectTrigger>
+   953→                  <SelectContent>
+   954→                    {TIER_OPTIONS.map((tier) => (
+   955→                      <SelectItem key={tier.slug} value={tier.slug}>
+   956→                        {tier.label}
+   957→                      </SelectItem>
+   958→                    ))}
+   959→                  </SelectContent>
+   960→                </Select>
+   961→              </div>
+   962→            )}
+   963→
+   964→            {/* Duration (for complimentary_period) */}
+   965→            {grantForm.grantType === "complimentary_period" && (
+   966→              <div>
+   967→                <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
+   968→                  Duration (days)
+   969→                </label>
+   970→                <Input
+   971→                  type="number"
+   972→                  min={1}
+   973→                  value={grantForm.durationDays}
+   974→                  onChange={(e) =>
+   975→                    setGrantForm((f) => ({ ...f, durationDays: e.target.value }))
+   976→                  }
+   977→                  className="h-10 text-sm"
+   978→                  placeholder="30"
+   979→                />
+   980→              </div>
+   981→            )}
+   982→
+   983→            {/* Reason */}
+   984→            <div>
+   985→              <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
+   986→                Reason <span className="text-[#E8272C]">*</span>
+   987→              </label>
+   988→              <Textarea
+   989→                placeholder="Why is this access being granted?"
+   990→                value={grantForm.reason}
+   991→                onChange={(e) =>
+   992→                  setGrantForm((f) => ({ ...f, reason: e.target.value }))
+   993→                }
+   994→                rows={3}
+   995→                className="text-sm"
+   996→              />
+   997→            </div>
+   998→          </div>
+   999→
+  1000→          <DialogFooter>
+  1001→            <Button
+  1002→              variant="outline"
+  1003→              onClick={() => setGrantModal({ open: false, user: null })}
+  1004→            >
+  1005→              Cancel
+  1006→            </Button>
+  1007→            <Button
+  1008→              onClick={handleGrantAccess}
+  1009→              disabled={
+  1010→                grantSubmitting ||
+  1011→                !grantForm.grantType ||
+  1012→                (grantForm.grantType === "free_tier" && !grantForm.tierSlug) ||
+  1013→                !grantForm.reason.trim()
+  1014→              }
+  1015→              className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white"
+  1016→            >
+  1017→              {grantSubmitting && (
+  1018→                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+  1019→              )}
+  1020→              Grant Access
+  1021→            </Button>
+  1022→          </DialogFooter>
+  1023→        </DialogContent>
+  1024→      </Dialog>
+  1025→    </div>
+  1026→  );
+  1027→}
+  1028→
+  1029→// Simple shield icon matching the admin reports page
+  1030→function ShieldIcon({ className }: { className?: string }) {
+  1031→  return (
+  1032→    <svg
+  1033→      xmlns="http://www.w3.org/2000/svg"
+  1034→      viewBox="0 0 24 24"
+  1035→      fill="none"
+  1036→      stroke="currentColor"
+  1037→      strokeWidth={2}
+  1038→      strokeLinecap="round"
+  1039→      strokeLinejoin="round"
+  1040→      className={className}
+  1041→    >
+  1042→      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  1043→      <path d="m9 12 2 2 4-4" />
+  1044→    </svg>
+  1045→  );
+  1046→}

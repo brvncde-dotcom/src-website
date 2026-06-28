@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { X, Menu, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Menu, ArrowRight, User, LogIn } from "lucide-react";
 import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { AuthDialog } from "@/components/AuthDialog";
+import { useLang } from "@/components/LangProvider";
 
-export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "membership" | "contact";
+export type PageKey = "home" | "reports" | "opinions" | "focus-areas" | "approach" | "membership" | "contact" | "account";
 
 const NAV: { key: PageKey; label: string }[] = [
   { key: "home", label: "Home" },
@@ -17,6 +25,9 @@ const NAV: { key: PageKey; label: string }[] = [
   { key: "contact", label: "Contact" },
 ];
 
+// Pages where the account button should trigger SPA navigation instead of link
+const SPA_PAGES = new Set<PageKey>(["home", "reports", "opinions", "focus-areas", "approach", "membership", "contact", "account"]);
+
 interface Props {
   currentPage: PageKey;
   onNavigate: (page: PageKey) => void;
@@ -24,11 +35,29 @@ interface Props {
 
 export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const { t: tr } = useLang();
+  const [authOpen, setAuthOpen] = useState(false);
 
   const handleNav = (key: PageKey) => {
     onNavigate(key);
     setMobileOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleAccountClick = () => {
+    if (status === "authenticated") {
+      if (currentPage === "home") {
+        // We're on the SPA — navigate to account page
+        handleNav("account");
+      } else {
+        // We're on a separate page like /reports/[id] — link back to SPA account
+        window.location.href = "/?tab=account";
+      }
+    } else {
+      setAuthOpen(true);
+    }
+    setMobileOpen(false);
   };
 
   return (
@@ -64,8 +93,54 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
               ))}
             </div>
 
-            {/* CTA + Mobile toggle */}
-            <div className="flex items-center gap-3">
+            {/* CTA + Account + Mobile toggle */}
+            <div className="flex items-center gap-2">
+              {/* Account / Login button */}
+              {status === "authenticated" ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-sm hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="h-7 w-7 rounded-full bg-[#0A2540] flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {(session?.user?.name || session?.user?.email || "?")[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="hidden sm:block text-xs font-medium text-[#0A2540] max-w-[120px] truncate">
+                        {session?.user?.name || session?.user?.email}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-48 p-2">
+                    <button
+                      onClick={handleAccountClick}
+                      className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
+                    >
+                      <User className="h-3.5 w-3.5" />
+                      {tr("account.title")}
+                    </button>
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-red-50 text-[#E8272C] flex items-center gap-2"
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                      {tr("account.signout")}
+                    </button>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="hidden sm:flex items-center gap-2 text-xs font-medium"
+                  onClick={() => setAuthOpen(true)}
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  {tr("auth.login")}
+                </Button>
+              )}
+
               <Button
                 size="sm"
                 variant="outline"
@@ -103,6 +178,37 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                   {item.label}
                 </button>
               ))}
+
+              {/* Account / Login in mobile menu */}
+              <div className="pt-2 border-t border-border space-y-1">
+                {status === "authenticated" ? (
+                  <>
+                    <button
+                      onClick={handleAccountClick}
+                      className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-primary bg-secondary"
+                    >
+                      {tr("account.title")}
+                    </button>
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-[#E8272C] hover:bg-red-50"
+                    >
+                      {tr("account.signout")}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setAuthOpen(true);
+                    }}
+                    className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-primary bg-secondary"
+                  >
+                    {tr("auth.login")}
+                  </button>
+                )}
+              </div>
+
               <div className="pt-2 border-t border-border">
                 <Button
                   size="sm"
@@ -118,6 +224,16 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
           </div>
         )}
       </header>
+
+      {/* Auth Dialog */}
+      <AuthDialog
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        onSuccess={() => {
+          // After successful login, navigate to account
+          handleAccountClick();
+        }}
+      />
     </>
   );
 }

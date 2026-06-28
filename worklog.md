@@ -22,3 +22,31 @@ Stage Summary:
 - Admin dashboard at /admin/reports for manual review
 - API docs embedded in admin page for vnOrchestrator integration
 - Build verified: 0 errors, all routes render
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Embed MCMS concept — user management, subscriptions, content sharing
+
+Work Log:
+- Read and analyzed uploaded concept ZIP (49 files): MCMS v2 spec, backend architecture, wireframes, membership model
+- Extended Prisma schema with CustomerNote and CustomerTag models (relations to User)
+- Generated updated Prisma client
+- Created AuthDialog component: login/register with NextAuth credentials provider, email+password validation, auto-login after registration, i18n support
+- Created UserAccountView component: 4 tabs (Profile, Saved Content, Sharing History, Subscription), profile editing, saved content management with remove, share history table with click tracking, subscription details display, sign-out
+- Created /api/me/profile route: GET returns user profile + active subscriptions (with Decimal serialization), PATCH updates name/org/country/phone
+- Created /api/me/shares route: GET returns user's content sharing history with report titles
+- Created /s/[token] share redirect page: public page displaying shared content with SRC branding, attribution banner, copyright notice, link to full report
+- Updated SiteNavigation: added "account" to PageKey type, added user avatar popover (authenticated) with account/sign-out options, added "Sign In" button (unauthenticated) triggering AuthDialog, mobile menu updated with auth/account options
+- Updated page.tsx SPA router: added account case → UserAccountView, wrapped with SessionProvider, URL ?tab=account initial page support
+- Added 55+ i18n keys (auth.login, auth.register, account.profile, account.saved, account.shares, account.subscription, share.page.*) in all 4 languages (EN/DE/FR/IT)
+- Verified: browser renders homepage with "Sign In" button, auth dialog opens with email/password fields, no new lint/TS errors
+
+Stage Summary:
+- User auth flow: Sign In / Register dialog accessible from navbar
+- Account dashboard: Profile editing, saved content management, share history, subscription info
+- Content sharing: Branded share pages at /s/[token] with SRC copyright and attribution
+- API: /api/me/profile (GET/PATCH), /api/me/shares (GET)
+- Schema: CustomerNote + CustomerTag models for admin CRM
+- i18n: 55+ keys × 4 languages
+- Browser verified: homepage renders with new nav, auth dialog functional
