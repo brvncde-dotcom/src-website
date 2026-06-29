@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SiteShell } from "@/components/SiteShell";
 import { LangProvider } from "@/components/LangProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -64,6 +65,7 @@ export default function RootLayout({
           <SiteShell>{children}</SiteShell>
         </LangProvider>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
