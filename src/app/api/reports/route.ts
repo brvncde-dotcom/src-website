@@ -104,6 +104,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Defensive verification: ensure the write actually persisted.
+    // This catches database-layer issues (connection poolers, triggers,
+    // read-replica lag, etc.) that can silently drop writes in serverless
+    // environments while still returning a result object.
+    const verify = await prisma.report.findUnique({
+      where: { id: report.id },
+    });
+    if (!verify) {
+      console.error("Report create returned data but findUnique returned null — write was lost.", {
+        id: report.id,
+        title: report.title,
+      });
+      return NextResponse.json(
+        { error: "Report could not be persisted. Please retry." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
         id: report.id,
