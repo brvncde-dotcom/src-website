@@ -62,9 +62,10 @@ export async function GET(request: NextRequest) {
 
     // Test raw SQL insert
     const testId2 = randomUUID();
+    const now = new Date().toISOString();
     await prisma.$queryRaw`
-      INSERT INTO "Report" (id, title, section, type, content, status, language)
-      VALUES (${testId2}, 'RAW-TEST', 'digital-power-ai', 'Brief', 'raw sql test', 'pending', 'en')
+      INSERT INTO "Report" (id, title, section, type, content, status, language, "createdAt", "updatedAt")
+      VALUES (${testId2}, 'RAW-TEST', 'digital-power-ai', 'Brief', 'raw sql test', 'pending', 'en', ${now}::timestamp, ${now}::timestamp)
     `;
     const rawImmediate = await prisma.$queryRaw`
       SELECT id, title FROM "Report" WHERE id = ${testId2}
