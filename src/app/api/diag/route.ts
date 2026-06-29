@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, validateAdminKey } from "@/lib/db";
+import { randomUUID } from "crypto";
 
 export async function GET(request: NextRequest) {
   if (!validateAdminKey(request)) {
@@ -23,6 +24,13 @@ export async function GET(request: NextRequest) {
       WHERE schemaname = 'public' AND tablename = 'Report'
     `;
 
+    // Check for RLS policies
+    const rls = await prisma.$queryRaw`
+      SELECT polname, polcmd, polpermissive
+      FROM pg_policy
+      WHERE polrelid = '"Report"'::regclass
+    `;
+
     // Check table definition
     const columns = await prisma.$queryRaw`
       SELECT column_name, data_type, column_default
@@ -39,48 +47,49 @@ export async function GET(request: NextRequest) {
       WHERE c.relname = 'Report' AND n.nspname = 'public'
     `;
 
-    // Test write + immediate read + delayed read
-    const testReport = await prisma.report.create({
+    // Test Prisma create
+    const testId1 = randomUUID();
+    const prismaReport = await prisma.report.create({
       data: {
-        title: "DIAG-TEST",
+        id: testId1,
+        title: "PRISMA-TEST",
         section: "digital-power-ai",
         type: "Brief",
-        content: "diagnostic test",
+        content: "prisma create test",
       },
     });
+    const prismaImmediate = await prisma.report.findUnique({ where: { id: testId1 } });
 
-    const immediate = await prisma.report.findUnique({ where: { id: testReport.id } });
-
-    // Raw SQL immediate check
+    // Test raw SQL insert
+    const testId2 = randomUUID();
+    await prisma.$queryRaw`
+      INSERT INTO "Report" (id, title, section, type, content, status, language)
+      VALUES (${testId2}, 'RAW-TEST', 'digital-power-ai', 'Brief', 'raw sql test', 'pending', 'en')
+    `;
     const rawImmediate = await prisma.$queryRaw`
-      SELECT id, title FROM "Report" WHERE id = ${testReport.id}
+      SELECT id, title FROM "Report" WHERE id = ${testId2}
     `;
 
     // Wait 2 seconds and check again
     await new Promise((r) => setTimeout(r, 2000));
 
-    const delayed = await prisma.report.findUnique({ where: { id: testReport.id } });
+    const prismaDelayed = await prisma.report.findUnique({ where: { id: testId1 } });
     const rawDelayed = await prisma.$queryRaw`
-      SELECT id, title FROM "Report" WHERE id = ${testReport.id}
+      SELECT id, title FROM "Report" WHERE id = ${testId2}
     `;
 
-    // Clean up test report if it exists
-    try {
-      await prisma.report.delete({ where: { id: testReport.id } });
-    } catch {
-      // already gone
-    }
+    // Clean up test reports if they exist
+    try { await prisma.report.delete({ where: { id: testId1 } }); } catch {}
+    try { await prisma.report.delete({ where: { id: testId2 } }); } catch {}
 
     return NextResponse.json({
       triggers,
       rules,
+      rls,
       columns,
       tableKind,
-      testId: testReport.id,
-      immediate: !!immediate,
-      rawImmediate: (rawImmediate as any[]).length > 0,
-      delayed: !!delayed,
-      rawDelayed: (rawDelayed as any[]).length > 0,
+      prismaTest: { id: testId1, immediate: !!prismaImmediate, delayed: !!prismaDelayed },
+      rawTest: { id: testId2, immediate: (rawImmediate as any[]).length > 0, delayed: (rawDelayed as any[]).length > 0 },
     });
   } catch (error) {
     console.error("Diag error:", error);
