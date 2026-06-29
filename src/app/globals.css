@@ -625,6 +625,7 @@
 /* Body measure */
 .src-article-body {
   max-width: var(--measure);
+  --src-figure-label: "Abbildung ";
 }
 .src-article-body p {
   margin: 0 0 var(--s-5);
