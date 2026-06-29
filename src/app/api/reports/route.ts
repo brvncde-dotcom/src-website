@@ -156,6 +156,20 @@ export async function POST(request: NextRequest) {
 //   ?offset=0         — pagination
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+
+  // Temporary diagnostic mode for SRC-456
+  if (searchParams.get("diag") === "1") {
+    const dbUrl = process.env.DATABASE_URL || "";
+    const dbInfo = await prisma.$queryRaw`SELECT current_database() as db_name`;
+    const reportCount = await prisma.report.count();
+    return NextResponse.json({
+      databaseUrlPrefix: dbUrl.split("?")[0].slice(0, 40),
+      dbInfo: (dbInfo as any[])[0],
+      reportCount,
+      prismaClientVersion: (prisma as any)._clientVersion,
+    });
+  }
+
   const section = searchParams.get("section");
   const type = searchParams.get("type");
   const status = searchParams.get("status");
