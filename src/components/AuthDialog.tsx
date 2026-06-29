@@ -149,7 +149,14 @@ export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSucces
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={mode === "login" ? handleLogin : handleRegister} className="space-y-4 mt-2">
+        {/* noValidate: suppress the browser's native required/minLength validation
+            popups (e.g. "Fülle dieses Feld aus.") — the dialog runs its own
+            validation with styled, i18n error messages below. */}
+        <form
+          noValidate
+          onSubmit={mode === "login" ? handleLogin : handleRegister}
+          className="space-y-4 mt-2"
+        >
           {mode === "register" && (
             <div>
               <Label className="text-xs font-semibold uppercase tracking-wider">
