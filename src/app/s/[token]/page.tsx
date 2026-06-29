@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ExternalLink, Calendar, User } from "lucide-react";
 import { useLang } from "@/components/LangProvider";
-import Markdown from "react-markdown";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface SharedReport {
   id: string;
@@ -156,8 +156,10 @@ export default function SharePage() {
       {/* Report Content */}
       <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10 sm:py-14">
         {report.content ? (
-          <article className="prose-src">
-            <Markdown>{report.content}</Markdown>
+          <article className="src-article src-article--inset">
+            <div className="src-article-body">
+              <MarkdownRenderer content={report.content} />
+            </div>
           </article>
         ) : (
           <div className="text-center py-8">
