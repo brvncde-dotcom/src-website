@@ -144,9 +144,7 @@ export async function GET(
   const { id } = await params;
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang");
-  const authHeader = request.headers.get("authorization");
-  const adminKey = process.env.ADMIN_API_KEY;
-  const isAdmin = adminKey && authHeader?.replace("Bearer ", "") === adminKey;
+  const isAdmin = validateAdminKey(request);
 
   try {
     const report = await prisma.report.findUnique({ where: { id } });
