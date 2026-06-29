@@ -543,7 +543,7 @@ Content-Type: application/json
 }
 
 Sections: digital-power-ai | geopolitics-hard-security | energy-resources | climate-environment-food | economy-competitiveness | society-migration-institutions
-Types: Analysis | Strategy Paper | Statement | Brief | Report
+Types: Analysis | Strategy Paper | Statement | Brief | Report | Opinion
 Languages: en | de | fr | it (default: en)
 Unique constraint: (sourceRef, language) — one version per language per source
 Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>

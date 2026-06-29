@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLang } from "./LangProvider";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 interface Opinion {
   id: string;
@@ -168,8 +169,8 @@ export function OpinionsView() {
                       <p className="text-sm text-muted-foreground">Loading…</p>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && detail.content && (
-                      <div className="prose prose-sm max-w-none text-sm text-primary leading-relaxed whitespace-pre-wrap">
-                        {detail.content}
+                      <div className="prose prose-sm max-w-none text-sm text-primary leading-relaxed">
+                        <MarkdownRenderer content={detail.content} />
                       </div>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && !detail.content && (
