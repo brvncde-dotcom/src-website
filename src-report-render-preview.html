@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SRC Report Renderer — Acceptance Artifact (SRC-264)</title>
+<title>SRC Report Renderer — Acceptance Artifact (SRC-264 / SRC-473)</title>
 <style>
 :root {
   --background: #FFFFFF; --foreground: #0A2540; --primary: #0A2540;
@@ -30,25 +30,103 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 .prose-src a { color: #E8272C; text-decoration: underline; text-underline-offset: 2px; }
 .prose-src a:hover { color: #0A2540; }
 .prose-src hr { border: none; border-top: 1px solid #D8DEE6; margin: 2rem 0; }
-.prose-src table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.95rem; }
-.prose-src th { text-align: left; padding: 0.75rem 1rem; background: #F4F6F9; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5A6B7F; border-bottom: 2px solid #D8DEE6; }
-.prose-src td { padding: 0.65rem 1rem; border-bottom: 1px solid #D8DEE6; }
-.prose-src tr:last-child td { border-bottom: none; }
+
+/* ============================================================
+   SRC TABLE SYSTEM — editorial standard (Design Standard v1.1 §5, SRC-473)
+   ============================================================ */
 .prose-src { --src-ink: #0A2540; --src-accent: #0A2540; --src-accent-mid: #2e6da4;
   --src-accent-light: #E7EEF5; --src-highlight: #e85d04; --src-positive: #2d6a4f;
   --src-warning: #b8860b; --src-neutral: #F4F6F9; --src-rule: #D8DEE6; --src-white: #FFFFFF;
   overflow-wrap: break-word; }
-.prose-src thead th { background: #d0e4f7; color: var(--src-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--src-accent-mid); }
-.prose-src tbody tr:nth-child(even) td { background: var(--src-neutral); }
-.prose-src td, .prose-src th { border: 1px solid var(--src-rule); vertical-align: top; }
-.prose-src table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.prose-src caption { caption-side: bottom; font-size: 0.8125rem; color: var(--muted-foreground); margin-top: 0.5rem; text-align: left; }
+.prose-src .src-table-wrap {
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--src-rule);
+  border-radius: 6px;
+  background:
+    linear-gradient(to right, var(--src-white) 30%, rgba(255,255,255,0)) left / 24px 100% no-repeat,
+    linear-gradient(to left,  var(--src-white) 30%, rgba(255,255,255,0)) right / 24px 100% no-repeat,
+    linear-gradient(to right, rgba(10,37,64,0.10), rgba(10,37,64,0)) left / 12px 100% no-repeat,
+    linear-gradient(to left,  rgba(10,37,64,0.10), rgba(10,37,64,0)) right / 12px 100% no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+.prose-src .src-table-wrap table {
+  width: 100%;
+  min-width: 560px;
+  margin: 0;
+  display: table;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--src-ink);
+}
+.prose-src > table,
+.prose-src table:not(.src-table-wrap table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--src-ink);
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.prose-src thead th {
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0.625rem 0.875rem;
+  background: var(--src-neutral);
+  color: var(--src-ink);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--src-ink);
+}
+.prose-src tbody td {
+  padding: 0.625rem 0.875rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--src-rule);
+}
+.prose-src tbody tr:last-child td {
+  border-bottom: 2px solid var(--src-rule);
+}
+.prose-src tbody tr:nth-child(even) td { background: #FAFBFC; }
+.prose-src tbody tr:hover td           { background: #EEF3F8; }
+.prose-src td[style*="right"],
+.prose-src th[style*="right"]  { font-variant-numeric: tabular-nums; }
+.prose-src td p, .prose-src th p { margin: 0; }
+.prose-src td a { color: var(--src-accent); text-decoration: underline;
+                  text-underline-offset: 2px; overflow-wrap: anywhere; }
+.prose-src td a:hover { color: var(--src-ink); }
+.prose-src .src-table-wrap.is-tall { max-height: 70vh; }
+.prose-src .src-table-wrap.is-tall thead th { position: sticky; top: 0; z-index: 1; }
+.prose-src caption,
+.prose-src .src-table-caption {
+  caption-side: bottom;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+/* Inline SVG chart figure (Format 2) */
 .prose-src .src-chart { margin: 2rem 0; overflow-x: auto; }
 .prose-src .src-chart svg { max-width: 100%; height: auto; display: block; }
+/* Plain markdown images */
+.prose-src img { max-width: 100%; height: auto; display: block; border-radius: 0.25rem; margin: 1.5rem 0; }
+/* Image figure (Format 3) */
 .prose-src .src-figure { margin: 2rem 0; }
-.prose-src .src-figure img { max-width: 100%; height: auto; display: block; border-radius: 0.25rem; }
+.prose-src .src-figure img { max-width: 100%; height: auto; display: block; border-radius: 0.25rem; margin: 0; }
+/* Shared caption styles */
 .prose-src .src-chart figcaption, .prose-src .src-figure figcaption { font-size: 0.8125rem; color: var(--muted-foreground); margin-top: 0.5rem; line-height: 1.5; }
 .prose-src .src-source { display: block; font-style: italic; margin-top: 0.25rem; }
+/* Callout / aside blocks (Format 4) */
 .prose-src .src-callout { border-left: 4px solid var(--src-accent-mid); background: var(--src-neutral); padding: 1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 0.25rem 0.25rem 0; }
 .prose-src .src-callout--key-finding { border-left-color: var(--src-highlight); }
 .prose-src .src-callout--warning { border-left-color: #d4a017; background: #fffbf0; }
@@ -62,7 +140,7 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 <body>
 <div class="artifact-frame">
   <div class="artifact-note">
-    <strong>SRC report renderer — acceptance artifact (SRC-264).</strong><br/>
+    <strong>SRC report renderer — acceptance artifact (SRC-264 / SRC-473).</strong><br/>
     Rendered through the production pipeline (remark-gfm + rehype-raw +
     rehype-sanitize) with the actual <code>globals.css</code> <code>.prose-src</code>
     styles. This is a faithful standalone preview of how report content renders
@@ -72,35 +150,10 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 <h1>Sample SRC Report — Renderer Acceptance</h1>
 <h2>Risk Overview</h2>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<div class="src-table-wrap">
 <table><thead><tr><th>Domain</th><th>Risk Level</th><th>Trend</th><th>Notes</th></tr></thead><tbody><tr><td>Digital / AI</td><td>High</td><td>Rising</td><td>Capability diffusion outpacing governance</td></tr><tr><td>Geopolitics</td><td>Elevated</td><td>Stable</td><td>Three active flashpoints</td></tr><tr><td>Energy</td><td>Moderate</td><td>Falling</td><td>Diversification accelerating</td></tr></tbody></table>
+</div>
+
 <figure class="src-chart" data-chart-type="bar">
   <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Risk score by domain">
     <rect x="40" y="120" width="120" height="130" fill="#2e6da4"></rect>
@@ -129,6 +182,20 @@ body { background: var(--background); color: var(--foreground); margin: 0; }
 <aside class="src-callout src-callout--definition">
   <p><strong>Definition:</strong> "Capability diffusion" denotes the spread of dual-use AI tooling to non-state actors.</p>
 </aside>
+
+<h3>Source Appendix — Image credits &amp; licensing</h3>
+<p>All imagery is self-hosted by SRC. Each row credits the author, states the licence, and links to the SRC-hosted file and the original Wikimedia Commons file page.</p>
+
+<div class="src-table-wrap">
+<table><thead><tr><th style="text-align:right">#</th><th>Image</th><th>Author</th><th>Licence</th><th>File</th><th>Commons</th></tr></thead><tbody>
+<tr><td style="text-align:right">1</td><td>Rostock Power Station, SW view</td><td>Radomianin</td><td>CC BY-SA 4.0</td><td><a href="/images/rostock-power-station-sw-view.jpg">JPG ↗</a></td><td><a href="https://commons.wikimedia.org/">File page ↗</a></td></tr>
+<tr><td style="text-align:right">2</td><td>BASF site in Ludwigshafen (2017)</td><td>Rolf Kickuth</td><td>CC BY-SA 4.0</td><td><a href="/images/basf-ludwigshafen-2017.jpg">JPG ↗</a></td><td><a href="https://commons.wikimedia.org/">File page ↗</a></td></tr>
+<tr><td style="text-align:right">3</td><td>Sunset and wind turbines at Akhisar Train Station</td><td>Pragdon</td><td>CC0 1.0 (public domain)</td><td><a href="/images/akhisar-wind-turbines-sunset.jpg">JPG ↗</a></td><td><a href="https://commons.wikimedia.org/">File page ↗</a></td></tr>
+</tbody></table>
+</div>
+
+<p><em>Table A1 — SRC image credits and licensing. Sources: Wikimedia Commons (CC BY-SA 4.0 and CC0 1.0). Accessed 2026-06-29.</em></p>
+
   </article>
 </div>
 </body></html>
