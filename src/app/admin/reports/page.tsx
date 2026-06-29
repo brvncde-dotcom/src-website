@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import ClientAdminReportsPage from "./ClientAdminReportsPage";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Admin — Report Review | SRC",
-  robots: "noindex, nofollow",
-};
+import dynamic from "next/dynamic";
+
+const AdminReportsPage = dynamic(() => import("./AdminReportsPage"), { ssr: false });
 
 export default function Page() {
-  return <ClientAdminReportsPage />;
+  return <AdminReportsPage />;
 }
