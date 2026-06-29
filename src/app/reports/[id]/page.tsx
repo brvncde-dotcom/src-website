@@ -441,7 +441,7 @@ export default function ReportPage() {
             className="src-article src-article--inset"
             style={{ "--src-figure-label": FIGURE_LABELS[report.language] || "Figure " } as React.CSSProperties}
           >
-            <div className="src-article-body">
+            <div className="prose-src">
               <MarkdownRenderer content={report.content} />
             </div>
           </article>

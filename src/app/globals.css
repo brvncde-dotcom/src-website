@@ -882,6 +882,64 @@
   }
 }
 
+/* ============================================
+   SRC-496: Floated figures + pullquote for .prose-src
+   ============================================ */
+
+/* Pull quote — mirror of .src-article-body .pullquote for .prose-src articles */
+.prose-src .pullquote,
+.prose-src blockquote.pullquote {
+  font-family: var(--src-serif);
+  font-weight: 600;
+  font-style: italic;
+  font-size: var(--fs-quote);
+  line-height: 1.3;
+  color: var(--src-navy);
+  margin: var(--s-7) 0;
+  padding: var(--s-2) 0 var(--s-2) var(--s-5);
+  border-left: 4px solid var(--src-accent);
+  clear: both;
+}
+.prose-src .pullquote::before,
+.prose-src blockquote.pullquote::before {
+  content: "\201C";
+  color: var(--src-accent);
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.2em;
+  margin-right: 0.04em;
+}
+
+/* Floated src-figure variants — board directive SRC-494 */
+.prose-src .src-figure--right {
+  float: right;
+  width: 34%;
+  margin-left: 2rem;
+  max-width: 340px;
+}
+.prose-src .src-figure--left {
+  float: left;
+  width: 34%;
+  margin-right: 2rem;
+  max-width: 340px;
+}
+.prose-src .src-figure--right::after,
+.prose-src .src-figure--left::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+@media (max-width: 680px) {
+  .prose-src .src-figure--right,
+  .prose-src .src-figure--left {
+    float: none;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 /* Print */
 @media print {
   :root {
