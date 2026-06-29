@@ -284,111 +284,130 @@
   margin: 2rem 0;
 }
 /* ============================================================
-   SRC TABLE SYSTEM — editorial standard (Design Standard v1.1 §5, SRC-473)
-   Single source of truth. Horizontal rules + subtle zebra (no vertical
-   chartjunk), ink-on-neutral header with a strong ink rule, responsive
-   via a scroll wrapper that keeps columns from crushing.
+   SRC TABLE SYSTEM v2 — editorial "booktabs" standard (SRC-473)
+   Replaces v1. Design intent: a broadsheet/academic table, not a
+   web data-grid. Open table (no card frame), three structural rules
+   (heavy top, header rule, heavy bottom), hairline interior, NO zebra,
+   generous air, tabular figures, quiet links, and styled in-cell code
+   so file paths read as intentional and wrap instead of blowing out.
    Tokens (--src-*) are defined on .prose-src above.
    ============================================================ */
 
-/* Scroll wrapper — added by the renderer around every table.
-   Falls back gracefully: a bare <table> still scrolls via the rule in §B. */
+/* Scroll container — OPEN: no visible frame. Edge fade hints scroll only
+   when the table actually overflows (background-attachment: local). */
 .prose-src .src-table-wrap {
-  margin: 1.75rem 0;
+  margin: 2rem 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--src-rule);
-  border-radius: 6px;
-  /* right-edge "more →" shadow affordance */
   background:
-    linear-gradient(to right, var(--src-white) 30%, rgba(255,255,255,0)) left / 24px 100% no-repeat,
-    linear-gradient(to left,  var(--src-white) 30%, rgba(255,255,255,0)) right / 24px 100% no-repeat,
-    linear-gradient(to right, rgba(10,37,64,0.10), rgba(10,37,64,0)) left / 12px 100% no-repeat,
-    linear-gradient(to left,  rgba(10,37,64,0.10), rgba(10,37,64,0)) right / 12px 100% no-repeat;
+    linear-gradient(to right, var(--src-white) 30%, rgba(255,255,255,0)) 0 0 / 28px 100% no-repeat,
+    linear-gradient(to left,  var(--src-white) 30%, rgba(255,255,255,0)) 100% 0 / 28px 100% no-repeat,
+    radial-gradient(farthest-side at 0 50%,   rgba(10,37,64,0.12), rgba(10,37,64,0)) 0 0 / 14px 100% no-repeat,
+    radial-gradient(farthest-side at 100% 50%, rgba(10,37,64,0.12), rgba(10,37,64,0)) 100% 0 / 14px 100% no-repeat;
   background-attachment: local, local, scroll, scroll;
 }
 
-/* §A — table inside the wrapper (preferred path) */
 .prose-src .src-table-wrap table {
   width: 100%;
-  min-width: 560px;            /* columns never crush; wrapper scrolls instead */
-  margin: 0;
-  display: table;
+  min-width: 520px;
   border-collapse: collapse;
-  font-size: 0.875rem;         /* 14px */
-  line-height: 1.45;
+  margin: 0;
+  font-size: 0.9375rem;            /* 15px — editorial readability */
+  line-height: 1.5;
   color: var(--src-ink);
+  border-top: 1.5px solid var(--src-ink);   /* booktabs top rule */
 }
 
-/* §B — fallback for any bare <table> not wrapped by the renderer */
-.prose-src > table,
+/* Fallback for any bare <table> the renderer did not wrap */
 .prose-src table:not(.src-table-wrap table) {
   width: 100%;
+  min-width: 520px;
   border-collapse: collapse;
-  margin: 1.75rem 0;
-  font-size: 0.875rem;
-  line-height: 1.45;
+  margin: 2rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--src-ink);
   display: block;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  border-top: 1.5px solid var(--src-ink);
 }
 
-/* Header */
+/* Header — open (no fill band), ruled beneath (booktabs midrule) */
 .prose-src thead th {
-  text-align: left;            /* GFM :--: / --: overrides per-column */
+  text-align: left;
   vertical-align: bottom;
-  padding: 0.625rem 0.875rem;
-  background: var(--src-neutral);          /* #F4F6F9 */
-  color: var(--src-ink);                   /* #0A2540 — ~15:1, AA+ */
-  font-weight: 700;
-  font-size: 0.75rem;                      /* 12px */
+  padding: 0.55rem 1rem 0.5rem;
+  background: transparent;
+  color: var(--src-ink);
+  font-weight: 600;
+  font-size: 0.6875rem;            /* 11px refined label */
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   line-height: 1.3;
-  white-space: nowrap;                     /* keep labels on one line */
-  border-bottom: 2px solid var(--src-ink); /* strongest rule on the table */
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--src-ink);
 }
 
-/* Body cells — horizontal rules only, no vertical gridlines */
+/* Body — hairline interior rules, generous padding, NO zebra */
 .prose-src tbody td {
-  padding: 0.625rem 0.875rem;
+  padding: 0.7rem 1rem;
   vertical-align: top;
-  border-bottom: 1px solid var(--src-rule);
+  border-bottom: 1px solid #ECEFF3;
 }
 .prose-src tbody tr:last-child td {
-  border-bottom: 2px solid var(--src-rule);
+  border-bottom: 1.5px solid var(--src-ink);   /* booktabs bottom rule */
+}
+.prose-src tbody tr:hover td { background: #F7F9FB; }
+
+/* Alignment — remark emits the `align` attribute; cover both forms */
+.prose-src td[align="right"],  .prose-src th[align="right"],
+.prose-src td[style*="right"], .prose-src th[style*="right"] {
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.prose-src td[align="center"], .prose-src th[align="center"] { text-align: center; }
+
+/* In-cell code (e.g. file paths) — subtle, wraps, never blows out a column */
+.prose-src td code, .prose-src th code {
+  font-size: 0.8125em;
+  background: var(--src-neutral);
+  color: #5A6B7F;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-/* Subtle zebra + row hover (decorative reinforcement only) */
-.prose-src tbody tr:nth-child(even) td { background: #FAFBFC; }
-.prose-src tbody tr:hover td           { background: #EEF3F8; }
+/* Links — quiet ink + soft underline; accent only on hover (no loud red walls) */
+.prose-src td a, .prose-src th a {
+  color: var(--src-ink);
+  text-decoration: underline;
+  text-decoration-color: #C9D2DC;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+.prose-src td a:hover { color: var(--src-accent); text-decoration-color: currentColor; }
 
-/* Alignment — GFM emits inline text-align; add tabular figures for numerics */
-.prose-src td[style*="right"],
-.prose-src th[style*="right"]  { font-variant-numeric: tabular-nums; }
-
-/* Cells are records, not prose — kill inner paragraph margins */
+/* Cells are records, not prose */
 .prose-src td p, .prose-src th p { margin: 0; }
 
-/* Links and any long tokens inside cells wrap instead of forcing wide columns */
-.prose-src td a { color: var(--src-accent); text-decoration: underline;
-                  text-underline-offset: 2px; overflow-wrap: anywhere; }
-.prose-src td a:hover { color: var(--src-ink); }
-
-/* Sticky header for long tables (needs a max-height wrapper; see §3) */
+/* Long tables (>8 rows): sticky header inside a tall wrapper */
 .prose-src .src-table-wrap.is-tall { max-height: 70vh; }
-.prose-src .src-table-wrap.is-tall thead th { position: sticky; top: 0; z-index: 1; }
+.prose-src .src-table-wrap.is-tall thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--src-white);
+  box-shadow: 0 1.5px 0 0 var(--src-ink);
+}
 
-/* Caption */
+/* Caption — editorial, muted, below the table */
 .prose-src caption,
 .prose-src .src-table-caption {
   caption-side: bottom;
-  font-size: 0.8125rem;        /* 13px */
-  line-height: 1.5;
-  color: var(--muted-foreground);
-  margin-top: 0.5rem;
   text-align: left;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #5A6B7F;
+  margin-top: 0.6rem;
 }
 
 /* ============================================
