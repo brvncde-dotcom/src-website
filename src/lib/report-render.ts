@@ -119,6 +119,8 @@ export const reportSanitizeSchema = {
     ],
     img: [
       ...((defaultSchema.attributes?.img as string[] | undefined) ?? []),
+      "alt",
+      "title",
       "loading",
     ],
     ...svgAttributeRecord,

@@ -324,6 +324,15 @@
   display: block;
 }
 
+/* Plain markdown images (not wrapped in .src-figure) */
+.prose-src img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 0.25rem;
+  margin: 1.5rem 0;
+}
+
 /* Image figure (Format 3) */
 .prose-src .src-figure {
   margin: 2rem 0;
@@ -333,6 +342,7 @@
   height: auto;
   display: block;
   border-radius: 0.25rem;
+  margin: 0;
 }
 
 /* Shared caption styles */
