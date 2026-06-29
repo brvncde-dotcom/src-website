@@ -67,8 +67,9 @@ export function validateIngestionKey(request: Request): boolean {
 
   const apiKey = process.env.INGESTION_API_KEY;
   if (!apiKey) {
-    // If no key is configured, allow all (dev mode)
-    return true;
+    // No key configured: allow only outside production (local dev convenience).
+    // In production this fails closed so the endpoint is never left open.
+    return process.env.NODE_ENV !== "production";
   }
 
   const token = authHeader.replace("Bearer ", "");
@@ -80,7 +81,11 @@ export function validateAdminKey(request: Request): boolean {
   if (!authHeader) return false;
 
   const adminKey = process.env.ADMIN_API_KEY;
-  if (!adminKey) return true;
+  if (!adminKey) {
+    // No key configured: allow only outside production (local dev convenience).
+    // In production this fails closed so admin endpoints are never left open.
+    return process.env.NODE_ENV !== "production";
+  }
 
   const token = authHeader.replace("Bearer ", "");
   return token === adminKey;
