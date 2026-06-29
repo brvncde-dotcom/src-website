@@ -77,6 +77,13 @@ const LANG_LABELS: Record<string, string> = {
   it: "Italiano",
 };
 
+const FIGURE_LABELS: Record<string, string> = {
+  en: "Figure ",
+  de: "Abbildung ",
+  fr: "Figure ",
+  it: "Figura ",
+};
+
 export default function ReportPage() {
   const { t: tr } = useLang();
   const params = useParams();
@@ -430,7 +437,10 @@ export default function ReportPage() {
       {/* Report Content */}
       <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10 sm:py-14">
         {report.content ? (
-          <article className="src-article src-article--inset">
+          <article
+            className="src-article src-article--inset"
+            style={{ "--src-figure-label": FIGURE_LABELS[report.language] || "Figure " } as React.CSSProperties}
+          >
             <div className="src-article-body">
               <MarkdownRenderer content={report.content} />
             </div>

@@ -594,7 +594,7 @@
   border-top: 1px solid var(--src-rule);
 }
 .src-article-body figcaption::before {
-  content: "Abbildung " counter(figure) ": ";
+  content: var(--src-figure-label, "Figure ") counter(figure) ": ";
   font-weight: 700;
   color: var(--src-accent);
   font-style: normal;

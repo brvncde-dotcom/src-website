@@ -27,6 +27,13 @@ interface OpinionDetail extends Opinion {
   translations: { id: string; language: string; title: string }[];
 }
 
+const FIGURE_LABELS: Record<string, string> = {
+  en: "Figure ",
+  de: "Abbildung ",
+  fr: "Figure ",
+  it: "Figura ",
+};
+
 export function OpinionsView() {
   const { lang, t: tr } = useLang();
   const [opinions, setOpinions] = useState<Opinion[]>([]);
@@ -168,8 +175,29 @@ export function OpinionsView() {
                     {detailLoading && (
                       <p className="text-sm text-muted-foreground">Loading…</p>
                     )}
+                    {!detailLoading && detail && detail.id === opinion.id && detail.translations && detail.translations.length > 1 && (
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Translations:</span>
+                        {detail.translations.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => toggleExpand(t.id)}
+                            className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                              t.id === detail.id
+                                ? "bg-[#0A2540] text-white"
+                                : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                            }`}
+                          >
+                            {t.language}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {!detailLoading && detail && detail.id === opinion.id && detail.content && (
-                      <article className="src-article src-article--inset">
+                      <article
+                        className="src-article src-article--inset"
+                        style={{ "--src-figure-label": FIGURE_LABELS[detail.language] || "Figure " } as React.CSSProperties}
+                      >
                         <div className="src-article-body">
                           <MarkdownRenderer content={detail.content} />
                         </div>
