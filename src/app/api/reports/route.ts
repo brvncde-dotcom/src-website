@@ -162,10 +162,17 @@ export async function GET(request: NextRequest) {
     const dbUrl = process.env.DATABASE_URL || "";
     const dbInfo = await prisma.$queryRaw`SELECT current_database() as db_name`;
     const reportCount = await prisma.report.count();
+    const authHeader = request.headers.get("authorization");
+    const adminKey = process.env.ADMIN_API_KEY;
+    const isAdmin = adminKey && authHeader?.replace("Bearer ", "") === adminKey;
     return NextResponse.json({
       databaseUrlPrefix: dbUrl.split("?")[0].slice(0, 40),
       dbInfo: (dbInfo as any[])[0],
       reportCount,
+      adminKeySet: !!adminKey,
+      adminKeyLength: adminKey?.length || 0,
+      authHeaderLength: authHeader?.length || 0,
+      isAdmin,
       prismaClientVersion: (prisma as any)._clientVersion,
     });
   }
