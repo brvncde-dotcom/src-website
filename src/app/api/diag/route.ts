@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Check for rules on Report table
     const rules = await prisma.$queryRaw`
-      SELECT rulename, ev_type, is_instead
+      SELECT rulename, definition
       FROM pg_rules
       WHERE schemaname = 'public' AND tablename = 'Report'
     `;
