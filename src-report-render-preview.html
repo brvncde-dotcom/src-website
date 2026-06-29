@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SRC Report Renderer — Acceptance Artifact (SRC-264)</title>
+<style>
+:root {
+  --background: #FFFFFF; --foreground: #0A2540; --primary: #0A2540;
+  --primary-foreground: #FFFFFF; --secondary: #F4F6F9; --muted: #F4F6F9;
+  --muted-foreground: #5A6B7F; --accent: #FDF2F2; --accent-foreground: #E8272C;
+  --destructive: #E8272C; --border: #D8DEE6; --input: #D8DEE6; --ring: #0A2540;
+  --radius: 0.25rem;
+}
+body { background: var(--background); color: var(--foreground); margin: 0; }
+.prose-src { color: #0A2540; line-height: 1.75; font-size: 1.05rem;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+.prose-src h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.875rem;
+  font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; letter-spacing: -0.01em; line-height: 1.2; }
+.prose-src h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.5rem;
+  font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; letter-spacing: -0.01em;
+  line-height: 1.25; padding-bottom: 0.5rem; border-bottom: 1px solid #D8DEE6; }
+.prose-src h3 { font-weight: 700; font-size: 1.2rem; margin-top: 1.75rem; margin-bottom: 0.5rem; }
+.prose-src p { margin-bottom: 1.25rem; }
+.prose-src ul, .prose-src ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
+.prose-src ul { list-style-type: disc; } .prose-src ol { list-style-type: decimal; }
+.prose-src li { margin-bottom: 0.35rem; } .prose-src strong { font-weight: 700; }
+.prose-src blockquote { border-left: 3px solid #E8272C; padding-left: 1.25rem; margin: 1.5rem 0; color: #5A6B7F; font-style: italic; }
+.prose-src code { background: #F4F6F9; padding: 0.15rem 0.4rem; border-radius: 0.2rem; font-size: 0.9em; }
+.prose-src pre { background: #0A2540; color: #E8ECF1; padding: 1.25rem 1.5rem; border-radius: 0.25rem; overflow-x: auto; margin: 1.5rem 0; font-size: 0.875rem; line-height: 1.6; }
+.prose-src pre code { background: none; padding: 0; color: inherit; }
+.prose-src a { color: #E8272C; text-decoration: underline; text-underline-offset: 2px; }
+.prose-src a:hover { color: #0A2540; }
+.prose-src hr { border: none; border-top: 1px solid #D8DEE6; margin: 2rem 0; }
+.prose-src table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.95rem; }
+.prose-src th { text-align: left; padding: 0.75rem 1rem; background: #F4F6F9; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5A6B7F; border-bottom: 2px solid #D8DEE6; }
+.prose-src td { padding: 0.65rem 1rem; border-bottom: 1px solid #D8DEE6; }
+.prose-src tr:last-child td { border-bottom: none; }
+.prose-src { --src-ink: #0A2540; --src-accent: #0A2540; --src-accent-mid: #2e6da4;
+  --src-accent-light: #E7EEF5; --src-highlight: #e85d04; --src-positive: #2d6a4f;
+  --src-warning: #b8860b; --src-neutral: #F4F6F9; --src-rule: #D8DEE6; --src-white: #FFFFFF;
+  overflow-wrap: break-word; }
+.prose-src thead th { background: #d0e4f7; color: var(--src-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--src-accent-mid); }
+.prose-src tbody tr:nth-child(even) td { background: var(--src-neutral); }
+.prose-src td, .prose-src th { border: 1px solid var(--src-rule); vertical-align: top; }
+.prose-src table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.prose-src caption { caption-side: bottom; font-size: 0.8125rem; color: var(--muted-foreground); margin-top: 0.5rem; text-align: left; }
+.prose-src .src-chart { margin: 2rem 0; overflow-x: auto; }
+.prose-src .src-chart svg { max-width: 100%; height: auto; display: block; }
+.prose-src .src-figure { margin: 2rem 0; }
+.prose-src .src-figure img { max-width: 100%; height: auto; display: block; border-radius: 0.25rem; }
+.prose-src .src-chart figcaption, .prose-src .src-figure figcaption { font-size: 0.8125rem; color: var(--muted-foreground); margin-top: 0.5rem; line-height: 1.5; }
+.prose-src .src-source { display: block; font-style: italic; margin-top: 0.25rem; }
+.prose-src .src-callout { border-left: 4px solid var(--src-accent-mid); background: var(--src-neutral); padding: 1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 0.25rem 0.25rem 0; }
+.prose-src .src-callout--key-finding { border-left-color: var(--src-highlight); }
+.prose-src .src-callout--warning { border-left-color: #d4a017; background: #fffbf0; }
+.prose-src .src-callout--definition { border-left-color: var(--src-accent-mid); }
+.prose-src .src-callout p { margin: 0 0 0.5rem; }
+.prose-src .src-callout p:last-child { margin-bottom: 0; }
+/* artifact framing only — not part of the site */
+.artifact-frame { max-width: 72ch; margin: 2rem auto; padding: 0 1.5rem; }
+.artifact-note { font-size: 0.8rem; color: #5A6B7F; border: 1px dashed #D8DEE6; padding: 0.75rem 1rem; border-radius: 0.25rem; margin-bottom: 2rem; }
+</style></head>
+<body>
+<div class="artifact-frame">
+  <div class="artifact-note">
+    <strong>SRC report renderer — acceptance artifact (SRC-264).</strong><br/>
+    Rendered through the production pipeline (remark-gfm + rehype-raw +
+    rehype-sanitize) with the actual <code>globals.css</code> <code>.prose-src</code>
+    styles. This is a faithful standalone preview of how report content renders
+    on the site; it is not the live page shell. Open this file in any browser.
+  </div>
+  <article class="prose-src">
+<h1>Sample SRC Report — Renderer Acceptance</h1>
+<h2>Risk Overview</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Domain</th><th>Risk Level</th><th>Trend</th><th>Notes</th></tr></thead><tbody><tr><td>Digital / AI</td><td>High</td><td>Rising</td><td>Capability diffusion outpacing governance</td></tr><tr><td>Geopolitics</td><td>Elevated</td><td>Stable</td><td>Three active flashpoints</td></tr><tr><td>Energy</td><td>Moderate</td><td>Falling</td><td>Diversification accelerating</td></tr></tbody></table>
+<figure class="src-chart" data-chart-type="bar">
+  <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Risk score by domain">
+    <rect x="40" y="120" width="120" height="130" fill="#2e6da4"></rect>
+    <rect x="200" y="60" width="120" height="190" fill="#e85d04"></rect>
+    <rect x="360" y="160" width="120" height="90" fill="#2d6a4f"></rect>
+    <text x="100" y="270" text-anchor="middle">Digital</text>
+    <text x="260" y="270" text-anchor="middle">Geopolitics</text>
+    <text x="420" y="270" text-anchor="middle">Energy</text>
+  </svg>
+  <figcaption>
+    <strong>Figure 1:</strong> Risk score by domain.
+    <span class="src-source">Source: SRC original. [CLEARED — SRC-original rendering]</span>
+  </figcaption>
+</figure>
+<figure class="src-figure">
+  <img src="https://placehold.co/600x300/0A2540/FFFFFF/png?text=SRC+Figure+Placeholder" alt="Figure 2: AI capability curve" loading="lazy">
+  <figcaption><strong>Figure 2:</strong> AI capability curve. <span class="src-source">SRC-original.</span></figcaption>
+</figure>
+<aside class="src-callout src-callout--key-finding">
+  <p><strong>Key Finding:</strong> AI risk concentration is rising fastest across all tracked domains.</p>
+  <p>Two- to three-sentence elaboration goes here. The callout uses the key-finding variant (red accent border).</p>
+</aside>
+<aside class="src-callout src-callout--warning">
+  <p><strong>Warning:</strong> Governance lags are widening the exposure window.</p>
+</aside>
+<aside class="src-callout src-callout--definition">
+  <p><strong>Definition:</strong> "Capability diffusion" denotes the spread of dual-use AI tooling to non-state actors.</p>
+</aside>
+  </article>
+</div>
+</body></html>

@@ -14,7 +14,7 @@ import {
   Mail,
   Check,
 } from "lucide-react";
-import Markdown from "react-markdown";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
 import {
   Dialog,
@@ -428,7 +428,7 @@ export default function ReportPage() {
       <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10 sm:py-14">
         {report.content ? (
           <article className="prose-src">
-            <Markdown>{report.content}</Markdown>
+            <MarkdownRenderer content={report.content} />
           </article>
         ) : (
           <div className="text-center py-16">
