@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Playfair_Display } from "next/font/google";
+import { Spectral } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SiteShell } from "@/components/SiteShell";
@@ -12,10 +12,11 @@ const inter = Inter({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const spectral = Spectral({
   variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -58,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${spectral.variable} font-sans antialiased bg-background text-foreground`}
       >
         <LangProvider>
           <SiteShell>{children}</SiteShell>

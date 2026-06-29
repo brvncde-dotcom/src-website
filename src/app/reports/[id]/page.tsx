@@ -424,11 +424,16 @@ export default function ReportPage() {
         </div>
       </div>
 
+      {/* Reading progress */}
+      <div className="src-progress" aria-hidden="true" />
+
       {/* Report Content */}
       <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10 sm:py-14">
         {report.content ? (
-          <article className="prose-src">
-            <MarkdownRenderer content={report.content} />
+          <article className="src-article src-article--inset">
+            <div className="src-article-body">
+              <MarkdownRenderer content={report.content} />
+            </div>
           </article>
         ) : (
           <div className="text-center py-16">

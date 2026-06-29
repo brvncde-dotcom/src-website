@@ -37,6 +37,52 @@
   --chart-3: #E8272C;
   --chart-4: #F4F6F9;
   --chart-5: #5A6B7F;
+
+  /* ============================================
+     SRC Design System — Article Tokens
+     ============================================ */
+  --src-serif: var(--font-playfair), "Spectral", Georgia, "Times New Roman", serif;
+  --src-sans: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --src-paper: #FAF8F3;
+  --src-surface: #FFFFFF;
+  --src-ink: #16202E;
+  --src-navy: #12263A;
+  --src-steel: #3E5C76;
+  --src-accent: #9A4515;
+  --src-accent-bright: #C2691F;
+  --src-muted: #615A4E;
+  --src-rule: #E4DDD0;
+  --src-tint: #F1ECE2;
+
+  /* Spacing — 8px base scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  /* Layout */
+  --measure: 38rem;
+  --shell: min(72rem, 92vw);
+
+  /* Type scale (root 16px) */
+  --fs-eyebrow: 0.75rem;
+  --fs-meta: 0.9375rem;
+  --fs-caption: 0.875rem;
+  --fs-body: 1.1875rem;
+  --fs-lead: 1.375rem;
+  --fs-h4: 1.1875rem;
+  --fs-h3: 1.375rem;
+  --fs-h2: clamp(1.6rem, 1.3rem + 1vw, 2rem);
+  --fs-h1: clamp(2.25rem, 1.55rem + 2.6vw, 3.25rem);
+  --fs-quote: clamp(1.45rem, 1.2rem + 0.9vw, 1.7rem);
+
+  --lh-tight: 1.15;
+  --lh-body: 1.7;
 }
 
 /* Tailwind v4 theme mapping — maps raw vars to Tailwind utilities */
@@ -124,7 +170,7 @@
 
 /* Serif heading utility */
 .heading-serif {
-  font-family: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
+  font-family: var(--font-playfair), "Spectral", Georgia, "Times New Roman", serif;
 }
 
 /* Section number badge — red square */
@@ -382,4 +428,379 @@
 }
 .prose-src .src-callout p:last-child {
   margin-bottom: 0;
+}
+
+/* ============================================
+   SRC Article Design System
+   Scoped under .src-article so the shell/nav/footer is untouched.
+   ============================================ */
+
+.src-article {
+  width: var(--shell);
+  margin: 0 auto;
+  padding: var(--s-8) 0 var(--s-9);
+  counter-reset: figure;
+}
+/* Modifier for use inside an existing constrained container (e.g. report page) */
+.src-article--inset {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+/* Article header — eyebrow, title, byline */
+.src-article-header {
+  max-width: 46rem;
+  margin: 0 0 var(--s-7);
+}
+.src-article-header h1 {
+  font-family: var(--src-serif);
+  font-weight: 800;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  color: var(--src-navy);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--s-4);
+}
+.src-eyebrow {
+  font-family: var(--src-sans);
+  font-weight: 600;
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--src-accent);
+  margin: 0 0 var(--s-3);
+}
+.src-byline {
+  font-family: var(--src-sans);
+  font-size: var(--fs-meta);
+  color: var(--src-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--src-rule);
+}
+.src-byline strong {
+  color: var(--src-ink);
+  font-weight: 600;
+}
+.src-byline .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--src-accent);
+}
+
+/* Body measure */
+.src-article-body {
+  max-width: var(--measure);
+}
+.src-article-body p {
+  margin: 0 0 var(--s-5);
+}
+.src-article-body .standfirst {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--src-steel);
+  font-style: italic;
+  margin-bottom: var(--s-6);
+}
+
+/* Headlines — bold with space + copper rule */
+.src-article-body h2 {
+  font-family: var(--src-serif);
+  font-weight: 800;
+  font-size: var(--fs-h2);
+  color: var(--src-navy);
+  line-height: 1.2;
+  margin: var(--s-8) 0 var(--s-4);
+  clear: both;
+}
+.src-article-body h2::before {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--src-accent);
+  margin-bottom: var(--s-4);
+}
+.src-article-body h3 {
+  font-family: var(--src-serif);
+  font-weight: 700;
+  font-size: var(--fs-h3);
+  color: var(--src-navy);
+  margin: var(--s-7) 0 var(--s-3);
+  clear: both;
+}
+.src-article-body h4 {
+  font-family: var(--src-sans);
+  font-weight: 700;
+  font-size: var(--fs-h4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--src-steel);
+  margin: var(--s-6) 0 var(--s-3);
+}
+
+/* Smaller images · float · text wrap */
+.src-article-body figure {
+  counter-increment: figure;
+  max-width: 44%;
+  margin: var(--s-3) 0 var(--s-5);
+  background: var(--src-surface);
+  padding: var(--s-3);
+  border: 1px solid var(--src-rule);
+  box-shadow: 0 1px 2px rgba(18, 38, 58, 0.05);
+}
+.src-article-body figure:nth-of-type(odd) {
+  float: right;
+  margin-left: var(--s-6);
+  shape-outside: margin-box;
+}
+.src-article-body figure:nth-of-type(even) {
+  float: left;
+  margin-right: var(--s-6);
+  shape-outside: margin-box;
+}
+.src-article-body figure.figure--left {
+  float: left;
+  margin: var(--s-3) var(--s-6) var(--s-5) 0;
+}
+.src-article-body figure.figure--right {
+  float: right;
+  margin: var(--s-3) 0 var(--s-5) var(--s-6);
+}
+.src-article-body figure.figure--wide {
+  float: none;
+  max-width: 100%;
+  margin: var(--s-7) auto;
+}
+.src-article-body figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Abbildung captions */
+.src-article-body figcaption {
+  font-family: var(--src-sans);
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--src-muted);
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--src-rule);
+}
+.src-article-body figcaption::before {
+  content: "Abbildung " counter(figure) ": ";
+  font-weight: 700;
+  color: var(--src-accent);
+  font-style: normal;
+}
+.src-article-body figcaption em {
+  font-style: italic;
+  color: var(--src-muted);
+}
+
+/* Pull quote */
+.src-article-body .pullquote,
+.src-article-body blockquote.pullquote {
+  font-family: var(--src-serif);
+  font-weight: 600;
+  font-style: italic;
+  font-size: var(--fs-quote);
+  line-height: 1.3;
+  color: var(--src-navy);
+  margin: var(--s-7) 0;
+  padding: var(--s-2) 0 var(--s-2) var(--s-5);
+  border-left: 4px solid var(--src-accent);
+  clear: both;
+}
+.src-article-body .pullquote::before,
+.src-article-body blockquote.pullquote::before {
+  content: "\201C";
+  color: var(--src-accent);
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.2em;
+  margin-right: 0.04em;
+}
+
+/* Links */
+.src-article-body a {
+  color: var(--src-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(154, 69, 21, 0.4);
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.src-article-body a:hover {
+  color: var(--src-navy);
+  text-decoration-color: var(--src-navy);
+}
+
+/* Section divider */
+.src-divider {
+  clear: both;
+  border: 0;
+  text-align: center;
+  margin: var(--s-8) auto;
+  width: var(--measure);
+}
+.src-divider::before {
+  content: "\25C6 \25C6 \25C6";
+  color: var(--src-accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.6em;
+  opacity: 0.8;
+}
+
+/* Drop cap */
+.src-article-body > p:first-of-type::first-letter {
+  font-weight: 800;
+  float: left;
+  color: var(--src-accent);
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding: 0.04em 0.08em 0 0;
+}
+
+/* Key-takeaway callout */
+.src-callout {
+  background: var(--src-tint);
+  border-left: 4px solid var(--src-steel);
+  padding: var(--s-5);
+  margin: var(--s-6) 0;
+  border-radius: 2px;
+  font-size: 1.05rem;
+  max-width: var(--measure);
+  clear: both;
+}
+
+/* Reading progress indicator */
+.src-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 60;
+  background: linear-gradient(90deg, var(--src-accent), var(--src-accent-bright));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  animation: src-fill linear both;
+  animation-timeline: scroll(root block);
+}
+@keyframes src-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Masthead / wordmark (text-based) */
+.src-masthead {
+  width: var(--shell);
+  margin: 0 auto;
+  padding: var(--s-6) 0 var(--s-5);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  border-bottom: 2px solid var(--src-navy);
+}
+.src-wordmark {
+  font-family: var(--src-serif);
+  font-weight: 800;
+  font-size: 1.9rem;
+  letter-spacing: 0.04em;
+  color: var(--src-navy);
+  line-height: 1;
+}
+.src-wordmark span {
+  color: var(--src-accent);
+}
+.src-wordmark-sub {
+  font-family: var(--src-sans);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--src-steel);
+  font-weight: 600;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  :root {
+    --fs-body: 1.0625rem;
+  }
+  .src-article-body,
+  .src-callout,
+  .src-divider {
+    max-width: 100%;
+  }
+  .src-article-body figure,
+  .src-article-body figure:nth-of-type(odd),
+  .src-article-body figure:nth-of-type(even),
+  .src-article-body figure.figure--left,
+  .src-article-body figure.figure--right {
+    float: none;
+    max-width: 100%;
+    margin: var(--s-5) 0;
+    shape-outside: none;
+  }
+  .src-article-body > p:first-of-type::first-letter {
+    font-size: 3em;
+  }
+}
+
+/* Print */
+@media print {
+  :root {
+    --src-paper: #fff;
+  }
+  body {
+    font-size: 11pt;
+    color: #000;
+  }
+  .src-progress,
+  .src-masthead {
+    display: none;
+  }
+  .src-article-body a {
+    color: #000;
+    text-decoration: underline;
+  }
+  .src-article-body a::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #555;
+  }
+  .src-article-body figure {
+    float: none !important;
+    max-width: 70%;
+    break-inside: avoid;
+  }
+  .src-article-body h2,
+  .src-article-body h3 {
+    break-after: avoid;
+  }
+}
+
+/* Accessibility & motion */
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--src-accent-bright);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .src-progress {
+    animation: none;
+    transform: scaleX(0);
+  }
+  * {
+    transition: none !important;
+  }
 }

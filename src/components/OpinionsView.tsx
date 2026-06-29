@@ -169,9 +169,11 @@ export function OpinionsView() {
                       <p className="text-sm text-muted-foreground">Loading…</p>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && detail.content && (
-                      <div className="prose prose-sm max-w-none text-sm text-primary leading-relaxed">
-                        <MarkdownRenderer content={detail.content} />
-                      </div>
+                      <article className="src-article src-article--inset">
+                        <div className="src-article-body">
+                          <MarkdownRenderer content={detail.content} />
+                        </div>
+                      </article>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && !detail.content && (
                       <p className="text-sm text-muted-foreground">
