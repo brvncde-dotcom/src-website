@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, validateAdminKey, VALID_STATUSES } from "@/lib/db";
 
 // PATCH /api/reports/[id] — Review action: approve, reject, publish
+// Rebuild: force fresh bundle to pick up fixed db.ts singleton
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,

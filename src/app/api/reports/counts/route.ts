@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, VALID_LANGUAGES } from "@/lib/db";
 
+// Rebuild: force fresh bundle to pick up fixed db.ts singleton
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang");

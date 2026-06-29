@@ -9,6 +9,7 @@ import {
 } from "@/lib/db";
 
 // POST /api/reports — Ingest a new report from vnOrchestrator
+// Rebuild: force fresh bundle to pick up fixed db.ts singleton
 export async function POST(request: NextRequest) {
   // Auth check
   if (!validateIngestionKey(request)) {
