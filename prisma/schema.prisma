@@ -198,6 +198,7 @@ model AccessGrant {
   grantedBy     String
   reason        String
   status        String    @default("active")
+  reminderSentAt DateTime?
   createdAt     DateTime  @default(now())
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -253,4 +254,17 @@ model Invitation {
 
   @@index([email])
   @@index([status])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actor      String // admin email, or "admin"/"system"
+  action     String // e.g. grant_created, grant_revoked, invitation_sent, tier_changed, grant_expired
+  targetType String? // user | grant | invitation | report
+  targetId   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
 }

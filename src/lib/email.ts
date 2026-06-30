@@ -169,3 +169,35 @@ export function buildInvitationEmail(inviteUrl: string, lang: string = "en") {
 </html>`;
   return { subject: c.subject, html };
 }
+
+// ── Membership-expiry emails ──
+
+export function buildGrantExpiringEmail(opts: { tierName: string; expiresOn: string }) {
+  const subject = "Your SRC Advisory membership is ending soon";
+  const html = `<!doctype html><html><body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;"><tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+        <tr><td style="background:#0A2540;padding:20px 28px;"><span style="color:#fff;font-weight:700;font-size:16px;letter-spacing:0.04em;">SRC ADVISORY</span></td></tr>
+        <tr><td style="padding:28px;">
+          <h1 style="margin:0 0 12px;font-size:20px;color:#0A2540;">Your membership is ending soon</h1>
+          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#374151;">Your complimentary <strong>${opts.tierName}</strong> access ends on <strong>${opts.expiresOn}</strong>. To keep full access, you can subscribe anytime from your account.</p>
+          <a href="https://www.src-advisory.ch/?tab=membership" style="display:inline-block;background:#0A2540;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:6px;">View membership</a>
+        </td></tr>
+      </table></td></tr></table></body></html>`;
+  return { subject, html };
+}
+
+export function buildGrantExpiredEmail(opts: { tierName: string }) {
+  const subject = "Your SRC Advisory membership has ended";
+  const html = `<!doctype html><html><body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;"><tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+        <tr><td style="background:#0A2540;padding:20px 28px;"><span style="color:#fff;font-weight:700;font-size:16px;letter-spacing:0.04em;">SRC ADVISORY</span></td></tr>
+        <tr><td style="padding:28px;">
+          <h1 style="margin:0 0 12px;font-size:20px;color:#0A2540;">Your membership has ended</h1>
+          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#374151;">Your complimentary <strong>${opts.tierName}</strong> access has ended. We'd love to keep you — subscribe anytime to restore full access.</p>
+          <a href="https://www.src-advisory.ch/?tab=membership" style="display:inline-block;background:#0A2540;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:6px;">Become a member</a>
+        </td></tr>
+      </table></td></tr></table></body></html>`;
+  return { subject, html };
+}

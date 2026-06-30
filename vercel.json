@@ -11,6 +11,9 @@
   "git": {
     "deploymentEnabled": true
   },
+  "crons": [
+    { "path": "/api/cron/expire-grants", "schedule": "0 6 * * *" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

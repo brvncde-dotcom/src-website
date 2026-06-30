@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RecentActivity } from "./RecentActivity";
 
 // Admin landing hub — entry point for /admin, links to each management section.
 export default function AdminHome() {
@@ -36,6 +37,7 @@ export default function AdminHome() {
           </Link>
         ))}
       </div>
+      <RecentActivity />
     </div>
   );
 }

@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, validateAdminKey } from "@/lib/db";
+import { prisma, validateAdminKey, logAdminAction } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+// Best-effort acting-admin email (the session cookie rides along even though
+// auth is via the admin key). Falls back to a generic "admin" for API callers.
+async function adminActor(): Promise<string> {
+  try {
+    const session = await getServerSession(authOptions);
+    return session?.user?.email || "admin";
+  } catch {
+    return "admin";
+  }
+}
 
 // POST /api/admin/users/[id]/grant-access — Create an AccessGrant
 // Body: { grantType, tierSlug?, durationDays?, reason }
@@ -129,6 +142,14 @@ export async function POST(
       },
     });
 
+    await logAdminAction({
+      actor: await adminActor(),
+      action: "grant_created",
+      targetType: "user",
+      targetId: id,
+      detail: `${grantType}${tierSlug ? " · " + tierSlug : ""}`,
+    });
+
     return NextResponse.json(
       {
         ...grant,
@@ -173,6 +194,7 @@ export async function PATCH(
         where: { id: grantId },
         data: { status: "revoked" },
       });
+      await logAdminAction({ actor: await adminActor(), action: "grant_revoked", targetType: "user", targetId: id });
       return NextResponse.json({ ...updated, message: "Access grant revoked." });
     }
 
@@ -190,6 +212,7 @@ export async function PATCH(
         where: { id: grantId },
         data: { expiresAt, isPermanent: false, status: "active" },
       });
+      await logAdminAction({ actor: await adminActor(), action: "grant_extended", targetType: "user", targetId: id, detail: `+${days}d` });
       return NextResponse.json({ ...updated, message: "Access grant extended." });
     }
 
