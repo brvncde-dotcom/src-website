@@ -5,6 +5,8 @@ import {
   validateIngestionKey,
   VALID_STATUSES,
   canAccessContent,
+  validateDesignGate,
+  logAdminAction,
 } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -24,7 +26,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId } = body;
+    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, designSignedOffBy } = body;
 
     // Handle review actions
     if (action) {
@@ -45,15 +47,22 @@ export async function PATCH(
         updateData.reviewNote = reviewNote;
       }
 
-      // When publishing, set publishedAt and publish all sibling translations
+      // When publishing, enforce Gate 3 (Design Sign-Off) hard gate
       if (action === "published") {
-        updateData.publishedAt = new Date();
-
-        // Fetch the report to get its sourceRef
         const report = await prisma.report.findUnique({ where: { id } });
         if (!report) {
           return NextResponse.json({ error: "Report not found" }, { status: 404 });
         }
+
+        const gate = validateDesignGate(report);
+        if (!gate.valid) {
+          return NextResponse.json(
+            { error: `Gate 3 block: ${gate.reason}` },
+            { status: 422 }
+          );
+        }
+
+        updateData.publishedAt = new Date();
 
         // If the report has a sourceRef, publish all sibling translations simultaneously
         if (report.sourceRef) {
@@ -70,10 +79,17 @@ export async function PATCH(
             },
           });
 
-          // Now update the primary report
           const updated = await prisma.report.update({
             where: { id },
             data: updateData,
+          });
+
+          await logAdminAction({
+            actor: "admin",
+            action: "report_published",
+            targetType: "report",
+            targetId: updated.id,
+            detail: `Published report ${updated.id} (sourceRef: ${updated.sourceRef}) with ${siblings.count} siblings`,
           });
 
           return NextResponse.json({
@@ -87,6 +103,29 @@ export async function PATCH(
             message: `Report published. ${siblings.count} sibling translation(s) published simultaneously.`,
           });
         }
+
+        const updated = await prisma.report.update({
+          where: { id },
+          data: updateData,
+        });
+
+        await logAdminAction({
+          actor: "admin",
+          action: "report_published",
+          targetType: "report",
+          targetId: updated.id,
+          detail: `Published report ${updated.id}`,
+        });
+
+        return NextResponse.json({
+          id: updated.id,
+          title: updated.title,
+          status: updated.status,
+          publishedAt: updated.publishedAt,
+          language: updated.language,
+          sourceRef: updated.sourceRef,
+          message: `Report published.`,
+        });
       }
 
       const updatedReport = await prisma.report.update({
@@ -116,6 +155,10 @@ export async function PATCH(
     if (language !== undefined) updateFields.language = language;
     // minTierId: set a tier slug-resolved id to gate the report, or "" / null to ungate.
     if (minTierId !== undefined) updateFields.minTierId = minTierId || null;
+    if (designSignedOffBy !== undefined) {
+      updateFields.designSignedOffBy = designSignedOffBy || null;
+      updateFields.designSignedOffAt = designSignedOffBy ? new Date() : null;
+    }
 
     if (Object.keys(updateFields).length === 0) {
       return NextResponse.json(
@@ -128,6 +171,16 @@ export async function PATCH(
       where: { id },
       data: updateFields,
     });
+
+    if (designSignedOffBy !== undefined && designSignedOffBy) {
+      await logAdminAction({
+        actor: "admin",
+        action: "design_sign_off",
+        targetType: "report",
+        targetId: report.id,
+        detail: `Design sign-off recorded by ${designSignedOffBy}`,
+      });
+    }
 
     return NextResponse.json({
       id: report.id,
