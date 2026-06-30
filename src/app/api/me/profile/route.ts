@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { prisma, getUserTier } from "@/lib/db";
 
 async function getAuthUser() {
   const session = await getServerSession(authOptions);
@@ -58,9 +58,17 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Effective tier resolves currentTier > active subscription > active
+    // grant > observer — so comp/invited members see their real plan even
+    // when currentTierId is null.
+    const effectiveTier = await getUserTier(user.id);
+
     // Serialize Decimal to string
     const serialized = {
       ...profileData,
+      effectiveTier: effectiveTier
+        ? { id: effectiveTier.id, slug: effectiveTier.slug, name: effectiveTier.name }
+        : null,
       subscriptions: profileData.subscriptions.map((sub) => ({
         ...sub,
         amountChf: sub.amountChf.toString(),

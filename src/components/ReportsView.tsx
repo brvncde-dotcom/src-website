@@ -195,7 +195,10 @@ interface ApiReport {
 export function ReportsView() {
   const { lang, t: tr } = useLang();
   const { data: session } = useSession() ?? {};
-  const [gate, setGate] = useState<GateState>("register");
+  // Report list is public: everyone sees the teaser list. Full content is
+  // gated per-report by tier at the detail page (canAccessContent), not by a
+  // lead-capture wall. (Default "access" = no register gate.)
+  const [gate, setGate] = useState<GateState>("access");
   const [member, setMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [apiReports, setApiReports] = useState<ApiReport[]>([]);
