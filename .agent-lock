@@ -1,0 +1,7 @@
+HELD-BY: claude-code
+SINCE: 2026-06-30T15:26:32Z
+SCOPE: production main, DB schema/migrations, Vercel env vars, deploys
+NOTE: Active incident remediation + deploy hardening in progress.
+      Other agents (incl. Paperclip CTO): do NOT push to main, deploy,
+      run migrations, alter the DB, or change env/deploy settings until
+      this lock is released. Content/ticket work is fine. See AGENTS.md.
