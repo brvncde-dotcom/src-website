@@ -9,6 +9,8 @@
 // skipped and the webhook accepts-and-ignores, so this can ship before the
 // bot exists.
 
+import { prisma, validateDesignGate, logAdminAction } from "@/lib/db";
+
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 
@@ -116,22 +118,47 @@ export function reportCard(r: ReportCardData): { text: string; reply_markup: Inl
   return { text, reply_markup };
 }
 
-// Perform a review action by reusing the existing PATCH endpoint server-side
-// (keeps the publish gate, sibling-publishing, and audit log in one place).
+// Perform a review action in-process (no HTTP self-call). Mirrors the PATCH
+// endpoint's logic: publishing enforces the Gate-3 design check and publishes
+// sibling translations together; approve/reject is a simple status flip.
 export async function performReportAction(
   id: string,
   action: "approved" | "published" | "rejected"
 ): Promise<{ ok: boolean; message: string }> {
-  const key = process.env.ADMIN_API_KEY || "";
   try {
-    const res = await fetch(`${SITE}/api/reports/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ action }),
+    const report = await prisma.report.findUnique({ where: { id } });
+    if (!report) return { ok: false, message: "Report not found." };
+
+    const now = new Date();
+
+    if (action === "published") {
+      const gate = validateDesignGate(report);
+      if (!gate.valid) return { ok: false, message: `Cannot publish: ${gate.reason}` };
+
+      await prisma.report.update({
+        where: { id },
+        data: { status: "published", publishedAt: now, reviewedBy: "telegram", reviewedAt: now },
+      });
+      let siblings = 0;
+      if (report.sourceRef) {
+        const r = await prisma.report.updateMany({
+          where: { sourceRef: report.sourceRef, id: { not: id } },
+          data: { status: "published", publishedAt: now, reviewedBy: "telegram", reviewedAt: now },
+        });
+        siblings = r.count;
+      }
+      await logAdminAction({ actor: "telegram", action: "report_published", targetType: "report", targetId: id, detail: `via Telegram (${siblings} siblings)` });
+      return { ok: true, message: siblings ? `Published (+${siblings} translations).` : "Published." };
+    }
+
+    await prisma.report.update({
+      where: { id },
+      data: { status: action, reviewedBy: "telegram", reviewedAt: now },
     });
-    const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
-    return { ok: res.ok, message: data.message || data.error || (res.ok ? "Done." : `HTTP ${res.status}`) };
-  } catch {
-    return { ok: false, message: "Request failed." };
+    await logAdminAction({ actor: "telegram", action: `report_${action}`, targetType: "report", targetId: id });
+    return { ok: true, message: action === "approved" ? "Approved." : "Rejected." };
+  } catch (e) {
+    console.error("[telegram] performReportAction failed:", e);
+    return { ok: false, message: "Action failed." };
   }
 }
