@@ -34,16 +34,18 @@ interface Report {
 }
 
 export function HomeView() {
-  const { t: tr } = useLang();
+  const { t: tr, lang } = useLang();
   const { navigate } = useNavigation();
   const [latestReports, setLatestReports] = useState<Report[]>([]);
 
   useEffect(() => {
-    fetch("/api/reports?status=published&limit=3")
+    // Fetch the latest publications in the current UI language so titles/
+    // summaries match the selected language (reports exist per-language).
+    fetch(`/api/reports?status=published&lang=${lang}&limit=3`)
       .then((r) => r.json())
       .then((data) => setLatestReports(data.reports || []))
       .catch(() => {});
-  }, []);
+  }, [lang]);
 
   return (
     <div>
