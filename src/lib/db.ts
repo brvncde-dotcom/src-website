@@ -169,20 +169,18 @@ export function validateAdminKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
 
-  const token = authHeader.replace("Bearer ", "");
-  // Accept either documented env var name so agents don't depend on a single key name.
-  const validKeys = [
-    process.env.ADMIN_API_KEY,
-    process.env.SRC_ADMIN_API_KEY,
-  ].filter(Boolean) as string[];
-
-  if (validKeys.length === 0) {
+  const apiKey = process.env.ADMIN_API_KEY;
+  if (!apiKey) {
     // No key configured: allow only outside production (local dev convenience).
     // In production this fails closed so admin endpoints are never left open.
     return process.env.NODE_ENV !== "production";
   }
 
-  return validKeys.includes(token);
+  // Single canonical admin key only. Do NOT reintroduce SRC_ADMIN_API_KEY or
+  // any fallback key name — that path was used to smuggle back the rotated-out
+  // weak key 'src-admin-review-2026'.
+  const token = authHeader.replace("Bearer ", "");
+  return token === apiKey;
 }
 
 // --- Tier helpers ---
