@@ -9,6 +9,59 @@ import {
   validateAdminKey,
 } from "@/lib/db";
 
+// Heuristic guard: detect submissions that are internal Paperclip workflow
+// tickets (translation tasks, editorial-review gates, "adopt pillar scope",
+// research intake, engineering tasks, test rows) rather than finished
+// editorial content. These should never reach the public website.
+// Returns a short human-readable reason if the payload looks internal, else null.
+// Set INGEST_ALLOW_INTERNAL=1 to bypass (e.g. for a deliberate backfill).
+function internalTicketReason(body: {
+  title?: unknown;
+  summary?: unknown;
+  content?: unknown;
+}): string | null {
+  if (process.env.INGEST_ALLOW_INTERNAL === "1") return null;
+
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const summary = typeof body.summary === "string" ? body.summary : "";
+  const content = typeof body.content === "string" ? body.content : "";
+  const blob = `${title}\n${summary}\n${content}`;
+
+  // Ticket-style titles
+  const titleRules: [RegExp, string][] = [
+    [/^\s*\[(high|medium|low|urgent|critical|p[0-4])\]/i, "priority-tagged ticket title"],
+    [/^\s*(adopt|adoption|adozione|festlegung|übernahme)\b[\s\S]*\b(pillar scope|pilastri|piliers|säulen)/i, "pillar-scope ticket"],
+    [/^\s*translate\b[\s\S]*(→|->|\breport\b)/i, "translation task"],
+    [/^\s*publish pipeline\b/i, "publish-pipeline ticket"],
+    [/^\s*editorial review\s*:/i, "editorial-review ticket"],
+    [/^\s*report draft\s*:/i, "report-draft ticket"],
+    [/^\s*research brief\s*:/i, "research-brief intake ticket"],
+    [/^\s*investigate\b[\s\S]*\b(fix|build|failure|bug|error|deploy)\b/i, "engineering task"],
+    [/^\s*test\b[\s\S]*\b(report|delete me|ingest)\b/i, "test submission"],
+    [/\bdelete me\b/i, "test submission"],
+    [/\bict domain review\s*:/i, "domain-review ticket"],
+    [/into (the )?project knowledge base/i, "internal knowledge-base task"],
+  ];
+  for (const [re, reason] of titleRules) {
+    if (re.test(title)) return reason;
+  }
+
+  // Internal workflow markers anywhere in the payload (very low false-positive)
+  const contentRules: [RegExp, string][] = [
+    [/\]\(\/SRC\/(issues|approvals)\//i, "contains internal SRC issue/approval links"],
+    [/\bsubmit as pending\b/i, "contains workflow instruction 'submit as pending'"],
+    [/\bthis task is blocked\b/i, "contains task-tracking language"],
+    [/\byou are writing\b/i, "contains task-assignment language"],
+    [/\bboard source intake\b/i, "source-intake ticket"],
+    [/\bchild of \[src-/i, "references a parent SRC issue"],
+  ];
+  for (const [re, reason] of contentRules) {
+    if (re.test(blob)) return reason;
+  }
+
+  return null;
+}
+
 // POST /api/reports — Ingest a new report from vnOrchestrator
 // Rebuild: SRC-505 2026-06-30 — force fresh bundle + transactional create-verify
 export async function POST(request: NextRequest) {
@@ -27,6 +80,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "title is required and must be a non-empty string" },
         { status: 400 }
+      );
+    }
+
+    // Reject internal Paperclip workflow tickets — only publishable reports belong here.
+    const ticketReason = internalTicketReason(body);
+    if (ticketReason) {
+      console.warn(
+        `Rejected internal-ticket ingestion (${ticketReason}): "${title.trim().slice(0, 80)}"`
+      );
+      return NextResponse.json(
+        {
+          error: `This submission looks like an internal workflow ticket (${ticketReason}), not a publishable report. Only finished editorial content should be posted to /api/reports.`,
+          code: "INTERNAL_TICKET_REJECTED",
+        },
+        { status: 422 }
       );
     }
 
