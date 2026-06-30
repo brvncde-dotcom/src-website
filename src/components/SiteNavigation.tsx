@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight, User, LogIn } from "lucide-react";
+import { X, Menu, ArrowRight, User, LogIn, Shield } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -151,6 +151,15 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       <User className="h-3.5 w-3.5" />
                       {tr("account.title")}
                     </button>
+                    {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin && (
+                      <a
+                        href="/admin"
+                        className="w-full text-left px-3 py-2 text-xs font-semibold rounded-sm hover:bg-secondary/50 flex items-center gap-2 text-[#0A2540]"
+                      >
+                        <Shield className="h-3.5 w-3.5" />
+                        {tr("account.admin")}
+                      </a>
+                    )}
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-red-50 text-[#E8272C] flex items-center gap-2"
@@ -220,6 +229,14 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                     >
                       {tr("account.title")}
                     </button>
+                    {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin && (
+                      <a
+                        href="/admin"
+                        className="block w-full text-left px-3 py-2.5 text-sm font-semibold rounded-sm transition-colors text-[#0A2540] hover:bg-secondary"
+                      >
+                        {tr("account.admin")}
+                      </a>
+                    )}
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-[#E8272C] hover:bg-red-50"

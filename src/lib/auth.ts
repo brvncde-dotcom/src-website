@@ -57,6 +57,13 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
+      // Admin flag: email is in the ADMIN_EMAILS allowlist.
+      const adminEmails = (process.env.ADMIN_EMAILS || "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+      token.isAdmin = !!token.email && adminEmails.includes((token.email as string).toLowerCase());
+
       return token;
     },
     async session({ session, token }) {
@@ -64,6 +71,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = (token.userId as string) || (token.id as string);
         (session.user as Record<string, unknown>).trialEnd = token.trialEnd;
         (session.user as Record<string, unknown>).isMember = token.isMember;
+        (session.user as Record<string, unknown>).isAdmin = token.isAdmin;
       }
       return session;
     },
