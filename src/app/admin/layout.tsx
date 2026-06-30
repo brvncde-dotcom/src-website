@@ -12,7 +12,7 @@ function AdminBar() {
   const links = [
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/reports", label: "Reports" },
-    { href: "/admin/users", label: "Users" },
+    { href: "/admin/users", label: "Members" },
   ];
   return (
     <div className="bg-[#0A2540] text-white">

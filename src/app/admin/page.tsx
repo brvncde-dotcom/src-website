@@ -10,8 +10,8 @@ export default function AdminHome() {
     },
     {
       href: "/admin/users",
-      title: "Users",
-      desc: "View members, assign tiers, and grant access.",
+      title: "Members",
+      desc: "View members, assign tiers, and grant or revoke comp memberships (free access for a period).",
     },
   ];
 
