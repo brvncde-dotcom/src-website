@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/components/LangProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,7 +168,27 @@ export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSucces
         : tr("auth.forgot.title");
 
   return (
-    <Dialog
+    <>
+      {/* Manual dimmed backdrop. Radix only renders DialogOverlay in modal mode,
+          and modal mode is what triggers the Bitwarden inline-menu warning, so we
+          render our own backdrop here (no body pointer-events:none / inert). */}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-40 bg-black/50 animate-in fade-in-0"
+            aria-hidden="true"
+            onClick={() => onOpenChange(false)}
+          />,
+          document.body,
+        )}
+      <Dialog
+      // Non-modal: Radix's modal mode sets `pointer-events: none` on <body> and
+      // marks sibling content inert/aria-hidden, which makes password managers'
+      // body-level inline menus (e.g. Bitwarden) appear obscured — triggering
+      // Bitwarden's "this page interferes" warning and disabling its inline menu.
+      // The DialogOverlay still renders the backdrop and click-outside still closes.
+      modal={false}
       open={open}
       onOpenChange={(v) => {
         if (!v) {
@@ -366,5 +387,6 @@ export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSucces
         )}
       </DialogContent>
     </Dialog>
+    </>
   );
 }
