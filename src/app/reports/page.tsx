@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Calendar, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpRight, Calendar, Filter, Search } from "lucide-react";
 import { useLang } from "@/components/LangProvider";
+import { useSearch } from "@/components/SearchCommand";
 
 const SECTION_SLUGS = [
   "digital-power-ai",
@@ -47,6 +47,7 @@ const LANG_LABELS: Record<string, string> = {
 
 export default function ReportsPage() {
   const { t: tr } = useLang();
+  const { open: openSearch } = useSearch();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -102,6 +103,19 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="bg-[#0A2540] text-white">
         <div className="mx-auto max-w-7xl px-6 lg:px-10 py-16 sm:py-20">
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={openSearch}
+              className="flex items-center gap-2 h-9 pl-3 pr-2 rounded-sm border border-white/25 text-white/70 hover:text-white hover:border-white/50 transition-colors"
+              aria-label={tr("search.title")}
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="text-xs">{tr("search.placeholder")}</span>
+              <kbd className="ml-1 inline-flex items-center h-5 px-1.5 bg-white/10 rounded-[3px] text-[10px] font-medium">
+                ⌘K
+              </kbd>
+            </button>
+          </div>
           <div className="max-w-3xl">
             <div className="flex items-center gap-4 mb-6">
               <span className="section-num">04</span>

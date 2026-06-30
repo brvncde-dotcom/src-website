@@ -70,11 +70,37 @@ export async function GET(request: NextRequest) {
     // title so highlights read like prose, not a heading echo.
     const snippetExpr = Prisma.sql`(coalesce(r.summary,'') || ' ' || ${contentExpr})`;
 
-    const tsquery = Prisma.sql`websearch_to_tsquery('simple', ${q})`;
+    // Build a PREFIX-aware tsquery from sanitized word tokens so as-you-type
+    // partials rank properly: "energ stor" -> "energ:* & stor:*". Without this,
+    // websearch_to_tsquery treats "energ" as a whole lexeme and never matches
+    // "energy" (rank 0). Tokens are stripped to letters/numbers, so the string
+    // handed to to_tsquery can't carry tsquery operators.
+    const tokens = (q.match(/[\p{L}\p{N}]+/gu) || [])
+      .slice(0, 10)
+      .map((t) => t.toLowerCase());
+    const prefixStr = tokens.map((t) => `${t}:*`).join(" & ");
+    const hasFts = prefixStr.length > 0;
+
+    // tsquery used for matching + ranking + headline. Falls back to
+    // websearch_to_tsquery when the query has no word tokens (pure punctuation).
+    const tsq = hasFts
+      ? Prisma.sql`to_tsquery('simple', ${prefixStr})`
+      : Prisma.sql`websearch_to_tsquery('simple', ${q})`;
+
+    // Short, high-signal text for trigram typo tolerance. word_similarity finds
+    // the BEST-matching word inside the text (not whole-string similarity, which
+    // a long title/summary would dilute to ~0) — so "dunkelflute" still finds
+    // "Dunkelflaute". Used both to filter (> 0.4) and to boost rank.
+    const trgmText = Prisma.sql`lower(coalesce(r.title,'') || ' ' || coalesce(r.summary,''))`;
+    const trgmScore = Prisma.sql`word_similarity(lower(${q}), ${trgmText})`;
+
     const like = `%${q}%`;
     const langFrag = lang ? Prisma.sql`AND r.language = ${lang}` : Prisma.empty;
     const sectionFrag = section ? Prisma.sql`AND r.section = ${section}` : Prisma.empty;
     const typeFrag = type ? Prisma.sql`AND r.type = ${type}` : Prisma.empty;
+    const ftsWhere = hasFts
+      ? Prisma.sql`to_tsvector('simple', ${docExpr}) @@ ${tsq} OR`
+      : Prisma.empty;
 
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT
@@ -83,9 +109,10 @@ export async function GET(request: NextRequest) {
         r."minTierId" AS "minTierId",
         mt."sortOrder" AS "minTierSort",
         mt.name AS "minTierName",
-        ts_rank(to_tsvector('simple', ${docExpr}), ${tsquery}) AS rank,
+        (ts_rank(to_tsvector('simple', ${docExpr}), ${tsq})
+          + 0.4 * ${trgmScore}) AS rank,
         ts_headline(
-          'simple', ${snippetExpr}, ${tsquery},
+          'simple', ${snippetExpr}, ${tsq},
           ${`StartSel=${HL_START},StopSel=${HL_END},MaxFragments=1,MaxWords=32,MinWords=10,ShortWord=2`}
         ) AS snippet
       FROM "Report" r
@@ -95,9 +122,10 @@ export async function GET(request: NextRequest) {
         ${sectionFrag}
         ${typeFrag}
         AND (
-          to_tsvector('simple', ${docExpr}) @@ ${tsquery}
-          OR r.title ILIKE ${like}
+          ${ftsWhere}
+          r.title ILIKE ${like}
           OR r.summary ILIKE ${like}
+          OR ${trgmScore} > 0.4
         )
       ORDER BY rank DESC, r."publishedAt" DESC NULLS LAST
       LIMIT ${limit}

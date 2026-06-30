@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SiteShell } from "@/components/SiteShell";
 import { LangProvider } from "@/components/LangProvider";
+import { SearchProvider } from "@/components/SearchCommand";
 import { prisma, VALID_LANGUAGES } from "@/lib/db";
 import type { Lang } from "@/lib/i18n";
 
@@ -88,7 +89,9 @@ export default async function RootLayout({
         className={`${inter.variable} ${spectral.variable} font-sans antialiased bg-background text-foreground`}
       >
         <LangProvider initialLang={htmlLang as Lang}>
-          <SiteShell>{children}</SiteShell>
+          <SearchProvider>
+            <SiteShell>{children}</SiteShell>
+          </SearchProvider>
         </LangProvider>
         <Toaster />
       </body>
