@@ -399,12 +399,15 @@ export default function ReportPage() {
                 {LANG_LABELS[report.language] || report.language}
               </span>
             )}
-            {report.code && (
-              <span className="inline-flex items-center bg-[#F4F6F9] text-[#0A2540] border border-[#D8DEE6] px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded-sm font-mono">
-                {report.code}
-              </span>
-            )}
           </div>
+          {report.code && (
+            <div className="mb-5 text-sm font-mono text-[#0A2540]">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                {tr("reports.detail.code")}
+              </span>{" "}
+              {report.code}
+            </div>
+          )}
           <h1 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight">
             {report.title}
           </h1>
