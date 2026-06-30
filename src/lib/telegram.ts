@@ -9,7 +9,7 @@
 // skipped and the webhook accepts-and-ignores, so this can ship before the
 // bot exists.
 
-import { prisma, validateDesignGate, logAdminAction } from "@/lib/db";
+import { prisma, validateDesignGate, logAdminAction, VALID_SECTIONS } from "@/lib/db";
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
@@ -160,5 +160,88 @@ export async function performReportAction(
   } catch (e) {
     console.error("[telegram] performReportAction failed:", e);
     return { ok: false, message: "Action failed." };
+  }
+}
+
+// ── Phase 2: forward-to-ingest ──
+
+// Short button labels for the 6 focus areas (full names are too long for buttons).
+const SECTION_SHORT: Record<string, string> = {
+  "digital-power-ai": "Digital/AI",
+  "geopolitics-hard-security": "Geopolitics",
+  "energy-resources": "Energy",
+  "climate-environment-food": "Climate/Food",
+  "economy-competitiveness": "Economy",
+  "society-migration-institutions": "Society",
+};
+
+function sectionPicker(id: string): InlineKeyboard {
+  const secs = [...VALID_SECTIONS];
+  const rows: Array<Array<Record<string, string>>> = [];
+  for (let i = 0; i < secs.length; i += 2) {
+    rows.push(
+      secs.slice(i, i + 2).map((s) => ({ text: SECTION_SHORT[s] || s, callback_data: `isec:${s}:${id}` }))
+    );
+  }
+  rows.push([{ text: "🗑 Discard", callback_data: `idel:${id}` }]);
+  return { inline_keyboard: rows };
+}
+
+// Create a pending "intake" report from forwarded/link content. Returns a
+// confirmation message + a section-picker keyboard.
+export async function createIntake(input: {
+  text: string;
+  url?: string | null;
+  source?: string | null;
+  messageId: number;
+}): Promise<{ text: string; reply_markup: InlineKeyboard }> {
+  const firstLine = (input.text.split("\n").find((l) => l.trim()) || "").trim();
+  const titleBase = (firstLine || input.url || "Telegram intake").slice(0, 90);
+  const title = `Intake: ${titleBase}`;
+  const content =
+    (input.text || "") +
+    (input.url ? `\n\nSource: ${input.url}` : "") +
+    (input.source ? `\nForwarded from: ${input.source}` : "");
+
+  const report = await prisma.report.create({
+    data: {
+      title,
+      summary: (input.text || input.url || "").slice(0, 240) || null,
+      content: content.trim() || null,
+      type: "Brief",
+      section: "geopolitics-hard-security", // default; recategorize via buttons
+      status: "pending",
+      sourceRef: `TG-INTAKE-${input.messageId}`,
+      language: "en",
+      author: "SRC Intake (Telegram)",
+    },
+    select: { id: true },
+  });
+  await logAdminAction({ actor: "telegram", action: "intake_created", targetType: "report", targetId: report.id });
+
+  return {
+    text:
+      `📥 <b>Added to the intake queue</b>\n${esc(title)}\n\n` +
+      `It's in the review queue as a draft. Pick a focus area (or discard):`,
+    reply_markup: sectionPicker(report.id),
+  };
+}
+
+export async function setIntakeSection(id: string, section: string): Promise<boolean> {
+  if (!VALID_SECTIONS.includes(section as (typeof VALID_SECTIONS)[number])) return false;
+  try {
+    await prisma.report.update({ where: { id }, data: { section } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function discardIntake(id: string): Promise<boolean> {
+  try {
+    await prisma.report.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
   }
 }

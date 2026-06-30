@@ -9,7 +9,11 @@ import {
   tgAnswerCallback,
   reportCard,
   performReportAction,
+  createIntake,
+  setIntakeSection,
+  discardIntake,
 } from "@/lib/telegram";
+import { SECTION_LABELS } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +40,8 @@ export async function POST(request: NextRequest) {
   try {
     if (update.callback_query) {
       await handleCallback(update.callback_query);
-    } else if (update.message?.text) {
-      await handleCommand(update.message);
+    } else if (update.message) {
+      await handleMessage(update.message);
     }
   } catch (e) {
     console.error("[telegram] handler error:", e);
@@ -53,14 +57,37 @@ async function handleCallback(cq: NonNullable<TelegramUpdate["callback_query"]>)
   }
 
   const parts = (cq.data || "").split(":");
-  if (parts[0] !== "rv" || parts.length < 3) {
+  const kind = parts[0];
+  const chatId = cq.message?.chat?.id;
+  const messageId = cq.message?.message_id;
+
+  // Phase 2: categorize an intake into a focus area.
+  if (kind === "isec" && parts.length >= 3) {
+    const section = parts[1];
+    const id = parts.slice(2).join(":");
+    const ok = await setIntakeSection(id, section);
+    await tgAnswerCallback(cq.id, ok ? "Filed." : "Failed.");
+    if (ok && chatId && messageId) {
+      await tgEdit(chatId, messageId, `📥 <b>Intake filed</b> — ${SECTION_LABELS[section] || section}\nIt's in the review queue for development.`);
+    }
+    return;
+  }
+
+  // Phase 2: discard an intake.
+  if (kind === "idel" && parts.length >= 2) {
+    const id = parts.slice(1).join(":");
+    const ok = await discardIntake(id);
+    await tgAnswerCallback(cq.id, ok ? "Discarded." : "Failed.");
+    if (ok && chatId && messageId) await tgEdit(chatId, messageId, "🗑 Intake discarded.");
+    return;
+  }
+
+  if (kind !== "rv" || parts.length < 3) {
     await tgAnswerCallback(cq.id);
     return;
   }
   const action = parts[1] as "approved" | "published" | "rejected";
   const id = parts.slice(2).join(":");
-  const chatId = cq.message?.chat?.id;
-  const messageId = cq.message?.message_id;
 
   const report = await prisma.report.findUnique({ where: { id }, select: { title: true } });
   const result = await performReportAction(id, action);
@@ -78,12 +105,10 @@ async function handleCallback(cq: NonNullable<TelegramUpdate["callback_query"]>)
   }
 }
 
-async function handleCommand(msg: NonNullable<TelegramUpdate["message"]>) {
+async function handleMessage(msg: NonNullable<TelegramUpdate["message"]>) {
   const chatId = msg.chat?.id;
   const fromId = msg.from?.id;
   if (chatId == null) return;
-  const text = (msg.text || "").trim();
-  const cmd = text.split(/\s+/)[0].replace(/@.*$/, "").toLowerCase();
 
   if (!isAllowed(fromId)) {
     // Help an admin add them: surface their numeric id.
@@ -91,12 +116,30 @@ async function handleCommand(msg: NonNullable<TelegramUpdate["message"]>) {
     return;
   }
 
+  const text = (msg.text || msg.caption || "").trim();
+
+  // Non-command message → a forward or a link becomes an intake draft.
+  if (!text.startsWith("/")) {
+    const isForward = !!(msg.forward_origin || msg.forward_from || msg.forward_from_chat || msg.forward_date);
+    const url = (text.match(/https?:\/\/\S+/) || [])[0] || null;
+    if (isForward || url) {
+      const card = await createIntake({ text, url, source: forwardSource(msg), messageId: msg.message_id });
+      await tgSend(chatId, card.text, card.reply_markup);
+    } else {
+      await tgSend(chatId, "Forward a post or paste a link to add it to the intake queue. Commands: /pending, /stats.");
+    }
+    return;
+  }
+
+  const cmd = text.split(/\s+/)[0].replace(/@.*$/, "").toLowerCase();
+
   if (cmd === "/start" || cmd === "/help") {
     await tgSend(
       chatId,
       "<b>SRC Editorial</b> — you're authorized.\n\n" +
         "/pending — reports awaiting review\n" +
         "/stats — site overview\n\n" +
+        "Forward a post or paste a link and I'll add it to the intake queue.\n" +
         "You'll also get a card here whenever a new report is ingested, with Approve / Publish / Reject buttons."
     );
     return;
@@ -139,14 +182,42 @@ async function handleCommand(msg: NonNullable<TelegramUpdate["message"]>) {
     return;
   }
 
-  await tgSend(chatId, "Unknown command. Try /pending or /stats.");
+  await tgSend(chatId, "Unknown command. Try /pending or /stats — or forward a post / paste a link to add it to the intake queue.");
+}
+
+// Best-effort human-readable source of a forwarded message.
+function forwardSource(msg: NonNullable<TelegramUpdate["message"]>): string | null {
+  const o = msg.forward_origin;
+  if (o) {
+    if (o.chat) return o.chat.title || o.chat.username || "channel";
+    if (o.sender_user_name) return o.sender_user_name;
+    if (o.sender_user) return [o.sender_user.first_name, o.sender_user.last_name].filter(Boolean).join(" ") || null;
+  }
+  if (msg.forward_from) return [msg.forward_from.first_name, msg.forward_from.last_name].filter(Boolean).join(" ") || null;
+  if (msg.forward_from_chat) return msg.forward_from_chat.title || null;
+  return null;
 }
 
 // ── Minimal Telegram update typings (only what we use) ──
 type TelegramUser = { id: number; first_name?: string; last_name?: string };
 type TelegramChat = { id: number };
 interface TelegramUpdate {
-  message?: { message_id: number; chat?: TelegramChat; from?: TelegramUser; text?: string };
+  message?: {
+    message_id: number;
+    chat?: TelegramChat;
+    from?: TelegramUser;
+    text?: string;
+    caption?: string;
+    forward_date?: number;
+    forward_origin?: {
+      type?: string;
+      chat?: { title?: string; username?: string };
+      sender_user?: TelegramUser;
+      sender_user_name?: string;
+    };
+    forward_from?: TelegramUser;
+    forward_from_chat?: { title?: string };
+  };
   callback_query?: {
     id: string;
     from?: TelegramUser;
