@@ -236,3 +236,21 @@ model CustomerTag {
   @@unique([userId, tag])
   @@index([userId])
 }
+
+model Invitation {
+  id           String    @id @default(cuid())
+  email        String
+  token        String    @unique
+  grantType    String? // free_tier | complimentary_period | null (trial only)
+  tierSlug     String?
+  durationDays Int?
+  reason       String?
+  invitedBy    String
+  status       String    @default("pending") // pending | accepted | revoked | expired
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([email])
+  @@index([status])
+}

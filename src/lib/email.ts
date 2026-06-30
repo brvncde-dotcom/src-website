@@ -111,3 +111,61 @@ export function buildPasswordResetEmail(resetUrl: string, lang: string = "en") {
 </html>`;
   return { subject: c.subject, html };
 }
+
+// ── Invitation email (localized) ──
+
+const INVITE_COPY: Record<Lang, { subject: string; heading: string; body: string; cta: string; expires: string }> = {
+  en: {
+    subject: "You're invited to SRC Advisory",
+    heading: "You've been invited",
+    body: "You've been invited to join SRC Advisory. Click below to set up your account and get started.",
+    cta: "Accept invitation",
+    expires: "This invitation expires in 7 days.",
+  },
+  de: {
+    subject: "Sie sind zu SRC Advisory eingeladen",
+    heading: "Sie wurden eingeladen",
+    body: "Sie wurden eingeladen, SRC Advisory beizutreten. Klicken Sie unten, um Ihr Konto einzurichten.",
+    cta: "Einladung annehmen",
+    expires: "Diese Einladung läuft in 7 Tagen ab.",
+  },
+  fr: {
+    subject: "Vous êtes invité à SRC Advisory",
+    heading: "Vous avez été invité",
+    body: "Vous avez été invité à rejoindre SRC Advisory. Cliquez ci-dessous pour configurer votre compte.",
+    cta: "Accepter l'invitation",
+    expires: "Cette invitation expire dans 7 jours.",
+  },
+  it: {
+    subject: "Sei invitato a SRC Advisory",
+    heading: "Sei stato invitato",
+    body: "Sei stato invitato a unirti a SRC Advisory. Fai clic qui sotto per configurare il tuo account.",
+    cta: "Accetta l'invito",
+    expires: "Questo invito scade tra 7 giorni.",
+  },
+};
+
+export function buildInvitationEmail(inviteUrl: string, lang: string = "en") {
+  const c = INVITE_COPY[(lang as Lang) in INVITE_COPY ? (lang as Lang) : "en"];
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr><td style="background:#0A2540;padding:20px 28px;">
+            <span style="color:#ffffff;font-weight:700;font-size:16px;letter-spacing:0.04em;">SRC ADVISORY</span>
+          </td></tr>
+          <tr><td style="padding:28px;">
+            <h1 style="margin:0 0 12px;font-size:20px;color:#0A2540;">${c.heading}</h1>
+            <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#374151;">${c.body}</p>
+            <a href="${inviteUrl}" style="display:inline-block;background:#0A2540;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:6px;">${c.cta}</a>
+            <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">${c.expires}</p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+  return { subject: c.subject, html };
+}

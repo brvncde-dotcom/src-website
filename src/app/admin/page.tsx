@@ -13,6 +13,11 @@ export default function AdminHome() {
       title: "Members",
       desc: "View members, assign tiers, and grant or revoke comp memberships (free access for a period).",
     },
+    {
+      href: "/admin/invitations",
+      title: "Invitations",
+      desc: "Invite people by email and optionally grant them free access on signup.",
+    },
   ];
 
   return (
