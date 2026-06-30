@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,15 @@ export default function AcceptInvitePage() {
         return;
       }
       setDone(true);
+      // Auto-login with the credentials just set, then land on the account
+      // page so the member is immediately signed in and sees their access.
+      const signInRes = await signIn("credentials", { email, password, redirect: false });
+      if (signInRes?.ok) {
+        window.location.href = "/?tab=account";
+        return;
+      }
+      // Fallback: account created but auto-login failed → the "done" screen
+      // tells them they can sign in manually.
     } catch {
       setError("Could not accept invitation.");
     } finally {

@@ -40,6 +40,7 @@ interface ProfileData {
   languagePref: string;
   marketingConsent: boolean;
   currentTier: { id: string; slug: string; name: string } | null;
+  effectiveTier: { id: string; slug: string; name: string } | null;
   trialEnd: string | null;
   isMember: boolean;
 }
@@ -299,12 +300,12 @@ export function UserAccountView() {
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {profile.email}
-                {profile.currentTier && (
+                {(profile.effectiveTier || profile.currentTier) && (
                   <Badge
                     variant="outline"
                     className="ml-2 text-[10px] uppercase tracking-wider font-bold"
                   >
-                    {profile.currentTier.name}
+                    {(profile.effectiveTier || profile.currentTier)!.name}
                   </Badge>
                 )}
                 {profile.trialEnd && new Date(profile.trialEnd) > new Date() && (
