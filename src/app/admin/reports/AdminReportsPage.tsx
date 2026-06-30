@@ -569,12 +569,16 @@ export default function AdminReportsPage() {
           </div>
         )}
 
-        {/* API Usage Info */}
-        <div className="mt-12 p-6 bg-white border border-[#D8DEE6] rounded-sm">
-          <h3 className="font-bold text-sm mb-3">
-            vnOrchestrator Ingestion Endpoint
-          </h3>
-          <div className="bg-[#0A2540] text-green-400 text-xs font-mono p-4 rounded-sm overflow-x-auto">
+        {/* API Usage Info — collapsed by default and not rendered while loading,
+            so the dark code panel never flashes on screen during initial render */}
+        {!loading && (
+          <details className="mt-12 bg-white border border-[#D8DEE6] rounded-sm group">
+            <summary className="flex items-center gap-2 cursor-pointer select-none p-6 font-bold text-sm">
+              <ChevronDown className="h-4 w-4 -rotate-90 transition-transform group-open:rotate-0" />
+              vnOrchestrator Ingestion Endpoint
+            </summary>
+            <div className="px-6 pb-6 -mt-2">
+              <div className="bg-[#0A2540] text-green-400 text-xs font-mono p-4 rounded-sm overflow-x-auto">
             <pre>{`POST /api/reports
 Authorization: Bearer <INGESTION_API_KEY>
 Content-Type: application/json
@@ -595,8 +599,10 @@ Types: Analysis | Strategy Paper | Statement | Brief | Report | Opinion
 Languages: en | de | fr | it (default: en)
 Unique constraint: (sourceRef, language) — one version per language per source
 Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
-          </div>
-        </div>
+              </div>
+            </div>
+          </details>
+        )}
       </div>
 
       {/* Action Dialog */}
