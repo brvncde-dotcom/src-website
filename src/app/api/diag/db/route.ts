@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma, VALID_SECTIONS, VALID_LANGUAGES, validateAdminKey } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const results: Record<string, unknown> = {};
 
+  // Basic queries
   try {
     const count = await prisma.report.count({ where: { status: "published" } });
     results.count = count;
@@ -62,6 +63,37 @@ export async function GET() {
     results.rawQuery = raw;
   } catch (err: unknown) {
     results.rawQueryError = err instanceof Error ? err.message : String(err);
+  }
+
+  // Exact replica of /api/reports GET query
+  try {
+    const select = {
+      id: true,
+      title: true,
+      summary: true,
+      type: true,
+      section: true,
+      status: true,
+      language: true,
+      sourceRef: true,
+      author: true,
+      code: true,
+      publishedAt: true,
+      createdAt: true,
+    };
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        where: { status: "published" },
+        orderBy: { publishedAt: "desc" },
+        take: 2,
+        skip: 0,
+        select,
+      }),
+      prisma.report.count({ where: { status: "published" } }),
+    ]);
+    results.exactReportsQuery = { reports, total };
+  } catch (err: unknown) {
+    results.exactReportsQueryError = err instanceof Error ? err.message : String(err);
   }
 
   return NextResponse.json(results);
