@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { prisma, validateAdminKey } from "@/lib/db";
+import { prisma, validateAdminKey, logAdminAction } from "@/lib/db";
 import { sendEmail, buildInvitationEmail } from "@/lib/email";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const VALID_GRANT_TYPES = ["free_tier", "complimentary_period"];
@@ -76,6 +78,21 @@ export async function POST(request: NextRequest) {
     const inviteUrl = `${getBaseUrl(request)}/invite/${token}`;
     const { subject, html } = buildInvitationEmail(inviteUrl, lang || "en");
     const result = await sendEmail({ to: normalizedEmail, subject, html });
+
+    let actor = "admin";
+    try {
+      const session = await getServerSession(authOptions);
+      actor = session?.user?.email || "admin";
+    } catch {
+      /* keep default */
+    }
+    await logAdminAction({
+      actor,
+      action: "invitation_sent",
+      targetType: "invitation",
+      targetId: invitation.id,
+      detail: normalizedEmail,
+    });
 
     return NextResponse.json(
       {

@@ -199,3 +199,25 @@ export async function canAccessContent(
     reason: `Requires ${reportMinTier.name} tier or higher`,
   };
 }
+// --- Admin audit log ---
+export async function logAdminAction(entry: {
+  actor: string;
+  action: string;
+  targetType?: string;
+  targetId?: string;
+  detail?: string;
+}): Promise<void> {
+  try {
+    await prisma.adminAuditLog.create({
+      data: {
+        actor: entry.actor,
+        action: entry.action,
+        targetType: entry.targetType ?? null,
+        targetId: entry.targetId ?? null,
+        detail: entry.detail ?? null,
+      },
+    });
+  } catch (e) {
+    console.error("[audit] failed to log admin action:", e);
+  }
+}
