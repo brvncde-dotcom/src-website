@@ -144,3 +144,58 @@ export async function POST(
     );
   }
 }
+
+// PATCH /api/admin/users/[id]/grant-access — manage an existing grant
+// Body: { grantId, action: "revoke" | "extend", durationDays? }
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!validateAdminKey(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const { grantId, action, durationDays } = await request.json();
+
+    if (!grantId || !action) {
+      return NextResponse.json({ error: "grantId and action are required" }, { status: 400 });
+    }
+
+    const grant = await prisma.accessGrant.findUnique({ where: { id: grantId } });
+    if (!grant || grant.userId !== id) {
+      return NextResponse.json({ error: "Grant not found" }, { status: 404 });
+    }
+
+    if (action === "revoke") {
+      const updated = await prisma.accessGrant.update({
+        where: { id: grantId },
+        data: { status: "revoked" },
+      });
+      return NextResponse.json({ ...updated, message: "Access grant revoked." });
+    }
+
+    if (action === "extend") {
+      const days = parseInt(String(durationDays), 10);
+      if (!days || days < 1) {
+        return NextResponse.json({ error: "durationDays must be a positive number" }, { status: 400 });
+      }
+      // Extend from the later of "now" or the current expiry, so a still-active
+      // grant gets days added rather than reset.
+      const now = new Date();
+      const base = grant.expiresAt && grant.expiresAt > now ? grant.expiresAt : now;
+      const expiresAt = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+      const updated = await prisma.accessGrant.update({
+        where: { id: grantId },
+        data: { expiresAt, isPermanent: false, status: "active" },
+      });
+      return NextResponse.json({ ...updated, message: "Access grant extended." });
+    }
+
+    return NextResponse.json({ error: "action must be 'revoke' or 'extend'" }, { status: 400 });
+  } catch (error) {
+    console.error("Error updating access grant:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

@@ -307,6 +307,34 @@ export default function AdminUsersPage() {
 
   // ── Grant access ──
 
+  // Extend or revoke an existing access grant (membership update).
+  const handleGrantAction = async (
+    userId: string,
+    grantId: string,
+    action: "extend" | "revoke",
+    durationDays?: number
+  ) => {
+    if (action === "revoke" && !confirm("Revoke this access grant? The member loses this access immediately.")) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/grant-access`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ grantId, action, durationDays }),
+      });
+      if (res.ok) {
+        fetchUsers();
+        if (expandedId === userId) fetchUserProfile(userId);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to update access grant");
+      }
+    } catch {
+      alert("Failed to update access grant");
+    }
+  };
+
   const handleGrantAccess = async () => {
     if (!grantModal.user) return;
 
@@ -851,6 +879,26 @@ export default function AdminUsersPage() {
                                                 <div className="text-[10px] text-[#5A6B7F] italic mt-1">
                                                   {grant.reason}
                                                 </div>
+                                                {grant.status === "active" && (
+                                                  <div className="flex gap-3 mt-2 pt-2 border-t border-[#EEF1F5]">
+                                                    <button
+                                                      onClick={() =>
+                                                        handleGrantAction(userProfile.id, grant.id, "extend", 30)
+                                                      }
+                                                      className="text-[10px] font-semibold text-[#0A2540] hover:underline"
+                                                    >
+                                                      + 30 days
+                                                    </button>
+                                                    <button
+                                                      onClick={() =>
+                                                        handleGrantAction(userProfile.id, grant.id, "revoke")
+                                                      }
+                                                      className="text-[10px] font-semibold text-[#E8272C] hover:underline"
+                                                    >
+                                                      Revoke
+                                                    </button>
+                                                  </div>
+                                                )}
                                               </div>
                                             )
                                           )}
