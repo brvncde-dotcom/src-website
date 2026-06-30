@@ -13,6 +13,7 @@ import {
   Share2,
   Mail,
   Check,
+  Lock,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
@@ -56,6 +57,8 @@ interface Report {
   createdAt: string;
   updatedAt: string;
   translations?: { id: string; language: string; title: string }[];
+  access?: "full" | "preview" | "denied";
+  requiredTier?: string | null;
 }
 
 function BackLink({ label }: { label: string }) {
@@ -453,6 +456,27 @@ export default function ReportPage() {
               <MarkdownRenderer content={report.content} />
             </div>
           </article>
+        ) : report.access && report.access !== "full" ? (
+          <div className="mx-auto max-w-xl text-center border border-border rounded-lg bg-muted/30 px-6 py-12">
+            <Lock className="h-9 w-9 text-[#0A2540] mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-[#0A2540] mb-2">
+              {tr("reports.locked.title")}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-1">
+              {tr("reports.locked.desc")}
+            </p>
+            {report.requiredTier && (
+              <p className="text-sm font-semibold text-[#0A2540] mb-5">
+                {tr("reports.locked.required")} {report.requiredTier}
+              </p>
+            )}
+            <Link
+              href="/?tab=membership"
+              className="inline-block bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider px-5 py-2.5 rounded-md"
+            >
+              {tr("reports.locked.cta")}
+            </Link>
+          </div>
         ) : (
           <div className="text-center py-16">
             <BookOpen className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />

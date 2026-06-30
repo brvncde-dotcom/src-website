@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, validateAdminKey, VALID_STATUSES } from "@/lib/db";
+import { prisma, validateAdminKey, VALID_STATUSES, canAccessContent } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // PATCH /api/reports/[id] — Review action: approve, reject, publish
 // Rebuild: force fresh bundle to pick up fixed db.ts singleton
@@ -16,7 +18,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { action, reviewNote, title, summary, content, section, type, author, language } = body;
+    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId } = body;
 
     // Handle review actions
     if (action) {
@@ -106,6 +108,8 @@ export async function PATCH(
     if (type !== undefined) updateFields.type = type;
     if (author !== undefined) updateFields.author = author;
     if (language !== undefined) updateFields.language = language;
+    // minTierId: set a tier slug-resolved id to gate the report, or "" / null to ungate.
+    if (minTierId !== undefined) updateFields.minTierId = minTierId || null;
 
     if (Object.keys(updateFields).length === 0) {
       return NextResponse.json(
@@ -189,8 +193,37 @@ export async function GET(
       }
     }
 
+    // Tier-based access control: only entitled users (or admins) get full
+    // content. Everyone else gets a preview (summary, no body) plus the tier
+    // they'd need. Gating applies only when the report has a minTierId set.
+    let access: { access: "full" | "preview" | "denied"; reason: string } = {
+      access: "full",
+      reason: "Admin access",
+    };
+    let requiredTier: string | null = null;
+
+    if (!isAdmin) {
+      const session = await getServerSession(authOptions);
+      const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+      access = await canAccessContent(userId, resultReport);
+      if (access.access !== "full" && resultReport.minTierId) {
+        const tier = await prisma.tier.findUnique({
+          where: { id: resultReport.minTierId },
+          select: { name: true },
+        });
+        requiredTier = tier?.name ?? null;
+      }
+    }
+
+    const gated = access.access !== "full";
+
     return NextResponse.json({
       ...resultReport,
+      // Withhold the full body for non-entitled viewers; summary stays visible.
+      content: gated ? null : resultReport.content,
+      access: access.access,
+      accessReason: access.reason,
+      requiredTier,
       translations: translations.sort((a, b) => a.language.localeCompare(b.language)),
     });
   } catch (error) {

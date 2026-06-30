@@ -72,6 +72,7 @@ model Report {
   sourceRef   String?
   language    String    @default("en")
   author      String?
+  minTierId   String?
   publishedAt DateTime?
   reviewedBy  String?
   reviewedAt  DateTime?
