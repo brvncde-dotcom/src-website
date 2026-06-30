@@ -81,10 +81,12 @@ interface Report {
   reviewedAt: string | null;
   reviewedBy: string | null;
   reviewNote: string | null;
+  minTierId: string | null;
 }
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [tiers, setTiers] = useState<{ id: string; name: string; sortOrder: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -174,6 +176,31 @@ export default function AdminReportsPage() {
     sessionStorage.setItem("src_admin_key", apiKey);
     setIsAuthenticated(true);
     fetchReports();
+  };
+
+  // Load the tier list for the "members-only" gating control.
+  useEffect(() => {
+    fetch("/api/tiers")
+      .then((r) => (r.ok ? r.json() : { tiers: [] }))
+      .then((d) => setTiers(d.tiers || []))
+      .catch(() => {});
+  }, []);
+
+  // Set or clear a report's required tier (members-only gate).
+  const handleSetTier = async (reportId: string, minTierId: string) => {
+    try {
+      const res = await fetch(`/api/reports/${reportId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ minTierId }),
+      });
+      if (res.ok) fetchReports();
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleAction = async () => {
@@ -503,6 +530,27 @@ export default function AdminReportsPage() {
                           No full content available
                         </div>
                       )}
+                      {/* Members-only gating: set the minimum tier required to read this report */}
+                      <div className="mt-3 flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-[#5A6B7F]">
+                          Members-only access
+                        </span>
+                        <select
+                          value={report.minTierId || ""}
+                          onChange={(e) => handleSetTier(report.id, e.target.value)}
+                          className="text-xs border border-[#D8DEE6] rounded-sm px-2 py-1 bg-white"
+                        >
+                          <option value="">Public — no gate</option>
+                          {tiers.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name} tier or higher
+                            </option>
+                          ))}
+                        </select>
+                        {report.minTierId && (
+                          <span className="text-[10px] text-[#0A2540] font-semibold">🔒 gated</span>
+                        )}
+                      </div>
                       {report.reviewNote && (
                         <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-sm">
                           <div className="text-[10px] uppercase tracking-wider font-semibold text-yellow-700 mb-1">
