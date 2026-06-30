@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get("id");
     if (id) {
-      const report = await prisma.$queryRawUnsafe<
+      const report = await prisma.$queryRaw<
         { id: string; title: string; status: string; sourceRef: string | null; author: string | null; content: string | null; summary: string | null }[]
-      >(`SELECT id, title, status, "sourceRef", author, content, summary FROM "Report" WHERE id = $1`, id);
+      >`SELECT id, title, status, "sourceRef", author, content, summary FROM "Report" WHERE id = ${id}`;
       return NextResponse.json({ report: report[0] ?? null });
     }
 
