@@ -17,6 +17,7 @@ function generateShareToken(): string {
   return crypto.randomBytes(6).toString("hex"); // 12 hex chars
 }
 
+// Rebuild: SRC-505 2026-06-30 — force fresh bundle after db.ts refactor
 // POST /api/content/[id]/share — Create a share link
 export async function POST(
   request: NextRequest,

@@ -10,7 +10,7 @@ import {
 } from "@/lib/db";
 
 // POST /api/reports — Ingest a new report from vnOrchestrator
-// Rebuild: force fresh bundle to pick up fixed db.ts singleton
+// Rebuild: SRC-505 2026-06-30 — force fresh bundle + transactional create-verify
 export async function POST(request: NextRequest) {
   // Auth check
   if (!validateIngestionKey(request)) {
@@ -92,37 +92,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const report = await prisma.report.create({
-      data: {
-        title: title.trim(),
-        summary: summary?.trim() || null,
-        content: content?.trim() || null,
-        type: reportType,
-        section,
-        sourceRef: sourceRef?.trim() || null,
-        language: reportLang,
-        author: author?.trim() || null,
-        status: "pending", // All ingested reports start as pending
-      },
-    });
-
-    // Defensive verification: ensure the write actually persisted.
-    // This catches database-layer issues (connection poolers, triggers,
-    // read-replica lag, etc.) that can silently drop writes in serverless
-    // environments while still returning a result object.
-    const verify = await prisma.report.findUnique({
-      where: { id: report.id },
-    });
-    if (!verify) {
-      console.error("Report create returned data but findUnique returned null — write was lost.", {
-        id: report.id,
-        title: report.title,
+    // Use an interactive transaction so create and verify share the same
+    // database connection. This eliminates connection-pooler or read-replica
+    // lag as a source of silent write failures in serverless environments.
+    const report = await prisma.$transaction(async (tx) => {
+      const created = await tx.report.create({
+        data: {
+          title: title.trim(),
+          summary: summary?.trim() || null,
+          content: content?.trim() || null,
+          type: reportType,
+          section,
+          sourceRef: sourceRef?.trim() || null,
+          language: reportLang,
+          author: author?.trim() || null,
+          status: "pending", // All ingested reports start as pending
+        },
       });
-      return NextResponse.json(
-        { error: "Report could not be persisted. Please retry." },
-        { status: 500 }
-      );
-    }
+
+      // Defensive verification inside the transaction: if the row is not
+      // visible on the same connection, something is fundamentally broken.
+      const verify = await tx.report.findUnique({
+        where: { id: created.id },
+      });
+      if (!verify) {
+        throw new Error(
+          `Report create verification failed — write was not persisted for id ${created.id}`
+        );
+      }
+
+      return created;
+    });
 
     return NextResponse.json(
       {

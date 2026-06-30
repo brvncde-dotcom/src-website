@@ -12,6 +12,7 @@ async function getAuthUser() {
   return user;
 }
 
+// Rebuild: SRC-505 2026-06-30 — force fresh bundle after db.ts refactor
 // POST /api/me/saved/[reportId] — Save a report (upsert)
 export async function POST(
   _request: NextRequest,

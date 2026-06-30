@@ -11,13 +11,15 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient();
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
 // Always cache the Prisma client on globalThis to avoid exhausting the
 // connection pool in serverless environments (Vercel, Neon, etc.).
-// The prior code only cached in dev, which caused a new client (and new
-// pool) to be created on every module import in production.
-globalForPrisma.prisma = prisma;
+// We assign directly to globalThis first, then export, so every module
+// that imports this file gets the exact same client instance.
+if (!globalForPrisma.prisma) {
+  globalForPrisma.prisma = createPrismaClient();
+}
+
+export const prisma = globalForPrisma.prisma;
 
 // --- Constants ---
 export const VALID_SECTIONS = [

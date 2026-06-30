@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // PATCH /api/reports/[id] — Review action: approve, reject, publish
-// Rebuild: force fresh bundle to pick up fixed db.ts singleton
+// Rebuild: SRC-505 2026-06-30 — force fresh bundle after db.ts refactor
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,

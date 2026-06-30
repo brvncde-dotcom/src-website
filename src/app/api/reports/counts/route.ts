@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, VALID_LANGUAGES } from "@/lib/db";
 
-// Rebuild: force fresh bundle to pick up fixed db.ts singleton
+// Rebuild: SRC-505 2026-06-30 — force fresh bundle after db.ts refactor
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
