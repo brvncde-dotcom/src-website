@@ -64,6 +64,30 @@ interface Report {
   requiredTier?: string | null;
 }
 
+async function copyToClipboard(text: string): Promise<void> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch {
+    // fall through to the legacy path
+  }
+  // Fallback for older browsers / non-secure contexts.
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } catch {
+    /* ignore */
+  }
+  document.body.removeChild(ta);
+}
+
 function BackLink({ label }: { label: string }) {
   return (
     <button
@@ -105,7 +129,6 @@ export default function ReportPage() {
 
   // Share state
   const [shareOpen, setShareOpen] = useState(false);
-  const [shareLoading, setShareLoading] = useState<string | null>(null);
   const [sharedConfirmation, setSharedConfirmation] = useState<string | null>(null);
 
   // Check auth status and saved state on mount
@@ -179,49 +202,49 @@ export default function ReportPage() {
     }
   };
 
-  const handleShare = async (channel: string) => {
-    if (!params.id || shareLoading) return;
-    setShareLoading(channel);
-    setSharedConfirmation(null);
-    try {
-      const res = await fetch(`/api/content/${params.id}/share`, {
+  // Share the canonical, public report URL. Built synchronously so the
+  // window.open / mailto fires inside the click gesture (popup blockers kill
+  // window.open that happens after an await). Share tracking is a best-effort
+  // fire-and-forget for signed-in members — it must never block or break the
+  // action for anonymous visitors (the tracking endpoint requires auth).
+  const handleShare = (channel: string) => {
+    if (!params.id) return;
+    const reportUrl = `${window.location.origin}/reports/${params.id}`;
+    const title = report?.title || "SRC Advisory Report";
+
+    if (isAuthenticated) {
+      fetch(`/api/content/${params.id}/share`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ channel }),
-      });
-      if (!res.ok) {
-        setShareLoading(null);
-        return;
-      }
-      const data = await res.json();
-      const fullUrl = `${window.location.origin}${data.shareUrl}`;
-      const title = report?.title || "SRC Advisory Report";
-
-      if (channel === "copy") {
-        await navigator.clipboard.writeText(fullUrl);
-      } else if (channel === "email") {
-        window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Read this report: ${fullUrl}`)}`;
-      } else if (channel === "twitter") {
-        window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`,
-          "_blank",
-          "noopener,noreferrer"
-        );
-      } else if (channel === "linkedin") {
-        window.open(
-          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`,
-          "_blank",
-          "noopener,noreferrer"
-        );
-      }
-
-      setSharedConfirmation(channel);
-      setTimeout(() => setSharedConfirmation(null), 2000);
-    } catch {
-      // silently fail
-    } finally {
-      setShareLoading(null);
+      }).catch(() => {});
     }
+
+    const confirm = (c: string) => {
+      setSharedConfirmation(c);
+      setTimeout(() => setSharedConfirmation(null), 2000);
+    };
+
+    if (channel === "copy") {
+      copyToClipboard(reportUrl).finally(() => confirm("copy"));
+      return;
+    }
+    if (channel === "email") {
+      window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n\n${reportUrl}`)}`;
+    } else if (channel === "twitter") {
+      window.open(
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(reportUrl)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    } else if (channel === "linkedin") {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(reportUrl)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    }
+    confirm(channel);
   };
 
   if (loading) {
@@ -319,7 +342,6 @@ export default function ReportPage() {
             {/* Email */}
             <button
               onClick={() => handleShare("email")}
-              disabled={shareLoading !== null}
               className="flex items-center gap-3 rounded-md border border-[#D8DEE6] px-4 py-3 text-sm font-medium text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors disabled:opacity-50"
             >
               <Mail className="h-4 w-4" />
@@ -337,7 +359,6 @@ export default function ReportPage() {
             {/* Twitter / X */}
             <button
               onClick={() => handleShare("twitter")}
-              disabled={shareLoading !== null}
               className="flex items-center gap-3 rounded-md border border-[#D8DEE6] px-4 py-3 text-sm font-medium text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors disabled:opacity-50"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -357,7 +378,6 @@ export default function ReportPage() {
             {/* LinkedIn */}
             <button
               onClick={() => handleShare("linkedin")}
-              disabled={shareLoading !== null}
               className="flex items-center gap-3 rounded-md border border-[#D8DEE6] px-4 py-3 text-sm font-medium text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors disabled:opacity-50"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -377,7 +397,6 @@ export default function ReportPage() {
             {/* Copy Link */}
             <button
               onClick={() => handleShare("copy")}
-              disabled={shareLoading !== null}
               className="flex items-center gap-3 rounded-md border border-[#D8DEE6] px-4 py-3 text-sm font-medium text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors disabled:opacity-50"
             >
               <Share2 className="h-4 w-4" />
