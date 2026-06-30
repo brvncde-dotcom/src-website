@@ -3,27 +3,9 @@ import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma, getUserTier } from "@/lib/db";
+import { HL_START, HL_END, type SearchHit } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
-
-// Result shape returned to the client. `snippet` is highlighted with <mark>…</mark>
-// and is ALWAYS safe to render publicly: for gated reports the requester can't
-// access, the snippet is built from title+summary only (content is excluded
-// from the search document per-row), so locked body text never leaks.
-type SearchHit = {
-  id: string;
-  title: string;
-  summary: string | null;
-  section: string;
-  type: string;
-  language: string;
-  sourceRef: string | null;
-  publishedAt: Date | null;
-  snippet: string | null;
-  rank: number;
-  gated: boolean;
-  requiredTier: string | null;
-};
 
 type Row = {
   id: string;
@@ -104,7 +86,7 @@ export async function GET(request: NextRequest) {
         ts_rank(to_tsvector('simple', ${docExpr}), ${tsquery}) AS rank,
         ts_headline(
           'simple', ${snippetExpr}, ${tsquery},
-          'StartSel=<mark>,StopSel=</mark>,MaxFragments=1,MaxWords=32,MinWords=10,ShortWord=2'
+          ${`StartSel=${HL_START},StopSel=${HL_END},MaxFragments=1,MaxWords=32,MinWords=10,ShortWord=2`}
         ) AS snippet
       FROM "Report" r
       LEFT JOIN "Tier" mt ON mt.id = r."minTierId"
@@ -134,7 +116,7 @@ export async function GET(request: NextRequest) {
         type: r.type,
         language: r.language,
         sourceRef: r.sourceRef,
-        publishedAt: r.publishedAt,
+        publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
         snippet: r.snippet,
         rank: typeof r.rank === "number" ? r.rank : Number(r.rank) || 0,
         gated,

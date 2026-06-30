@@ -15,6 +15,7 @@ import { LegalView } from "@/components/LegalView";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SessionProvider } from "@/components/SessionProvider";
 import { LangProvider } from "@/components/LangProvider";
+import { SearchProvider } from "@/components/SearchCommand";
 
 function getInitialPage(): PageKey {
   if (typeof window !== "undefined") {
@@ -62,13 +63,15 @@ export default function Page() {
   return (
     <LangProvider>
       <SessionProvider>
-        <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
-          <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
-          <main className="flex-1">
-            <PageRouter page={currentPage} />
-          </main>
-          <SiteFooter />
-        </NavigationProvider>
+        <SearchProvider>
+          <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
+            <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
+            <main className="flex-1">
+              <PageRouter page={currentPage} />
+            </main>
+            <SiteFooter />
+          </NavigationProvider>
+        </SearchProvider>
       </SessionProvider>
     </LangProvider>
   );

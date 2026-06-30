@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight, User, LogIn, Shield } from "lucide-react";
+import { X, Menu, ArrowRight, User, LogIn, Shield, Search } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { AuthDialog } from "@/components/AuthDialog";
+import { useSearch } from "@/components/SearchCommand";
 import { useLang } from "@/components/LangProvider";
 import { LANG_LABELS, type Lang } from "@/lib/i18n";
 
@@ -69,7 +70,10 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session, status } = useSession();
   const { t: tr } = useLang();
+  const { open: openSearch } = useSearch();
   const [authOpen, setAuthOpen] = useState(false);
+  const isMac =
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
   const handleNav = (key: PageKey) => {
     onNavigate(key);
@@ -121,6 +125,28 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
 
             {/* Lang switcher + Account + CTA + Mobile toggle */}
             <div className="flex items-center gap-2">
+              {/* Search — desktop: a button styled as a search field (opens ⌘K palette) */}
+              <button
+                onClick={openSearch}
+                className="hidden md:flex items-center gap-2 h-8 pl-2.5 pr-1.5 rounded-sm border border-border text-muted-foreground hover:border-[#0A2540]/40 hover:text-[#0A2540] transition-colors"
+                aria-label={tr("search.title")}
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span className="text-xs">{tr("search.placeholder")}</span>
+                <kbd className="ml-2 inline-flex items-center h-5 px-1.5 bg-secondary rounded-[3px] text-[10px] font-medium">
+                  {isMac ? "⌘K" : "Ctrl K"}
+                </kbd>
+              </button>
+
+              {/* Search — mobile/compact: icon only */}
+              <button
+                onClick={openSearch}
+                className="md:hidden p-2 hover:bg-secondary rounded-sm transition-colors text-[#0A2540]"
+                aria-label={tr("search.title")}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
               {/* Language switcher — desktop */}
               <div className="hidden md:block">
                 <LangSwitcher />
