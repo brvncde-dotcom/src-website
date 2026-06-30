@@ -223,19 +223,8 @@ export async function POST(request: NextRequest) {
 //   ?status=...       — filter by status (admin only)
 //   ?limit=50         — pagination
 //   ?offset=0         — pagination
-//   ?diag=1           — build diagnostic (SRC-505)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-
-  // Diagnostic mode: proves which code bundle is running
-  if (searchParams.get("diag") === "1") {
-    return NextResponse.json({
-      build: "SRC-505-2026-06-30",
-      dbTsHash: "singleton-v2-transaction",
-      nodeEnv: process.env.NODE_ENV || "unknown",
-      databaseUrlPrefix: (process.env.DATABASE_URL || "").split("?")[0].slice(0, 50),
-    });
-  }
 
   const section = searchParams.get("section");
   const type = searchParams.get("type");
