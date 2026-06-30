@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { title, summary, content, type, section, sourceRef, author, language } = body;
+    const { title, summary, content, type, section, sourceRef, author, language, code } = body;
 
     // Validate required fields
     if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -142,6 +142,7 @@ export async function POST(request: NextRequest) {
             type: reportType,
             section,
             author: author?.trim() || null,
+            code: code?.trim() || null,
           },
         });
         return NextResponse.json(
@@ -174,6 +175,7 @@ export async function POST(request: NextRequest) {
           sourceRef: sourceRef?.trim() || null,
           language: reportLang,
           author: author?.trim() || null,
+          code: code?.trim() || null,
           status: "pending", // All ingested reports start as pending
         },
       });
@@ -275,6 +277,7 @@ export async function GET(request: NextRequest) {
       language: true,
       sourceRef: true,
       author: true,
+      code: true,
       publishedAt: true,
       createdAt: true,
     };
@@ -333,6 +336,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ reports, total, limit, offset });
   } catch (error) {
     console.error("Error fetching reports:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    // Temporary diagnostic for SRC-519 — reveal schema-mismatch errors
+    if (errMsg.includes("column") || errMsg.includes("does not exist") || errMsg.includes("Unknown field")) {
+      return NextResponse.json(
+        { error: "DB schema mismatch", detail: errMsg },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

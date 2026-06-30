@@ -76,9 +76,12 @@ model Report {
   publishedAt DateTime?
   reviewedBy  String?
   reviewedAt  DateTime?
-  reviewNote  String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  reviewNote        String?
+  designSignedOffBy String?
+  designSignedOffAt DateTime?
+  code              String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   contentShares ContentShare[]
   savedContents SavedContent[]
