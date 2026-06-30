@@ -177,15 +177,21 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "50", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-  // Check if admin key is provided to see non-published reports
+  // Privileged readers (admin OR the trusted ingestion client) may see
+  // non-published reports and filter by status. The ingestion key needs this
+  // so vnOrchestrator can verify a push it just made: a freshly-ingested
+  // report is `pending`, and without read-back access the POST→GET verify
+  // cycle returns only `published` and looks like a lost write (SRC-505).
   const isAdmin = validateAdminKey(request);
+  const isIngestion = validateIngestionKey(request);
+  const privileged = isAdmin || isIngestion;
 
   const where: Record<string, unknown> = {};
 
-  // Public users only see published reports; admins can filter by status
-  if (isAdmin && status) {
+  // Public users only see published reports; privileged callers can filter by status
+  if (privileged && status) {
     where.status = status;
-  } else if (!isAdmin) {
+  } else if (!privileged) {
     where.status = "published";
   }
 
