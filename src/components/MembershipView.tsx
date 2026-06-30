@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  Star, Crown, ArrowRight, Check, Lock, BookOpen, Users,
+  Star, Crown, ArrowRight, Check, Lock, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
@@ -480,36 +480,6 @@ export function MembershipView() {
         </div>
       </section>
 
-      {/* ═══════ STUDENT / YOUNG PROFESSIONAL ═══════ */}
-      <section className="border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-[#E8272C]" />
-              <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C]">
-                {tr("membership.v3.young.tag")}
-              </span>
-            </div>
-            <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary mb-3">
-              {tr("membership.v3.young.heading")}
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              {tr("membership.v3.young.desc")}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.yp-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
-                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.yp-label")}</div>
-              </div>
-              <div className="w-px h-10 bg-border hidden sm:block" />
-              <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.student-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
-                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.student-label")}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ═══════ CTA STRIP ═══════ */}
       <section className="bg-primary text-primary-foreground">

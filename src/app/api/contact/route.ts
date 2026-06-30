@@ -3,8 +3,12 @@ import { sendEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
-// Where contact-form inquiries are delivered. Override with CONTACT_EMAIL.
-const RECIPIENT = process.env.CONTACT_EMAIL || "contact@src-advisory.ch";
+// Where contact-form inquiries are delivered. Override with CONTACT_EMAIL
+// (comma-separated for multiple recipients).
+const RECIPIENTS = (process.env.CONTACT_EMAIL || "andreawoe@gmail.com,brvncde@gmail.com")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 function esc(s: string): string {
   return s
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
     `;
 
     const result = await sendEmail({
-      to: RECIPIENT,
+      to: RECIPIENTS,
       subject: `[Contact] ${type} — ${name}`,
       html,
       replyTo: email,

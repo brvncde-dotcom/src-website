@@ -10,7 +10,7 @@ const EMAIL_FROM = process.env.EMAIL_FROM || "SRC Advisory <onboarding@resend.de
 export type SendResult = { ok: boolean; error?: string };
 
 export async function sendEmail(opts: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   replyTo?: string;
@@ -30,7 +30,7 @@ export async function sendEmail(opts: {
       },
       body: JSON.stringify({
         from: EMAIL_FROM,
-        to: [opts.to],
+        to: Array.isArray(opts.to) ? opts.to : [opts.to],
         subject: opts.subject,
         html: opts.html,
         ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
