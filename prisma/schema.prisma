@@ -3,8 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Migrations (prisma migrate deploy / db push) run over a DIRECT (unpooled)
+  // connection. Prisma's migration engine takes advisory locks that are
+  // unreliable through Neon's PgBouncer pooler, so build-time `migrate deploy`
+  // can hang/fail against the pooled url. Runtime queries still use the pooled
+  // `url`. DIRECT_URL is set in every Vercel environment to the unpooled host.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
