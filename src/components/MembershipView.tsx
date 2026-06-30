@@ -183,7 +183,7 @@ export function MembershipView() {
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-muted-foreground mb-1">
                 {tr("membership.v3.essential")}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.essential.desc")}
               </p>
             </div>
@@ -224,18 +224,18 @@ export function MembershipView() {
           </div>
 
           {/* ── PREMIUM ── */}
-          <div className="relative border-2 border-[#E8272C] bg-primary text-primary-foreground p-6 lg:p-8 flex flex-col md:-my-5 lg:shadow-xl z-10">
+          <div className="relative border-2 border-[#E8272C] bg-primary text-primary-foreground p-6 lg:p-8 flex flex-col lg:shadow-xl z-10">
             {/* Badge */}
             <div className="absolute -top-3.5 left-6 flex items-center gap-1.5 bg-[#E8272C] text-white text-[10px] font-bold tracking-[0.12em] uppercase px-3 py-1 rounded-sm z-20">
               <Star className="w-3 h-3" />
               {tr("membership.v3.most-popular")}
             </div>
 
-            <div className="mb-6 mt-2">
+            <div className="mb-6">
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-white/50 mb-1">
                 {tr("membership.v3.premium")}
               </h3>
-              <p className="text-sm text-white/60 leading-relaxed">
+              <p className="text-sm text-white/60 leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.premium.desc")}
               </p>
             </div>
@@ -279,7 +279,7 @@ export function MembershipView() {
                 </h3>
                 <Crown className="w-3.5 h-3.5 text-amber-500" />
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.expert.desc")}
               </p>
             </div>
