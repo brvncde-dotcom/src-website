@@ -49,6 +49,10 @@ export async function GET(request: NextRequest) {
       internalPatterns.some((p) => p.test(r.title))
     );
 
+    const mode = request.nextUrl.searchParams.get("mode");
+    if (mode === "all") {
+      return NextResponse.json({ total: reports.length, reports });
+    }
     return NextResponse.json({
       total: reports.length,
       internalCandidates: toReview.map((r) => ({
