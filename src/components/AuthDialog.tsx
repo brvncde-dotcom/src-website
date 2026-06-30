@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Loader2, LogIn, UserPlus, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -26,6 +26,7 @@ interface Props {
 
 export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSuccess }: Props) {
   const { t: tr, lang } = useLang();
+  const { update } = useSession();
   const [mode, setMode] = useState<Mode>(defaultMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -72,6 +73,9 @@ export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSucces
       if (res?.error) {
         setError(tr("auth.error.login"));
       } else {
+        // Refresh the client session so useSession() consumers (e.g. the
+        // navbar) update immediately instead of only after a page reload.
+        await update();
         onOpenChange(false);
         resetForm();
         onSuccess?.();
@@ -110,22 +114,17 @@ export function AuthDialog({ open, onOpenChange, defaultMode = "login", onSucces
         return;
       }
 
-      // Auto-login after registration
-      const loginRes = await signIn("credentials", {
+      // Auto-login after registration, then refresh the client session so the
+      // navbar reflects the logged-in state immediately (no reload needed).
+      await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
-      if (loginRes?.error) {
-        // Registration succeeded but auto-login failed — close dialog, user can login manually
-        onOpenChange(false);
-        resetForm();
-        onSuccess?.();
-      } else {
-        onOpenChange(false);
-        resetForm();
-        onSuccess?.();
-      }
+      await update();
+      onOpenChange(false);
+      resetForm();
+      onSuccess?.();
     } catch {
       setError(tr("auth.error.register"));
     } finally {
