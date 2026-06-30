@@ -14,6 +14,7 @@ interface Opinion {
   language: string;
   sourceRef: string | null;
   author: string | null;
+  code: string | null;
   publishedAt: string | null;
   createdAt: string;
 }
@@ -153,6 +154,11 @@ export function OpinionsView() {
                         {formatDate(opinion.publishedAt)}
                       </span>
                     )}
+                    {opinion.code && (
+                      <span className="text-[10px] font-mono font-bold text-[#0A2540] bg-[#F0F2F5] px-2 py-0.5 rounded-sm">
+                        {opinion.code}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-semibold text-sm text-primary leading-snug mb-2">
                     {opinion.title}
@@ -194,14 +200,24 @@ export function OpinionsView() {
                       </div>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && detail.content && (
-                      <article
-                        className="src-article src-article--inset"
-                        style={{ "--src-figure-label": FIGURE_LABELS[detail.language] || "Figure " } as React.CSSProperties}
-                      >
-                        <div className="src-article-body">
-                          <MarkdownRenderer content={detail.content} />
-                        </div>
-                      </article>
+                      <>
+                        {detail.code && (
+                          <div className="mb-4 text-sm font-mono text-[#0A2540]">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                              {tr("reports.detail.code")}
+                            </span>{" "}
+                            {detail.code}
+                          </div>
+                        )}
+                        <article
+                          className="src-article src-article--inset"
+                          style={{ "--src-figure-label": FIGURE_LABELS[detail.language] || "Figure " } as React.CSSProperties}
+                        >
+                          <div className="src-article-body">
+                            <MarkdownRenderer content={detail.content} />
+                          </div>
+                        </article>
+                      </>
                     )}
                     {!detailLoading && detail && detail.id === opinion.id && !detail.content && (
                       <p className="text-sm text-muted-foreground">

@@ -14,6 +14,7 @@ interface SharedReport {
   type: string;
   section: string;
   author: string | null;
+  code: string | null;
   publishedAt: string | null;
 }
 
@@ -128,6 +129,14 @@ export default function SharePage() {
               {report.type}
             </span>
           </div>
+          {report.code && (
+            <div className="mb-5 text-sm font-mono text-[#0A2540]">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                {tr("reports.detail.code")}
+              </span>{" "}
+              {report.code}
+            </div>
+          )}
           <h1 className="heading-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight">
             {report.title}
           </h1>
