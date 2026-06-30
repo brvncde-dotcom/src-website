@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, validateAdminKey, VALID_STATUSES, canAccessContent } from "@/lib/db";
+import {
+  prisma,
+  validateAdminKey,
+  validateIngestionKey,
+  VALID_STATUSES,
+  canAccessContent,
+} from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // PATCH /api/reports/[id] — Review action: approve, reject, publish
-// Rebuild: SRC-505 2026-06-30 — force fresh bundle after db.ts refactor
+// Rebuild: SRC-505 2026-06-30 — ingestion key can read back pending reports
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,
@@ -149,6 +155,8 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang");
   const isAdmin = validateAdminKey(request);
+  const isIngestion = validateIngestionKey(request);
+  const privileged = isAdmin || isIngestion;
 
   try {
     const report = await prisma.report.findUnique({ where: { id } });
@@ -157,8 +165,8 @@ export async function GET(
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    // Non-admins can only see published reports
-    if (!isAdmin && report.status !== "published") {
+    // Non-privileged callers can only see published reports
+    if (!privileged && report.status !== "published") {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
@@ -172,7 +180,7 @@ export async function GET(
       const siblings = await prisma.report.findMany({
         where: {
           sourceRef: report.sourceRef,
-          ...(isAdmin ? {} : { status: "published" }),
+          ...(privileged ? {} : { status: "published" }),
         },
         select: { id: true, language: true, title: true },
       });
