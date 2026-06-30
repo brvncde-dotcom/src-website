@@ -14,9 +14,11 @@ import {
   Mail,
   Check,
   Lock,
+  Search,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
+import { useSearch } from "@/components/SearchCommand";
 import {
   Dialog,
   DialogContent,
@@ -90,6 +92,7 @@ const FIGURE_LABELS: Record<string, string> = {
 
 export default function ReportPage() {
   const { t: tr, setLang } = useLang();
+  const { open: openSearch } = useSearch();
   const params = useParams();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
@@ -258,6 +261,14 @@ export default function ReportPage() {
         <div className="mx-auto max-w-4xl px-6 lg:px-10 py-4 flex items-center justify-between">
           <BackLink label={tr("reports.detail.all-reports")} />
           <div className="flex items-center gap-1">
+            {/* Search button */}
+            <button
+              onClick={openSearch}
+              className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors"
+              aria-label={tr("search.title")}
+            >
+              <Search className="h-4.5 w-4.5" />
+            </button>
             {/* Bookmark button */}
             <Tooltip>
               <TooltipTrigger asChild>

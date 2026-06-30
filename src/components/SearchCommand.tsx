@@ -36,6 +36,12 @@ const SECTION_KEY_MAP: Record<string, string> = {
 };
 
 const LANGS: Lang[] = ["en", "de", "fr", "it"];
+// The 6 canonical focus areas (taxonomy is stable). Selecting one with no
+// published reports simply yields "no results".
+const SECTIONS = Object.keys(SECTION_KEY_MAP);
+// Editorial content types. The API filters on any value; these are the ones
+// that exist today. New types stay searchable, just not in this chip set.
+const TYPES = ["Analysis", "Opinion"];
 const RECENT_KEY = "src_recent_searches";
 const MAX_RECENT = 5;
 
@@ -83,6 +89,8 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   // Default to the current UI language; "all" widens to every language.
   const [langFilter, setLangFilter] = useState<Lang | "all">(lang);
+  const [sectionFilter, setSectionFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -127,6 +135,8 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
       try {
         const params = new URLSearchParams({ q });
         if (langFilter !== "all") params.set("lang", langFilter);
+        if (sectionFilter) params.set("section", sectionFilter);
+        if (typeFilter) params.set("type", typeFilter);
         const res = await fetch(`/api/search?${params.toString()}`, {
           signal: ctrl.signal,
         });
@@ -145,7 +155,7 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
       }
     }, 200);
     return () => clearTimeout(handle);
-  }, [query, langFilter]);
+  }, [query, langFilter, sectionFilter, typeFilter]);
 
   const saveRecent = useCallback((q: string) => {
     const trimmed = q.trim();
@@ -272,6 +282,24 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
               label={LANG_LABELS[l]}
             />
           ))}
+        </div>
+
+        {/* Focus area + type facets */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2 border-b border-border bg-secondary/30">
+          <FacetSelect
+            label={t("search.focus")}
+            value={sectionFilter}
+            onChange={setSectionFilter}
+            allLabel={t("search.all")}
+            options={SECTIONS.map((slug) => ({ value: slug, label: t(SECTION_KEY_MAP[slug]) }))}
+          />
+          <FacetSelect
+            label={t("search.type")}
+            value={typeFilter}
+            onChange={setTypeFilter}
+            allLabel={t("search.all")}
+            options={TYPES.map((ty) => ({ value: ty, label: ty }))}
+          />
         </div>
 
         {/* Results / states */}
@@ -422,6 +450,40 @@ function FacetChip({
     >
       {label}
     </button>
+  );
+}
+
+function FacetSelect({
+  label,
+  value,
+  onChange,
+  allLabel,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  allLabel: string;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`text-[11px] normal-case tracking-normal bg-white border border-border rounded-sm px-1.5 py-0.5 outline-none focus:border-[#0A2540] ${
+          value ? "text-[#0A2540] font-semibold" : "text-muted-foreground"
+        }`}
+      >
+        <option value="">{allLabel}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
