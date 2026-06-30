@@ -85,7 +85,7 @@ const FIGURE_LABELS: Record<string, string> = {
 };
 
 export default function ReportPage() {
-  const { t: tr } = useLang();
+  const { t: tr, setLang } = useLang();
   const params = useParams();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,16 +127,24 @@ export default function ReportPage() {
 
   useEffect(() => {
     if (!params.id) return;
-    const lang = typeof window !== "undefined" ? localStorage.getItem("src_lang") || "en" : "en";
-    fetch(`/api/reports/${params.id}?lang=${lang}`)
+    // Fetch the report by its ID only. The report's own language field drives the page locale.
+    fetch(`/api/reports/${params.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("not found");
         return res.json();
       })
-      .then((data) => setReport(data))
+      .then((data) => {
+        setReport(data);
+        // Sync site language to the report's language so chrome (nav, title, html lang) matches.
+        if (data.language) {
+          setLang(data.language);
+          document.title = data.title;
+          document.documentElement.lang = data.language;
+        }
+      })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [params.id, setLang]);
 
   const handleBookmarkToggle = async () => {
     if (!isAuthenticated) {
@@ -253,7 +261,7 @@ export default function ReportPage() {
                   onClick={handleBookmarkToggle}
                   disabled={bookmarkLoading}
                   className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors disabled:opacity-50"
-                  aria-label={isSaved ? "Unsave report" : "Save report"}
+                  aria-label={isSaved ? tr("reports.detail.unsave") : tr("reports.detail.save")}
                 >
                   {isSaved ? (
                     <BookmarkCheck className="h-4.5 w-4.5 text-[#E8272C]" />
@@ -264,10 +272,10 @@ export default function ReportPage() {
               </TooltipTrigger>
               <TooltipContent>
                 {!isAuthenticated
-                  ? "Sign in to save"
+                  ? tr("reports.detail.sign-in-to-save")
                   : isSaved
-                    ? "Unsave"
-                    : "Save"}
+                    ? tr("reports.detail.unsave")
+                    : tr("reports.detail.save")}
               </TooltipContent>
             </Tooltip>
 
@@ -275,7 +283,7 @@ export default function ReportPage() {
             <button
               onClick={() => setShareOpen(true)}
               className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors"
-              aria-label="Share report"
+              aria-label={tr("reports.detail.share-title")}
             >
               <Share2 className="h-4.5 w-4.5" />
             </button>
@@ -287,7 +295,7 @@ export default function ReportPage() {
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#0A2540]">Share Report</DialogTitle>
+            <DialogTitle className="text-[#0A2540]">{tr("reports.detail.share-title")}</DialogTitle>
             <DialogDescription>
               {report?.title}
             </DialogDescription>
@@ -303,10 +311,10 @@ export default function ReportPage() {
               <span>
                 {sharedConfirmation === "email" ? (
                   <span className="inline-flex items-center gap-1 text-green-600">
-                    <Check className="h-3.5 w-3.5" /> Shared!
+                    <Check className="h-3.5 w-3.5" /> {tr("reports.detail.share-shared")}
                   </span>
                 ) : (
-                  "Email"
+                  tr("reports.detail.share-email")
                 )}
               </span>
             </button>
@@ -323,10 +331,10 @@ export default function ReportPage() {
               <span>
                 {sharedConfirmation === "twitter" ? (
                   <span className="inline-flex items-center gap-1 text-green-600">
-                    <Check className="h-3.5 w-3.5" /> Shared!
+                    <Check className="h-3.5 w-3.5" /> {tr("reports.detail.share-shared")}
                   </span>
                 ) : (
-                  "X / Twitter"
+                  tr("reports.detail.share-x")
                 )}
               </span>
             </button>
@@ -343,10 +351,10 @@ export default function ReportPage() {
               <span>
                 {sharedConfirmation === "linkedin" ? (
                   <span className="inline-flex items-center gap-1 text-green-600">
-                    <Check className="h-3.5 w-3.5" /> Shared!
+                    <Check className="h-3.5 w-3.5" /> {tr("reports.detail.share-shared")}
                   </span>
                 ) : (
-                  "LinkedIn"
+                  tr("reports.detail.share-linkedin")
                 )}
               </span>
             </button>
@@ -361,10 +369,10 @@ export default function ReportPage() {
               <span>
                 {sharedConfirmation === "copy" ? (
                   <span className="inline-flex items-center gap-1 text-green-600">
-                    <Check className="h-3.5 w-3.5" /> Copied!
+                    <Check className="h-3.5 w-3.5" /> {tr("reports.detail.share-copied")}
                   </span>
                 ) : (
-                  "Copy Link"
+                  tr("reports.detail.share-copy")
                 )}
               </span>
             </button>
@@ -412,7 +420,7 @@ export default function ReportPage() {
           </div>
           {report.translations && report.translations.length > 1 && (
             <div className="flex flex-wrap items-center gap-2 mt-5">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Translations:</span>
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{tr("reports.detail.translations")}:</span>
               {report.translations.map((t) => (
                 <Link
                   key={t.id}

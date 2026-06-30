@@ -5,6 +5,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SiteShell } from "@/components/SiteShell";
 import { LangProvider } from "@/components/LangProvider";
+import { prisma, VALID_LANGUAGES } from "@/lib/db";
+import type { Lang } from "@/lib/i18n";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -51,17 +53,41 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<Record<string, string | string[]>>;
 }>) {
+  const p = await params;
+  let htmlLang = "en";
+
+  // When serving a specific report page, drive the html lang from the report's own language.
+  const id = typeof p.id === "string" ? p.id : undefined;
+  if (id) {
+    try {
+      const report = await prisma.report.findUnique({
+        where: { id },
+        select: { language: true },
+      });
+      if (
+        report?.language &&
+        (VALID_LANGUAGES as readonly string[]).includes(report.language)
+      ) {
+        htmlLang = report.language;
+      }
+    } catch {
+      // keep default
+    }
+  }
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={htmlLang} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${spectral.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <LangProvider>
+        <LangProvider initialLang={htmlLang as Lang}>
           <SiteShell>{children}</SiteShell>
         </LangProvider>
         <Toaster />

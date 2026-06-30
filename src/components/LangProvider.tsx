@@ -15,13 +15,14 @@ const Ctx = createContext<LangCtx>({
   t: (key: string) => key,
 });
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+export function LangProvider({ children, initialLang }: { children: ReactNode; initialLang?: Lang }) {
+  const [lang, setLangState] = useState<Lang>(initialLang || "en");
 
   useEffect(() => {
+    if (initialLang) return;
     const saved = localStorage.getItem("src_lang") as Lang | null;
     if (saved && LANG_LABELS[saved]) setLangState(saved);
-  }, []);
+  }, [initialLang]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
