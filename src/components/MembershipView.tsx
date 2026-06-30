@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useLang } from "@/components/LangProvider";
+import { useNavigation } from "@/components/NavigationProvider";
 
 /* ── Billing toggle ── */
 type BillingCycle = "monthly" | "annual";
@@ -76,6 +77,7 @@ const MOCK_STUDIES = [
 
 export function MembershipView() {
   const { t: tr } = useLang();
+  const { navigate } = useNavigation();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
 
@@ -524,7 +526,7 @@ export function MembershipView() {
             <div className="flex flex-wrap gap-3">
               <Button
                 className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2"
-                onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry", "_self")}
+                onClick={() => navigate("contact")}
               >
                 {tr("membership.v3.contact-us")} <ArrowRight className="w-4 h-4" />
               </Button>

@@ -13,6 +13,7 @@ export async function sendEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }): Promise<SendResult> {
   if (!RESEND_API_KEY) {
     // Not configured — surface clearly in logs but never throw into a request.
@@ -32,6 +33,7 @@ export async function sendEmail(opts: {
         to: [opts.to],
         subject: opts.subject,
         html: opts.html,
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
       }),
     });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Mail } from "lucide-react";
+import { Send, Mail, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SwissCrossLogo } from "./SwissCrossLogo";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,42 @@ const INQUIRY_KEYS = [
 ];
 
 export function ContactView() {
-  const [selectedType, setSelectedType] = useState<string | null>(null);
   const { t: tr } = useLang();
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [organisation, setOrganisation] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const canSend = email.trim().length > 3 && message.trim().length >= 5 && status !== "sending";
+
+  async function handleSubmit() {
+    if (!canSend) return;
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: selectedType ? tr(selectedType) : "General Inquiry",
+          firstName,
+          lastName,
+          email,
+          organisation,
+          message,
+        }),
+      });
+      if (res.ok) {
+        setStatus("sent");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  }
 
   return (
     <div>
@@ -60,44 +94,55 @@ export function ContactView() {
 
           <div>
             <h2 className="heading-serif text-xl font-bold text-primary mb-6">{tr("contact.form.title")}</h2>
-            <div className="space-y-5">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground mb-2 block">{tr("contact.form.type")}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {INQUIRY_KEYS.map((key) => (
-                    <button key={key} onClick={() => setSelectedType(key)} className={`px-3 py-1.5 text-[11px] font-medium rounded-sm border transition-colors ${selectedType === key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary"}`}>
-                      {tr(key)}
-                    </button>
-                  ))}
-                </div>
+
+            {status === "sent" ? (
+              <div className="border border-emerald-200 bg-emerald-50 p-6 flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-emerald-800 leading-relaxed">{tr("contact.form.success")}</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            ) : (
+              <div className="space-y-5">
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.first-name")}</Label>
-                  <Input placeholder={tr("contact.form.first-name.placeholder")} className="h-10 text-sm" />
+                  <Label className="text-xs font-medium text-muted-foreground mb-2 block">{tr("contact.form.type")}</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {INQUIRY_KEYS.map((key) => (
+                      <button key={key} type="button" onClick={() => setSelectedType(key)} className={`px-3 py-1.5 text-[11px] font-medium rounded-sm border transition-colors ${selectedType === key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary"}`}>
+                        {tr(key)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.first-name")}</Label>
+                    <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={tr("contact.form.first-name.placeholder")} className="h-10 text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.last-name")}</Label>
+                    <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={tr("contact.form.last-name.placeholder")} className="h-10 text-sm" />
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.last-name")}</Label>
-                  <Input placeholder={tr("contact.form.last-name.placeholder")} className="h-10 text-sm" />
+                  <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.info.email")}</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tr("reports.gate.email.placeholder")} className="h-10 text-sm" />
                 </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.organisation")}</Label>
+                  <Input value={organisation} onChange={(e) => setOrganisation(e.target.value)} placeholder={tr("contact.form.organisation.placeholder")} className="h-10 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.message")}</Label>
+                  <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder={tr("contact.form.message.placeholder")} className="text-sm min-h-[120px] resize-none" />
+                </div>
+                {status === "error" && (
+                  <p className="text-xs text-[#E8272C]">{tr("contact.form.error")}</p>
+                )}
+                <Button onClick={handleSubmit} disabled={!canSend} className="bg-primary hover:bg-primary/90 text-sm gap-2">
+                  <Send className="w-4 h-4" />{status === "sending" ? tr("contact.form.sending") : tr("contact.form.send")}
+                </Button>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">{tr("contact.form.disclaimer")}</p>
               </div>
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.info.email")}</Label>
-                <Input type="email" placeholder={tr("reports.gate.email.placeholder")} className="h-10 text-sm" />
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.organisation")}</Label>
-                <Input placeholder={tr("contact.form.organisation.placeholder")} className="h-10 text-sm" />
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{tr("contact.form.message")}</Label>
-                <Textarea placeholder={tr("contact.form.message.placeholder")} className="text-sm min-h-[120px] resize-none" />
-              </div>
-              <Button className="bg-primary hover:bg-primary/90 text-sm gap-2">
-                <Send className="w-4 h-4" />{tr("contact.form.send")}
-              </Button>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">{tr("contact.form.disclaimer")}</p>
-            </div>
+            )}
           </div>
         </div>
       </div>
