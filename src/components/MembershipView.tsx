@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import {
-  Star, Crown, ArrowRight, Check, Lock, BookOpen, Users,
+  Star, Crown, ArrowRight, Check, Lock, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useLang } from "@/components/LangProvider";
+import { useNavigation } from "@/components/NavigationProvider";
 
 /* ── Billing toggle ── */
 type BillingCycle = "monthly" | "annual";
@@ -76,10 +77,39 @@ const MOCK_STUDIES = [
 
 export function MembershipView() {
   const { t: tr } = useLang();
+  const { navigate } = useNavigation();
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   const [authOpen, setAuthOpen] = useState(false);
 
   const isAnnual = billing === "annual";
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
+
+  // Start Stripe checkout for a tier. If the user isn't signed in, the
+  // create endpoint returns 401 → open the auth dialog so they can register/
+  // log in, then click again.
+  async function startCheckout(tierSlug: string) {
+    setLoadingTier(tierSlug);
+    try {
+      const res = await fetch("/api/subscriptions/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tierSlug, interval: isAnnual ? "year" : "month" }),
+      });
+      if (res.status === 401) {
+        setAuthOpen(true);
+        setLoadingTier(null);
+        return;
+      }
+      const data = await res.json();
+      if (data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        setLoadingTier(null);
+      }
+    } catch {
+      setLoadingTier(null);
+    }
+  }
 
   return (
     <div>
@@ -153,7 +183,7 @@ export function MembershipView() {
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-muted-foreground mb-1">
                 {tr("membership.v3.essential")}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.essential.desc")}
               </p>
             </div>
@@ -177,9 +207,10 @@ export function MembershipView() {
             <Button
               variant="outline"
               className="w-full mb-8 text-sm"
-              onClick={() => setAuthOpen(true)}
+              onClick={() => startCheckout("essential")}
+              disabled={loadingTier === "essential"}
             >
-              {tr("membership.v3.start-trial")}
+              {loadingTier === "essential" ? "…" : tr("membership.v3.start-trial")}
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -193,18 +224,18 @@ export function MembershipView() {
           </div>
 
           {/* ── PREMIUM ── */}
-          <div className="relative border-2 border-[#E8272C] bg-primary text-primary-foreground p-6 lg:p-8 flex flex-col md:-my-5 lg:shadow-xl z-10">
+          <div className="relative border-2 border-[#E8272C] bg-primary text-primary-foreground p-6 lg:p-8 flex flex-col lg:shadow-xl z-10">
             {/* Badge */}
             <div className="absolute -top-3.5 left-6 flex items-center gap-1.5 bg-[#E8272C] text-white text-[10px] font-bold tracking-[0.12em] uppercase px-3 py-1 rounded-sm z-20">
               <Star className="w-3 h-3" />
               {tr("membership.v3.most-popular")}
             </div>
 
-            <div className="mb-6 mt-2">
+            <div className="mb-6">
               <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-white/50 mb-1">
                 {tr("membership.v3.premium")}
               </h3>
-              <p className="text-sm text-white/60 leading-relaxed">
+              <p className="text-sm text-white/60 leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.premium.desc")}
               </p>
             </div>
@@ -225,8 +256,8 @@ export function MembershipView() {
               )}
             </div>
 
-            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => setAuthOpen(true)}>
-              {tr("membership.v3.get-started")}
+            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => startCheckout("professional")} disabled={loadingTier === "professional"}>
+              {loadingTier === "professional" ? "…" : tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -248,28 +279,34 @@ export function MembershipView() {
                 </h3>
                 <Crown className="w-3.5 h-3.5 text-amber-500" />
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed md:min-h-[4.5rem]">
                 {tr("membership.v3.expert.desc")}
               </p>
             </div>
 
             <div className="mb-6">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-1">
                 <span className="heading-serif text-3xl sm:text-4xl font-bold text-primary">
-                  Custom
+                  CHF {isAnnual ? "124" : "149"}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {tr("membership.v3.per-month")}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {tr("membership.price.expert.annual")}
-              </p>
+              {isAnnual && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  CHF 1490/{tr("membership.v3.young.per-year").replace("/", "")} &middot; {tr("membership.v3.billed-annual")}
+                </p>
+              )}
             </div>
 
             <Button
               variant="outline"
               className="w-full mb-8 text-sm"
-              onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry%20-%20Expert", "_self")}
+              onClick={() => startCheckout("executive")}
+              disabled={loadingTier === "executive"}
             >
-              {tr("membership.v3.contact-us")}
+              {loadingTier === "executive" ? "…" : tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -443,36 +480,6 @@ export function MembershipView() {
         </div>
       </section>
 
-      {/* ═══════ STUDENT / YOUNG PROFESSIONAL ═══════ */}
-      <section className="border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-[#E8272C]" />
-              <span className="text-xs font-bold tracking-[0.15em] uppercase text-[#E8272C]">
-                {tr("membership.v3.young.tag")}
-              </span>
-            </div>
-            <h2 className="heading-serif text-2xl sm:text-3xl font-bold text-primary mb-3">
-              {tr("membership.v3.young.heading")}
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              {tr("membership.v3.young.desc")}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.yp-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
-                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.yp-label")}</div>
-              </div>
-              <div className="w-px h-10 bg-border hidden sm:block" />
-              <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-primary">{tr("membership.v3.young.student-price")}<span className="text-sm font-normal text-muted-foreground">{tr("membership.v3.young.per-year")}</span></div>
-                <div className="text-xs text-muted-foreground">{tr("membership.v3.young.student-label")}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ═══════ CTA STRIP ═══════ */}
       <section className="bg-primary text-primary-foreground">
@@ -489,7 +496,7 @@ export function MembershipView() {
             <div className="flex flex-wrap gap-3">
               <Button
                 className="bg-[#E8272C] hover:bg-[#d02025] text-white gap-2"
-                onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry", "_self")}
+                onClick={() => navigate("contact")}
               >
                 {tr("membership.v3.contact-us")} <ArrowRight className="w-4 h-4" />
               </Button>
