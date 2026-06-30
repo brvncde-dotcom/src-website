@@ -41,10 +41,20 @@ export function HomeView() {
   useEffect(() => {
     // Fetch the latest publications in the current UI language so titles/
     // summaries match the selected language (reports exist per-language).
+    // `active` guards against a race: on load this effect runs for the
+    // initial lang ("en") and again once the saved language loads ("fr").
+    // Without the guard, a slower earlier response can overwrite the newer
+    // one. Ignore responses from superseded effects.
+    let active = true;
     fetch(`/api/reports?status=published&lang=${lang}&limit=3`)
       .then((r) => r.json())
-      .then((data) => setLatestReports(data.reports || []))
+      .then((data) => {
+        if (active) setLatestReports(data.reports || []);
+      })
       .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, [lang]);
 
   return (
