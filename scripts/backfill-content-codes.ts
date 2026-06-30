@@ -12,7 +12,7 @@
  */
 
 const API_BASE = process.env.API_BASE || "https://src-website-orcin.vercel.app";
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || process.env.SRC_ADMIN_API_KEY || "";
 
 // Registry extracted from SRC-98 content-code-registry document (v1.1 backfill, June 2026)
 // Each entry: { code, sourceRef, language }

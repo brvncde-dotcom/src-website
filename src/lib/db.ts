@@ -169,7 +169,7 @@ export function validateAdminKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
 
-  const adminKey = process.env.ADMIN_API_KEY;
+  const adminKey = process.env.ADMIN_API_KEY || process.env.SRC_ADMIN_API_KEY;
   if (!adminKey) {
     // No key configured: allow only outside production (local dev convenience).
     // In production this fails closed so admin endpoints are never left open.
