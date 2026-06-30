@@ -3,6 +3,7 @@
 # SRC Advisory — Pre-commit safety checks
 # ─────────────────────────────────────────────────────────────
 # Prevents accidental removal of critical providers and components.
+# Prevents debug endpoints from leaking secrets (SRC-514).
 set -euo pipefail
 
 RED='\033[0;31m'
@@ -37,12 +38,23 @@ if [ -f "src/app/page.tsx" ]; then
   fi
 fi
 
+# 4. Security: never echo DATABASE_URL or other secrets in API routes (SRC-514)
+if git diff --cached --name-only | grep -qE '^src/app/api/.*\.ts$'; then
+  CACHED_API=$(git diff --cached -- src/app/api/)
+  if echo "$CACHED_API" | grep -qE 'process\.env\.DATABASE_URL|databaseUrlPrefix|diag.*=.*1.*\b'; then
+    echo -e "${RED}BLOCKED: Potential secret leak or debug endpoint in API route${NC}"
+    echo "  → API routes must never expose DATABASE_URL, credentials, or unauthenticated diag output."
+    echo "  → If this is intentional, use: git commit --no-verify"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 if [ "$ERRORS" -gt 0 ]; then
   echo ""
   echo -e "${RED}Commit blocked: $ERRORS critical check(s) failed.${NC}"
-  echo "If you are intentionally removing a provider, use: git commit --no-verify"
+  echo "If you are intentionally bypassing a check, use: git commit --no-verify"
   exit 1
 fi
 
-echo 'HOOK IS RUNNING' >&2
+echo 'Pre-commit checks passed' >&2
 exit 0
