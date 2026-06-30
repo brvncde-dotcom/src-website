@@ -263,7 +263,11 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         open={authOpen}
         onOpenChange={setAuthOpen}
         onSuccess={() => {
-          handleAccountClick();
+          // Login succeeded and the dialog already refreshed the session, so
+          // go straight to the account view. Avoid handleAccountClick here —
+          // its status check can still read "unauthenticated" this tick and
+          // reopen the dialog.
+          handleNav("account");
         }}
       />
     </>
