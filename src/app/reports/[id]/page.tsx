@@ -50,6 +50,7 @@ interface Report {
   language: string;
   sourceRef: string | null;
   author: string | null;
+  code: string | null;
   publishedAt: string | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
@@ -396,6 +397,11 @@ export default function ReportPage() {
             {report.language && (
               <span className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded-sm">
                 {LANG_LABELS[report.language] || report.language}
+              </span>
+            )}
+            {report.code && (
+              <span className="inline-flex items-center bg-[#F4F6F9] text-[#0A2540] border border-[#D8DEE6] px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded-sm font-mono">
+                {report.code}
               </span>
             )}
           </div>

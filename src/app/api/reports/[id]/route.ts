@@ -26,7 +26,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, designSignedOffBy } = body;
+    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, designSignedOffBy, code } = body;
 
     // Handle review actions
     if (action) {
@@ -155,6 +155,7 @@ export async function PATCH(
     if (language !== undefined) updateFields.language = language;
     // minTierId: set a tier slug-resolved id to gate the report, or "" / null to ungate.
     if (minTierId !== undefined) updateFields.minTierId = minTierId || null;
+    if (code !== undefined) updateFields.code = code?.trim() || null;
     if (designSignedOffBy !== undefined) {
       updateFields.designSignedOffBy = designSignedOffBy || null;
       updateFields.designSignedOffAt = designSignedOffBy ? new Date() : null;
