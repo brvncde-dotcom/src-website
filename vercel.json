@@ -10,9 +10,7 @@
     }
   ],
   "git": {
-    "deploymentEnabled": {
-      "main": false
-    }
+    "deploymentEnabled": true
   },
   "crons": [
     { "path": "/api/cron/expire-grants", "schedule": "0 6 * * *" }

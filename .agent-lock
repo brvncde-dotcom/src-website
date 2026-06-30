@@ -1,12 +1,10 @@
-HELD-BY: claude-code
-SINCE: 2026-06-30T15:26:32Z
-SCOPE: production main, DB schema/migrations, Vercel env vars, deploys
-NOTE: Active incident remediation + deploy hardening in progress.
-      Other agents (incl. Paperclip CTO): do NOT push to main, deploy,
-      run migrations, alter the DB, or change env/deploy settings until
-      this lock is released. Content/ticket work is fine. See AGENTS.md.
-DEPLOYS: Production (main) git auto-deploy is FROZEN
-      (vercel.json git.deploymentEnabled.main=false). Pushes to main will
-      NOT reach production. claude-code deploys prod manually while the
-      lock is held. To restore: set git.deploymentEnabled.main=true (or
-      true) in vercel.json. Do not re-enable without the lock holder.
+HELD-BY: none
+STATUS: released 2026-06-30
+NOTE: Production deploy freeze LIFTED — normal git auto-deploy restored.
+      Background: a coordination lock was held during an incident where the
+      Paperclip CTO repeatedly pushed to main (privilege escalation, weak-key
+      re-add, freeze reversion). Resolved by revoking Paperclip's GitHub write
+      access (its GH_TOKEN was removed) — verified: it can no longer push to
+      main or publish (PATCH is admin-only). Paperclip is content-only
+      (ingests via /api/reports; publishing is done by admins / the Board head
+      on Telegram). See AGENTS.md for the standing production invariants.
