@@ -13,12 +13,16 @@ import { authOptions } from "@/lib/auth";
 
 // PATCH /api/reports/[id] — Review action: approve, reject, publish
 // Rebuild: SRC-505 2026-06-30 — ingestion key can read back pending reports
+// SRC-542 2026-06-30 — PATCH now accepts the same auth as POST (ingestion key,
+//   or the admin key). No admin key is provisioned in production, so requiring
+//   validateAdminKey here made every publish/edit 401. POST already trusts the
+//   ingestion key for ingestion; PATCH trusts the same key for review edits.
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdminKey(request)) {
+  if (!validateIngestionKey(request) && !validateAdminKey(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
