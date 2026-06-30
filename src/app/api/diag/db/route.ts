@@ -1,99 +1,61 @@
 import { NextResponse } from "next/server";
-import { prisma, VALID_SECTIONS, VALID_LANGUAGES, validateAdminKey } from "@/lib/db";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const results: Record<string, unknown> = {};
 
-  // Basic queries
   try {
-    const count = await prisma.report.count({ where: { status: "published" } });
-    results.count = count;
-  } catch (err: unknown) {
-    results.countError = err instanceof Error ? err.message : String(err);
-  }
-
-  try {
-    const group = await prisma.report.groupBy({
-      by: ["section"],
-      where: { status: "published" },
-      _count: { id: true },
-    });
-    results.groupBy = group;
-  } catch (err: unknown) {
-    results.groupByError = err instanceof Error ? err.message : String(err);
-  }
-
-  try {
-    const findOne = await prisma.report.findFirst({
-      where: { status: "published" },
-      select: { id: true, title: true },
-    });
-    results.findFirst = findOne;
-  } catch (err: unknown) {
-    results.findFirstError = err instanceof Error ? err.message : String(err);
-  }
-
-  try {
-    const findMany = await prisma.report.findMany({
-      where: { status: "published" },
-      take: 1,
-      select: { id: true, title: true, publishedAt: true },
-    });
-    results.findMany = findMany;
-  } catch (err: unknown) {
-    results.findManyError = err instanceof Error ? err.message : String(err);
-  }
-
-  try {
-    const findUnique = await prisma.report.findUnique({
-      where: { id: "cmqz7lqfz0000ib04axb4go6t" },
-      select: { id: true, title: true },
-    });
-    results.findUnique = findUnique;
-  } catch (err: unknown) {
-    results.findUniqueError = err instanceof Error ? err.message : String(err);
-  }
-
-  try {
-    const raw = await prisma.$queryRawUnsafe(
-      `SELECT id, title, "publishedAt" FROM "Report" WHERE status = 'published' LIMIT 1`
+    const migrations = await prisma.$queryRawUnsafe<
+      { migration_name: string; finished_at: string | null }[]
+    >(
+      `SELECT migration_name, finished_at FROM "_prisma_migrations" ORDER BY migration_name`
     );
-    results.rawQuery = raw;
+    results.migrations = migrations;
   } catch (err: unknown) {
-    results.rawQueryError = err instanceof Error ? err.message : String(err);
+    results.migrationsError = err instanceof Error ? err.message : String(err);
   }
 
-  // Exact replica of /api/reports GET query
   try {
-    const select = {
-      id: true,
-      title: true,
-      summary: true,
-      type: true,
-      section: true,
-      status: true,
-      language: true,
-      sourceRef: true,
-      author: true,
-      code: true,
-      publishedAt: true,
-      createdAt: true,
-    };
+    const cols = await prisma.$queryRawUnsafe<
+      { column_name: string; data_type: string }[]
+    >(
+      `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'Report' ORDER BY column_name`
+    );
+    results.reportColumns = cols;
+  } catch (err: unknown) {
+    results.reportColumnsError = err instanceof Error ? err.message : String(err);
+  }
+
+  try {
     const [reports, total] = await Promise.all([
       prisma.report.findMany({
         where: { status: "published" },
         orderBy: { publishedAt: "desc" },
-        take: 2,
-        skip: 0,
-        select,
+        take: 1,
+        select: { id: true, title: true },
       }),
       prisma.report.count({ where: { status: "published" } }),
     ]);
-    results.exactReportsQuery = { reports, total };
+    results.findManyNoCode = { reports, total };
   } catch (err: unknown) {
-    results.exactReportsQueryError = err instanceof Error ? err.message : String(err);
+    results.findManyNoCodeError = err instanceof Error ? err.message : String(err);
+  }
+
+  try {
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        where: { status: "published" },
+        orderBy: { publishedAt: "desc" },
+        take: 1,
+        select: { id: true, title: true, code: true },
+      }),
+      prisma.report.count({ where: { status: "published" } }),
+    ]);
+    results.findManyWithCode = { reports, total };
+  } catch (err: unknown) {
+    results.findManyWithCodeError = err instanceof Error ? err.message : String(err);
   }
 
   return NextResponse.json(results);
