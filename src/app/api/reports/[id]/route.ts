@@ -290,6 +290,14 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching report:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    // Temporary diagnostic for SRC-519 — reveal schema-mismatch errors
+    if (errMsg.includes("column") || errMsg.includes("does not exist") || errMsg.includes("Unknown field")) {
+      return NextResponse.json(
+        { error: "DB schema mismatch", detail: errMsg },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
