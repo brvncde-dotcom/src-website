@@ -80,6 +80,34 @@ export function MembershipView() {
   const [authOpen, setAuthOpen] = useState(false);
 
   const isAnnual = billing === "annual";
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
+
+  // Start Stripe checkout for a tier. If the user isn't signed in, the
+  // create endpoint returns 401 → open the auth dialog so they can register/
+  // log in, then click again.
+  async function startCheckout(tierSlug: string) {
+    setLoadingTier(tierSlug);
+    try {
+      const res = await fetch("/api/subscriptions/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tierSlug, interval: isAnnual ? "year" : "month" }),
+      });
+      if (res.status === 401) {
+        setAuthOpen(true);
+        setLoadingTier(null);
+        return;
+      }
+      const data = await res.json();
+      if (data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        setLoadingTier(null);
+      }
+    } catch {
+      setLoadingTier(null);
+    }
+  }
 
   return (
     <div>
@@ -177,9 +205,10 @@ export function MembershipView() {
             <Button
               variant="outline"
               className="w-full mb-8 text-sm"
-              onClick={() => setAuthOpen(true)}
+              onClick={() => startCheckout("essential")}
+              disabled={loadingTier === "essential"}
             >
-              {tr("membership.v3.start-trial")}
+              {loadingTier === "essential" ? "…" : tr("membership.v3.start-trial")}
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -225,8 +254,8 @@ export function MembershipView() {
               )}
             </div>
 
-            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => setAuthOpen(true)}>
-              {tr("membership.v3.get-started")}
+            <Button className="w-full mb-8 bg-[#E8272C] hover:bg-[#d02025] text-white text-sm" onClick={() => startCheckout("professional")} disabled={loadingTier === "professional"}>
+              {loadingTier === "professional" ? "…" : tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
@@ -254,22 +283,28 @@ export function MembershipView() {
             </div>
 
             <div className="mb-6">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-1">
                 <span className="heading-serif text-3xl sm:text-4xl font-bold text-primary">
-                  Custom
+                  CHF {isAnnual ? "124" : "149"}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {tr("membership.v3.per-month")}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {tr("membership.price.expert.annual")}
-              </p>
+              {isAnnual && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  CHF 1490/{tr("membership.v3.young.per-year").replace("/", "")} &middot; {tr("membership.v3.billed-annual")}
+                </p>
+              )}
             </div>
 
             <Button
               variant="outline"
               className="w-full mb-8 text-sm"
-              onClick={() => window.open("mailto:contact@src-advisory.ch?subject=Membership%20Inquiry%20-%20Expert", "_self")}
+              onClick={() => startCheckout("executive")}
+              disabled={loadingTier === "executive"}
             >
-              {tr("membership.v3.contact-us")}
+              {loadingTier === "executive" ? "…" : tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
