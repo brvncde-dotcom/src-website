@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { tgBroadcast, reportCard } from "@/lib/telegram";
 import {
   prisma,
   VALID_SECTIONS,
@@ -193,6 +194,15 @@ export async function POST(request: NextRequest) {
 
       return created;
     });
+
+    // Notify the Board head on Telegram with an inline approval card.
+    // Best-effort: never let a notification failure affect ingestion.
+    try {
+      const card = reportCard(report);
+      await tgBroadcast(card.text, card.reply_markup);
+    } catch (e) {
+      console.error("[telegram] notify on ingest failed:", e);
+    }
 
     return NextResponse.json(
       {
