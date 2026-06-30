@@ -11,18 +11,17 @@ import {
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-// PATCH /api/reports/[id] — Review action: approve, reject, publish
-// Rebuild: SRC-505 2026-06-30 — ingestion key can read back pending reports
-// SRC-542 2026-06-30 — PATCH now accepts the same auth as POST (ingestion key,
-//   or the admin key). No admin key is provisioned in production, so requiring
-//   validateAdminKey here made every publish/edit 401. POST already trusts the
-//   ingestion key for ingestion; PATCH trusts the same key for review edits.
+// PATCH /api/reports/[id] — Review action: approve, reject, publish (ADMIN ONLY)
+// Review actions and field edits are privileged. The ingestion key is for POST
+// ingestion only — it must NOT be able to approve/publish/reject. ADMIN_API_KEY
+// IS provisioned in production; a 401 here means the caller used the wrong key
+// (use the current rotated admin key, not the old/ingestion key).
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateIngestionKey(request) && !validateAdminKey(request)) {
+  if (!validateAdminKey(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
