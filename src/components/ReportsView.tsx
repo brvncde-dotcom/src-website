@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   BrainCircuit, Swords, Zap, Leaf, TrendingUp, Scale,
@@ -193,6 +194,7 @@ interface ApiReport {
 
 export function ReportsView() {
   const { lang, t: tr } = useLang();
+  const { data: session } = useSession() ?? {};
   const [gate, setGate] = useState<GateState>("register");
   const [member, setMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -232,6 +234,17 @@ export function ReportsView() {
     const saved = localStorage.getItem("src_member");
     if (saved) { try { const m = JSON.parse(saved); setMember(m); setGate("access"); } catch {} }
   }, []);
+
+  // A logged-in account (invited member, subscriber, admin) is already a real
+  // member — bypass the lead-capture register/access gate and show reports.
+  // The lead-capture gate remains only for anonymous visitors.
+  useEffect(() => {
+    if (session?.user) {
+      const u = session.user as { email?: string | null; name?: string | null };
+      setMember({ id: u.email || "account", name: u.name || u.email || "Member" });
+      setGate("access");
+    }
+  }, [session]);
 
   useEffect(() => {
     const showLogin = () => setGate("login");
