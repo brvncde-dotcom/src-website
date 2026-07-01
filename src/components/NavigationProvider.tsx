@@ -22,7 +22,7 @@ export { NavigationContext };
 // Map hash fragment to a valid PageKey
 function hashToPage(hash: string): PageKey {
   const validPages: PageKey[] = [
-    "home", "reports", "opinions", "focus-areas", "approach", "membership", "contact",
+    "home", "brief", "reports", "opinions", "focus-areas", "approach", "membership", "contact",
     "account", "impressum", "datenschutz", "agb",
   ];
   const page = hash.replace(/^#\/?/, "");
