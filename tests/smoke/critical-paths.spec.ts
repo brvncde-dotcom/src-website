@@ -84,3 +84,34 @@ test("/admin redirects unauthenticated users to login", async ({ page }) => {
     page.locator("text=Please sign in with an administrator account"),
   ).toBeVisible({ timeout: 8_000 });
 });
+
+// ─── 6. AI help endpoint (/api/help/ask) ─────────────────────────────────────
+// Calls the Anthropic API (Claude Haiku) to answer help questions.
+// The ANTHROPIC_API_KEY lives in Vercel env — if it's missing the endpoint
+// returns 503 (config issue, not a code regression → soft skip).
+// A 500 means broken code (wrong model ID, SDK error, etc.) → hard failure.
+// A 404 means the route was deleted → hard failure.
+
+test("AI help endpoint /api/help/ask is reachable and not broken", async ({ request }) => {
+  const response = await request.post("/api/help/ask", {
+    data: { question: "what is SRC?" },
+    headers: { "Content-Type": "application/json" },
+  });
+
+  // 404 = route deleted — always a regression
+  expect(response.status()).not.toBe(404);
+
+  if (response.status() === 503) {
+    // ANTHROPIC_API_KEY not configured in this environment — skip, not a failure
+    test.skip(true, "ANTHROPIC_API_KEY not configured (503) — config issue, not a code regression");
+    return;
+  }
+
+  // 500 = broken code (wrong model ID, SDK error, etc.) — hard failure
+  expect(response.status(), "AI endpoint returned 500 — check model ID or SDK config").toBe(200);
+
+  // 200 = AI is working — assert the response shape
+  const body = await response.json();
+  expect(typeof body.answer).toBe("string");
+  expect(body.answer.length).toBeGreaterThan(0);
+});
