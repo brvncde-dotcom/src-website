@@ -5,6 +5,7 @@ import { SiteNavigation, type PageKey } from "@/components/SiteNavigation";
 import { NavigationProvider } from "@/components/NavigationProvider";
 import { HomeView } from "@/components/HomeView";
 import { ReportsView } from "@/components/ReportsView";
+import { DailyBriefView } from "@/components/DailyBriefView";
 import { OpinionsView } from "@/components/OpinionsView";
 import { FocusAreasView } from "@/components/FocusAreasView";
 import { ApproachView } from "@/components/ApproachView";
@@ -37,6 +38,8 @@ function PageRouter({ page }: { page: PageKey }) {
   switch (page) {
     case "home":
       return <HomeView />;
+    case "brief":
+      return <DailyBriefView />;
     case "reports":
       return <ReportsView />;
     case "opinions":
