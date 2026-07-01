@@ -114,7 +114,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         <div className="h-[3px] bg-[#E8272C]" />
 
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 gap-4">
+          <div className="flex items-center h-20 gap-4">
             {/* Logo — bigger, acts as HOME */}
             <button
               onClick={() => handleNav("home")}
@@ -123,9 +123,9 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
               <Image
                 src="/src-logo-full.svg"
                 alt="SRC — Security & Resilience Counsel"
-                width={180}
-                height={36}
-                className="h-9 w-auto"
+                width={260}
+                height={52}
+                className="h-12 w-auto"
               />
             </button>
 
