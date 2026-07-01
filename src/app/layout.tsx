@@ -47,7 +47,6 @@ export const metadata: Metadata = {
     "Swiss think tank",
     "independent analysis",
   ],
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
