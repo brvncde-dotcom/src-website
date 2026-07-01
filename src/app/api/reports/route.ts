@@ -164,6 +164,58 @@ export async function POST(request: NextRequest) {
 
     // Daily Briefs auto-publish immediately — no board vote required
     const isDailyBrief = reportType === "Daily Brief";
+
+    // Idempotency for Daily Briefs: one brief per (section, language, editorial
+    // date). Paperclip re-runs mint a new issue each time (new sourceRef), so the
+    // (sourceRef, language) check above misses and duplicates pile up. Collapse
+    // by the editorial date carried in the title (e.g. "… — 2026-07-01") instead
+    // — a re-ingest of the same day's brief UPDATES the existing row. We key on
+    // the title date rather than publishedAt because publishedAt is the ingest
+    // timestamp, so backfilling several days in one session would otherwise
+    // merge briefs of different editorial dates. This is the server-side safety
+    // net; Paperclip should also send a stable sourceRef (see PC CEO
+    // instructions / PUBLISHING.md), but we do not rely on it.
+    const briefDateMatch = isDailyBrief ? title.match(/(\d{4}-\d{2}-\d{2})/) : null;
+    if (isDailyBrief && briefDateMatch) {
+      const briefDate = briefDateMatch[1];
+      const existingBrief = await prisma.report.findFirst({
+        where: {
+          type: "Daily Brief",
+          section,
+          language: reportLang,
+          title: { contains: briefDate },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (existingBrief) {
+        const updated = await prisma.report.update({
+          where: { id: existingBrief.id },
+          data: {
+            title: title.trim(),
+            summary: summary?.trim() || null,
+            content: content?.trim() || null,
+            author: author?.trim() || null,
+            code: code?.trim() || null,
+            sourceRef: sourceRef?.trim() || existingBrief.sourceRef,
+          },
+        });
+        return NextResponse.json(
+          {
+            id: updated.id,
+            title: updated.title,
+            section: updated.section,
+            type: updated.type,
+            language: updated.language,
+            status: updated.status,
+            createdAt: updated.createdAt,
+            message: "Existing Daily Brief for today updated (deduped by section + day).",
+          },
+          { status: 200 }
+        );
+      }
+    }
+
     const initialStatus = isDailyBrief ? "published" : "pending";
     const initialPublishedAt = isDailyBrief ? new Date() : null;
 

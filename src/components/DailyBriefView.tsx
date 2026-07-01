@@ -156,6 +156,41 @@ function parseAnalysisBlocks(content: string): Array<{ title: string; body: stri
   return blocks;
 }
 
+// Clean up the raw brief content before it reaches MarkdownRenderer.
+// Paperclip currently sends flat text: an internal board-memo preamble followed
+// by run-on paragraphs separated by single newlines and no markdown structure.
+// This is a defensive normalizer — it becomes a near no-op once Paperclip sends
+// proper markdown (see the PC CEO instructions / PUBLISHING.md).
+function normalizeBriefContent(raw: string): string {
+  let text = raw.trim();
+
+  // 1. Strip the internal "Dear Board Member … full version available here: <link>"
+  //    preamble. It is workflow boilerplate, not editorial content.
+  const lines = text.split("\n");
+  const linkIdx = lines.findIndex((l) => /paperclip\.ing/i.test(l));
+  if (linkIdx !== -1 && linkIdx < 8) {
+    text = lines.slice(linkIdx + 1).join("\n").trim();
+  } else {
+    text = text.replace(/^\s*Dear\b[^\n]*\n(?:[^\n]*\n)?/i, "").trim();
+  }
+
+  // 2. If there are no blank-line paragraph breaks, promote single newlines so
+  //    MarkdownRenderer doesn't collapse everything into one wall of text.
+  if (!text.includes("\n\n")) {
+    text = text
+      .split(/\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
+  return text;
+}
+
+function storyLabel(n: number): string {
+  return `${n} ${n === 1 ? "story" : "stories"}`;
+}
+
 /* ------------------------------------------------------------------ */
 /* Sub-components                                                     */
 /* ------------------------------------------------------------------ */
@@ -254,7 +289,7 @@ function ArchiveRow({
         {brief.title}
       </span>
       <span className="text-[10px] text-[#5A7A6A] font-mono hidden sm:inline">{editionCode(brief)}</span>
-      <span className="text-[10px] text-[#5A7A6A] w-16 text-right">{storyCount(brief)} stories</span>
+      <span className="text-[10px] text-[#5A7A6A] w-16 text-right">{storyLabel(storyCount(brief))}</span>
     </button>
   );
 }
@@ -289,7 +324,7 @@ export function DailyBriefView() {
   // or React throws "Rendered more hooks than during the previous render".
   const analysisBlocks = useMemo(() => {
     if (!latest?.content) return [];
-    return parseAnalysisBlocks(latest.content);
+    return parseAnalysisBlocks(normalizeBriefContent(latest.content));
   }, [latest?.content]);
 
   const handleShare = useCallback(async (brief: Brief) => {
