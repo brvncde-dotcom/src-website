@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Spectral } from "next/font/google";
 import "./globals.css";
@@ -22,6 +22,14 @@ const spectral = Spectral({
   weight: ["400", "600", "700", "800"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0A2540",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "SRC — Security & Resilience Counsel | Global Think Tank",
   description:
@@ -39,6 +47,23 @@ export const metadata: Metadata = {
     "Swiss think tank",
     "independent analysis",
   ],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SRC Advisory",
+    startupImage: "/icons/icon-512x512.png",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "SRC — Security & Resilience Counsel",
     description:
