@@ -12,22 +12,108 @@ import { isAdminRequest } from "@/lib/admin-auth";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-// PATCH /api/reports/[id] — Review action: approve, reject, publish (ADMIN ONLY)
-// Publishing is board-gated: only an authenticated admin (session or
-// ADMIN_API_KEY) may approve/publish/reject or edit fields. The ingestion key
-// is for POST ingestion only. There is NO programmatic publish key — the
-// Paperclip/CTO agent cannot publish (see PUBLISHING.md). The other board
-// channel is the Telegram approval card, handled in the telegram webhook.
-// When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
+// PATCH /api/reports/[id] — Review action: approve, reject, publish
+//
+// Auth has two paths:
+//
+// 1. Admin (session or ADMIN_API_KEY) — full access: approve, reject, publish,
+//    edit fields, delete. ADMIN_API_KEY must NEVER be given to any agent.
+//
+// 2. PAPERCLIP_PUBLISH_KEY — scoped to publish-only:
+//    - Bearer token validated against PAPERCLIP_PUBLISH_KEY env var
+//    - Body must be { action: "published" } — nothing else is accepted
+//    - Report must already be status="approved" (board has approved it)
+//    - validateDesignGate still enforced
+//    - Cannot approve, reject, edit fields, or access any other endpoint
+//
+// The board approves via admin panel or Telegram card. Paperclip then
+// publishes board-approved reports using its scoped key. See PUBLISHING.md.
+// When publishing, all reports sharing the same sourceRef are published together.
+
+function validatePublishKey(request: NextRequest): boolean {
+  const key = process.env.PAPERCLIP_PUBLISH_KEY;
+  if (!key) return false;
+  const auth = request.headers.get("authorization") || "";
+  return auth === `Bearer ${key}`;
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
+  // --- Scoped publish-key path (Paperclip / CTO agent) ---
+  // Clone the request so the body can be read again by the admin path below.
+  const cloned = request.clone();
+  if (validatePublishKey(request)) {
+    try {
+      const body = await cloned.json();
+      if (body?.action !== "published") {
+        return NextResponse.json(
+          { error: "This key only permits action: published" },
+          { status: 403 }
+        );
+      }
+
+      const report = await prisma.report.findUnique({ where: { id } });
+      if (!report) {
+        return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      }
+      // Board must have approved before Paperclip can publish.
+      if (report.status !== "approved") {
+        return NextResponse.json(
+          { error: `Report is not board-approved (status: ${report.status}). Board must approve before publishing.` },
+          { status: 422 }
+        );
+      }
+
+      const gate = validateDesignGate(report);
+      if (!gate.valid) {
+        return NextResponse.json(
+          { error: `Publish gate: ${gate.reason}` },
+          { status: 422 }
+        );
+      }
+
+      const now = new Date();
+      // Publish all sibling translations simultaneously if sourceRef exists
+      if (report.sourceRef) {
+        await prisma.report.updateMany({
+          where: { sourceRef: report.sourceRef, id: { not: id } },
+          data: { status: "published", publishedAt: now, reviewedBy: "paperclip", reviewedAt: now },
+        });
+      }
+      const updated = await prisma.report.update({
+        where: { id },
+        data: { status: "published", publishedAt: now, reviewedBy: "paperclip", reviewedAt: now },
+      });
+
+      await logAdminAction({
+        actor: "paperclip",
+        action: "report_published",
+        targetType: "report",
+        targetId: updated.id,
+        detail: `Published by Paperclip (scoped key): ${updated.id}`,
+      });
+
+      void embedReport(updated.id);
+
+      return NextResponse.json({
+        id: updated.id,
+        status: updated.status,
+        publishedAt: updated.publishedAt,
+        message: "Published.",
+      });
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+  }
+
+  // --- Admin path (full access) ---
   if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { id } = await params;
 
   try {
     const body = await request.json();
