@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   prisma,
   validateIngestionKey,
+  validatePublishKey,
   VALID_STATUSES,
   canAccessContent,
   validateDesignGate,
@@ -16,12 +17,16 @@ import { authOptions } from "@/lib/auth";
 // ingestion only — it must NOT be able to approve/publish/reject. ADMIN_API_KEY
 // IS provisioned in production; a 401 here means the caller used the wrong key
 // (use the current rotated admin key, not the old/ingestion key).
+// PAPERCLIP_PUBLISH_KEY grants ONLY action=published — no other ops.
 // When publishing, all reports sharing the same sourceRef are published together (simultaneous publishing)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAdminRequest(request))) {
+  const isAdmin = await isAdminRequest(request);
+  const isPublishOnly = !isAdmin && validatePublishKey(request);
+
+  if (!isAdmin && !isPublishOnly) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -30,6 +35,21 @@ export async function PATCH(
   try {
     const body = await request.json();
     const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, designSignedOffBy, code } = body;
+
+    // Publish-only callers (PAPERCLIP_PUBLISH_KEY) may only set action=published.
+    // Anything else — field edits, approve, reject, delete — is blocked.
+    if (isPublishOnly && action !== "published") {
+      return NextResponse.json(
+        { error: "Publish key may only be used for action=published." },
+        { status: 403 }
+      );
+    }
+    if (isPublishOnly && !action) {
+      return NextResponse.json(
+        { error: "Publish key may only be used for action=published." },
+        { status: 403 }
+      );
+    }
 
     // Handle review actions
     if (action) {

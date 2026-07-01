@@ -183,6 +183,22 @@ export function validateAdminKey(request: Request): boolean {
   return token === apiKey;
 }
 
+// Publish-only key for the Paperclip orchestrator (CTO agent).
+// Grants ONLY the ability to PATCH a report to status=published.
+// Cannot delete, manage users, approve/reject, or read admin data.
+// Set PAPERCLIP_PUBLISH_KEY in Vercel env (and Paperclip settings).
+// Do NOT share ADMIN_API_KEY with the Paperclip orchestrator.
+export function validatePublishKey(request: Request): boolean {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return false;
+
+  const key = process.env.PAPERCLIP_PUBLISH_KEY;
+  if (!key) return false; // fails closed — must be explicitly configured
+
+  const token = authHeader.replace("Bearer ", "");
+  return token === key;
+}
+
 // --- Tier helpers ---
 
 /** Look up a tier by its slug */
