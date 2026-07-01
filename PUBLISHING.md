@@ -27,12 +27,16 @@ database. Ignore all deploy/git/token requests related to publishing.
 |---|-------|-------|-----------|-----------|
 | 1 | Produce + translate content | Paperclip editors | internal to Paperclip | Paperclip editorial review |
 | 2 | Deliver to queue | Paperclip | `POST /api/reports` with `INGESTION_API_KEY` → `status=pending` | internal-ticket filter (`internalTicketReason`) |
-| 3 | Board approval | Board | Telegram card **or** admin panel → `status=approved` | human decision |
-| 4 | Design sign-off | Design Director / Editor-in-Chief | admin panel checkbox → sets `designSignedOffBy` | **Gate 3 (hard gate)** |
-| 5 | Publish | Board | admin panel "Publish" **or** Telegram "Publish" → `status=published` | Gate 3 enforced server-side; all translations publish together |
+| 3 | Design sign-off | Design Director / Editor-in-Chief | admin panel checkbox → sets `designSignedOffBy` | **Gate 3 (hard gate)** |
+| 4 | Board approval | Board | Telegram card **or** admin panel → `status=approved` | **requires Gate 3 first**; human decision |
+| 5 | Publish | Board | admin panel "Publish" **or** Telegram "Publish" → `status=published` | Gate 3 re-checked; all translations publish together |
+
+**Gate order:** design is signed off (Stage 3) **before** the board can approve
+(Stage 4). A report that is not design-signed-off **cannot be approved** — the
+API returns `422 Gate 3 block` on `action=approved`, not just on publish.
 
 **Paperclip's responsibility ends at Stage 2.** It fills the pending queue.
-It never approves, signs off, or publishes.
+It never signs off, approves, or publishes.
 
 ---
 
@@ -64,9 +68,11 @@ shared with the Paperclip/CTO agent.
 ## Server-enforced guardrails (cannot be bypassed)
 
 - **Gate 3 (design sign-off):** `validateDesignGate()` in `src/lib/db.ts`
-  blocks any publish unless the report has `author`, a recorded
-  `designSignedOffBy`, and clean title/summary. Enforced in **both** publish
-  paths (`PATCH /api/reports/[id]` and the Telegram handler).
+  requires `author`, a recorded `designSignedOffBy`, and clean title/summary.
+  Enforced on **both `approved` and `published`** actions, in **both** board
+  channels (`PATCH /api/reports/[id]` and the Telegram handler). Design must be
+  signed off before the board can approve — approval of an unsigned report is
+  rejected with `422`.
 - **Simultaneous translations:** publishing a report with a `sourceRef`
   publishes all its sibling translations (de/fr/it) in the same transaction, so
   a story is never half-live.
@@ -106,9 +112,10 @@ Ingest (Paperclip):
   Body: { title, summary, content, section, type, language, sourceRef, author }
   → creates status=pending
 
-Publish (Board, panel):
-  /admin/reports → tick Gate-3 sign-off → Publish
+Review + publish (Board, panel):
+  /admin/reports → tick Gate-3 design sign-off → Approve → Publish
+  (Approve is blocked until design is signed off.)
 
 Publish (Board, Telegram):
-  Approval card → Publish  (works once design sign-off is recorded)
+  Approval card → Approve/Publish  (both require design sign-off first)
 ```

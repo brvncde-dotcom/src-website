@@ -82,6 +82,7 @@ interface Report {
   reviewNote: string | null;
   minTierId: string | null;
   previewToken?: string | null;
+  designSignedOffBy?: string | null;
 }
 
 export default function AdminReportsPage() {
@@ -217,9 +218,13 @@ export default function AdminReportsPage() {
   const handleAction = async () => {
     if (!actionDialog.report || !actionDialog.action) return;
     try {
-      // Gate 3: record the Design Director / board sign-off before publishing,
-      // so the publish action passes validateDesignGate.
-      if (actionDialog.action === "published" && signOff) {
+      // Gate 3: record the Design Director / board sign-off BEFORE the gated
+      // action (approve or publish), so it passes validateDesignGate. Design
+      // is signed off before the board approves.
+      if (
+        (actionDialog.action === "approved" || actionDialog.action === "published") &&
+        signOff
+      ) {
         await fetch(`/api/reports/${actionDialog.report.id}`, {
           method: "PATCH",
           headers: {
@@ -652,7 +657,7 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </DialogTitle>
             <DialogDescription>
               {actionDialog.action === "approved" &&
-                "This report will be marked as approved and can be published later."}
+                "Design must be signed off before approval. Once approved, the report can be published."}
               {actionDialog.action === "rejected" &&
                 "This report will be marked as rejected."}
               {actionDialog.action === "published" &&
@@ -673,21 +678,29 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             onChange={(e) => setActionNote(e.target.value)}
             rows={3}
           />
-          {actionDialog.action === "published" && (
-            <label className="flex items-start gap-2 mt-1 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-[#0A2540] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={signOff}
-                onChange={(e) => setSignOff(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#0A2540]"
-              />
-              <span>
-                <span className="font-semibold">Gate 3 — Design sign-off.</span>{" "}
-                I confirm this report has passed design/editorial review and is
-                cleared for publication.
-              </span>
-            </label>
-          )}
+          {(actionDialog.action === "approved" || actionDialog.action === "published") &&
+            !actionDialog.report?.designSignedOffBy && (
+              <label className="flex items-start gap-2 mt-1 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-[#0A2540] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={signOff}
+                  onChange={(e) => setSignOff(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[#0A2540]"
+                />
+                <span>
+                  <span className="font-semibold">Gate 3 — Design sign-off.</span>{" "}
+                  I confirm this report has passed design/editorial review and is
+                  cleared. Required before approval.
+                </span>
+              </label>
+            )}
+          {(actionDialog.action === "approved" || actionDialog.action === "published") &&
+            actionDialog.report?.designSignedOffBy && (
+              <div className="mt-1 rounded-sm border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-800">
+                ✓ Design signed off by{" "}
+                <span className="font-semibold">{actionDialog.report.designSignedOffBy}</span>
+              </div>
+            )}
           <DialogFooter>
             {actionDialog.report && (
               <Button
@@ -709,13 +722,17 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </Button>
             <Button
               onClick={handleAction}
-              disabled={actionDialog.action === "published" && !signOff}
+              disabled={
+                (actionDialog.action === "approved" || actionDialog.action === "published") &&
+                !actionDialog.report?.designSignedOffBy &&
+                !signOff
+              }
               className={
                 actionDialog.action === "rejected"
                   ? "bg-red-600 hover:bg-red-700 text-white"
                   : actionDialog.action === "published"
                     ? "bg-green-700 hover:bg-green-800 text-white disabled:opacity-50"
-                    : "bg-[#0A2540] hover:bg-[#0A2540]/90 text-white"
+                    : "bg-[#0A2540] hover:bg-[#0A2540]/90 text-white disabled:opacity-50"
               }
             >
               {actionDialog.action === "approved" && "Approve"}

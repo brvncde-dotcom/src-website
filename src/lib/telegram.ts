@@ -131,6 +131,13 @@ export async function performReportAction(
 
     const now = new Date();
 
+    // Gate 3 must pass before approval, not just before publish: design is
+    // signed off first, then the board may approve (and later publish).
+    if (action === "approved") {
+      const gate = validateDesignGate(report);
+      if (!gate.valid) return { ok: false, message: `Cannot approve: ${gate.reason} Design must be signed off first.` };
+    }
+
     if (action === "published") {
       const gate = validateDesignGate(report);
       if (!gate.valid) return { ok: false, message: `Cannot publish: ${gate.reason}` };

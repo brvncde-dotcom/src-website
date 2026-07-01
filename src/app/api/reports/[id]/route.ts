@@ -51,6 +51,23 @@ export async function PATCH(
         updateData.reviewNote = reviewNote;
       }
 
+      // Gate 3 (Design Sign-Off) must pass BEFORE the board can approve.
+      // Design is added/signed off first; only then may a report be approved
+      // (and later published). Rejection is never gated. See PUBLISHING.md.
+      if (action === "approved") {
+        const report = await prisma.report.findUnique({ where: { id } });
+        if (!report) {
+          return NextResponse.json({ error: "Report not found" }, { status: 404 });
+        }
+        const gate = validateDesignGate(report);
+        if (!gate.valid) {
+          return NextResponse.json(
+            { error: `Gate 3 block: ${gate.reason} Design must be signed off before board approval.` },
+            { status: 422 }
+          );
+        }
+      }
+
       // When publishing, enforce Gate 3 (Design Sign-Off) hard gate
       if (action === "published") {
         const report = await prisma.report.findUnique({ where: { id } });

@@ -81,7 +81,24 @@ job for that report is **done** — it waits for the board, it does not chase.
 
 ---
 
-## 5. What "done" looks like
+## 5. Workflow change — design sign-off is now a PRE-approval gate
+
+**Effective now:** design sign-off (Gate 3) must be recorded **before** the
+board approves a report — not just before publish. The website enforces this:
+`action=approved` on a report with no `designSignedOffBy` is rejected with
+`422 Gate 3 block`.
+
+New order: **Ingest (pending) → Design sign-off → Board approval → Publish.**
+
+What Paperclip agents must do:
+- Ensure every report delivered to the queue is **design/editorially complete**
+  and ready for sign-off. Do not deliver drafts that still need design work.
+- Do NOT attempt to approve — approval (and the sign-off that precedes it) are
+  board actions on the website. Paperclip still stops at ingestion.
+- If a report is bounced back, it will sit at `pending` until design is signed
+  off and the board approves. That is expected, not a failure state.
+
+## 6. What "done" looks like
 
 - Content ingested → sits at `pending` → board publishes when ready.
 - No agent ever waits on a key, a token, or a deploy.

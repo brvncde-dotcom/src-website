@@ -292,6 +292,7 @@ export async function GET(request: NextRequest) {
       sourceRef: true,
       author: true,
       code: true,
+      designSignedOffBy: true,
       publishedAt: true,
       createdAt: true,
     };
