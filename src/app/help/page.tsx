@@ -7,6 +7,9 @@ import nextDynamic from "next/dynamic";
 import { ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/components/LangProvider";
+import { SiteNavigation, type PageKey } from "@/components/SiteNavigation";
+import { SiteFooter } from "@/components/SiteFooter";
+import { NavigationProvider } from "@/components/NavigationProvider";
 
 const HelpChat = nextDynamic(() => import("@/components/HelpChat").then(m => ({ default: m.HelpChat })), { ssr: false });
 import {
@@ -38,6 +41,11 @@ export default function HelpPage() {
   const { t: tr } = useLang();
   const [searchQuery, setSearchQuery] = useState("");
   const [showChat, setShowChat] = useState(false);
+
+  // Navigation: clicking any SiteNavigation item goes back to the SPA at that hash
+  const handleNav = (key: PageKey) => {
+    window.location.href = key === "home" ? "/" : `/#${key}`;
+  };
 
   const helpSections: HelpSection[] = [
     {
@@ -121,6 +129,8 @@ export default function HelpPage() {
   }, [searchQuery, tr]);
 
   return (
+    <NavigationProvider currentPage="help" onNavigate={handleNav}>
+    <SiteNavigation currentPage="help" onNavigate={handleNav} />
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Header */}
       <div className="border-b border-[#D8DEE6] dark:border-slate-800 bg-gradient-to-br from-[#0A2540] via-[#0F3A5F] to-[#14445A] text-white py-12">
@@ -336,5 +346,7 @@ export default function HelpPage() {
         </div>
       )}
     </div>
+    <SiteFooter />
+    </NavigationProvider>
   );
 }
