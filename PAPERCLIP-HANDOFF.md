@@ -81,22 +81,29 @@ job for that report is **done** — it waits for the board, it does not chase.
 
 ---
 
-## 5. Workflow change — design sign-off is now a PRE-approval gate
+## 5. Workflow — one board decision, no separate sign-off
 
-**Effective now:** design sign-off (Gate 3) must be recorded **before** the
-board approves a report — not just before publish. The website enforces this:
-`action=approved` on a report with no `designSignedOffBy` is rejected with
-`422 Gate 3 block`.
+There is **no design sign-off step**. Board **approval = design + editorial
+approval** in one act. The board's decision on each report is one of three:
 
-New order: **Ingest (pending) → Design sign-off → Board approval → Publish.**
+- **Approve** → ready to publish.
+- **Reject** → the board writes a **mandatory comment** (what must change). The
+  report goes to `status=rejected`. The desk reworks it; the board re-approves.
+  This is the re-approval loop.
+- **Delete** → the report is removed entirely.
+
+Flow: **Ingest (pending) → Board approves → Publish** (or Reject → rework →
+re-approve).
 
 What Paperclip agents must do:
-- Ensure every report delivered to the queue is **design/editorially complete**
-  and ready for sign-off. Do not deliver drafts that still need design work.
-- Do NOT attempt to approve — approval (and the sign-off that precedes it) are
-  board actions on the website. Paperclip still stops at ingestion.
-- If a report is bounced back, it will sit at `pending` until design is signed
-  off and the board approves. That is expected, not a failure state.
+- Deliver **finished, publication-ready** content to the queue (correct byline,
+  clean title/summary — no internal markers). A publish-time hygiene check will
+  reject internal-marker junk, but that is a backstop, not your QA.
+- On **rejection**, read the board's comment and rework the report, then
+  re-ingest the updated version (same `sourceRef` + `language` updates the
+  existing row). Do not open tickets or argue — act on the comment.
+- Do NOT approve, reject, delete, or publish. Those are board actions on the
+  website. Paperclip stops at ingestion.
 
 ## 6. What "done" looks like
 

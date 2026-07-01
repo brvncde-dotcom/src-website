@@ -104,8 +104,6 @@ export default function AdminReportsPage() {
     report: Report | null;
   }>({ open: false, report: null });
   const [actionNote, setActionNote] = useState("");
-  // Gate 3: board must confirm design sign-off before a report can publish.
-  const [signOff, setSignOff] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
       return sessionStorage.getItem("src_admin_key") || "";
@@ -217,26 +215,9 @@ export default function AdminReportsPage() {
 
   const handleAction = async () => {
     if (!actionDialog.report || !actionDialog.action) return;
+    // A rejection must carry a reason (drives the re-approval loop).
+    if (actionDialog.action === "rejected" && !actionNote.trim()) return;
     try {
-      // Gate 3: record the Design Director / board sign-off BEFORE the gated
-      // action (approve or publish), so it passes validateDesignGate. Design
-      // is signed off before the board approves.
-      if (
-        (actionDialog.action === "approved" || actionDialog.action === "published") &&
-        signOff
-      ) {
-        await fetch(`/api/reports/${actionDialog.report.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            designSignedOffBy:
-              session?.user?.name || session?.user?.email || "Board",
-          }),
-        });
-      }
       const res = await fetch(`/api/reports/${actionDialog.report.id}`, {
         method: "PATCH",
         headers: {
@@ -252,7 +233,6 @@ export default function AdminReportsPage() {
       if (res.ok) {
         setActionDialog({ open: false, report: null, action: "" });
         setActionNote("");
-        setSignOff(false);
         fetchReports();
       } else {
         alert(data.error || "Action failed");
@@ -502,19 +482,46 @@ export default function AdminReportsPage() {
                         </>
                       )}
                       {report.status === "approved" && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="h-8 gap-1 text-xs bg-green-700 hover:bg-green-800 text-white"
+                            onClick={() =>
+                              setActionDialog({
+                                open: true,
+                                report,
+                                action: "published",
+                              })
+                            }
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            Publish
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 gap-1 text-xs text-red-700 border-red-300 hover:bg-red-50"
+                            onClick={() =>
+                              setActionDialog({ open: true, report, action: "rejected" })
+                            }
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Reject</span>
+                          </Button>
+                        </>
+                      )}
+                      {report.status === "rejected" && (
                         <Button
                           size="sm"
-                          className="h-8 gap-1 text-xs bg-green-700 hover:bg-green-800 text-white"
+                          variant="outline"
+                          className="h-8 gap-1 text-xs text-green-700 border-green-300 hover:bg-green-50"
                           onClick={() =>
-                            setActionDialog({
-                              open: true,
-                              report,
-                              action: "published",
-                            })
+                            setActionDialog({ open: true, report, action: "approved" })
                           }
+                          title="Re-approve after rework"
                         >
-                          <Send className="h-3.5 w-3.5" />
-                          Publish
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Re-approve</span>
                         </Button>
                       )}
                       <Button
@@ -657,9 +664,9 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </DialogTitle>
             <DialogDescription>
               {actionDialog.action === "approved" &&
-                "Design must be signed off before approval. Once approved, the report can be published."}
+                "Approving confirms this report is editorially and design-approved and ready to publish."}
               {actionDialog.action === "rejected" &&
-                "This report will be marked as rejected."}
+                "Send this report back for rework. Your comment tells the desk what to change — it is required."}
               {actionDialog.action === "published" &&
                 "This report will be published and visible on the public website. All translations sharing the same source reference will be published simultaneously."}
             </DialogDescription>
@@ -673,34 +680,23 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </div>
           )}
           <Textarea
-            placeholder="Optional review note..."
+            placeholder={
+              actionDialog.action === "rejected"
+                ? "Required — what needs to change before this can be approved?"
+                : "Optional review note..."
+            }
             value={actionNote}
             onChange={(e) => setActionNote(e.target.value)}
             rows={3}
+            className={
+              actionDialog.action === "rejected" && !actionNote.trim()
+                ? "border-red-300 focus-visible:ring-red-300"
+                : undefined
+            }
           />
-          {(actionDialog.action === "approved" || actionDialog.action === "published") &&
-            !actionDialog.report?.designSignedOffBy && (
-              <label className="flex items-start gap-2 mt-1 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-[#0A2540] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={signOff}
-                  onChange={(e) => setSignOff(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-[#0A2540]"
-                />
-                <span>
-                  <span className="font-semibold">Gate 3 — Design sign-off.</span>{" "}
-                  I confirm this report has passed design/editorial review and is
-                  cleared. Required before approval.
-                </span>
-              </label>
-            )}
-          {(actionDialog.action === "approved" || actionDialog.action === "published") &&
-            actionDialog.report?.designSignedOffBy && (
-              <div className="mt-1 rounded-sm border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-800">
-                ✓ Design signed off by{" "}
-                <span className="font-semibold">{actionDialog.report.designSignedOffBy}</span>
-              </div>
-            )}
+          {actionDialog.action === "rejected" && !actionNote.trim() && (
+            <p className="text-xs text-red-600 -mt-1">A rejection comment is required.</p>
+          )}
           <DialogFooter>
             {actionDialog.report && (
               <Button
@@ -722,11 +718,7 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </Button>
             <Button
               onClick={handleAction}
-              disabled={
-                (actionDialog.action === "approved" || actionDialog.action === "published") &&
-                !actionDialog.report?.designSignedOffBy &&
-                !signOff
-              }
+              disabled={actionDialog.action === "rejected" && !actionNote.trim()}
               className={
                 actionDialog.action === "rejected"
                   ? "bg-red-600 hover:bg-red-700 text-white"

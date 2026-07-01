@@ -47,28 +47,21 @@ export async function PATCH(
         reviewedAt: new Date(),
       };
 
+      // A rejection must explain what needs to change — the comment drives the
+      // re-approval loop, so it cannot be empty.
+      if (action === "rejected" && (!reviewNote || !reviewNote.trim())) {
+        return NextResponse.json(
+          { error: "A rejection requires a comment explaining what needs to change." },
+          { status: 400 }
+        );
+      }
+
       if (reviewNote) {
         updateData.reviewNote = reviewNote;
       }
 
-      // Gate 3 (Design Sign-Off) must pass BEFORE the board can approve.
-      // Design is added/signed off first; only then may a report be approved
-      // (and later published). Rejection is never gated. See PUBLISHING.md.
-      if (action === "approved") {
-        const report = await prisma.report.findUnique({ where: { id } });
-        if (!report) {
-          return NextResponse.json({ error: "Report not found" }, { status: 404 });
-        }
-        const gate = validateDesignGate(report);
-        if (!gate.valid) {
-          return NextResponse.json(
-            { error: `Gate 3 block: ${gate.reason} Design must be signed off before board approval.` },
-            { status: 422 }
-          );
-        }
-      }
-
-      // When publishing, enforce Gate 3 (Design Sign-Off) hard gate
+      // Publish backstop: reject internal-marker junk / missing byline before
+      // it goes live. (No design sign-off step — board approval is the gate.)
       if (action === "published") {
         const report = await prisma.report.findUnique({ where: { id } });
         if (!report) {

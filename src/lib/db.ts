@@ -118,14 +118,9 @@ export function validateDesignGate(report: {
     };
   }
 
-  // 4. Design sign-off recorded
-  if (!report.designSignedOffBy || report.designSignedOffBy.trim().length === 0) {
-    return {
-      valid: false,
-      reason: "Design sign-off is missing. Gate 3 requires a recorded sign-off by the Design Director or Editor-in-Chief before publish.",
-    };
-  }
-
+  // NOTE: There is no separate design sign-off step. Board approval IS design
+  // approval. This gate is now an automated publish backstop only (clean
+  // title/summary + a byline). Kept to stop internal-marker junk going live.
   return { valid: true };
 }
 

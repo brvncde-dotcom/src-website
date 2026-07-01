@@ -103,16 +103,15 @@ export function reportCard(r: ReportCardData): { text: string; reply_markup: Inl
     `${esc(r.section || "")} · ${esc(r.type || "")} · ${esc((r.language || "").toUpperCase())}` +
     (r.sourceRef ? ` · ${esc(r.sourceRef)}` : "") +
     (r.summary ? `\n\n${esc(r.summary).slice(0, 500)}` : "");
+  // Approve = design + editorial approval. Publish sends it live.
+  // Reject/Delete need a written reason or are destructive → admin panel only.
   const reply_markup: InlineKeyboard = {
     inline_keyboard: [
       [
         { text: "✅ Approve", callback_data: `rv:approved:${r.id}` },
         { text: "📤 Publish", callback_data: `rv:published:${r.id}` },
       ],
-      [
-        { text: "❌ Reject", callback_data: `rv:rejected:${r.id}` },
-        { text: "👁 Review queue", url: `${SITE}/admin/reports` },
-      ],
+      [{ text: "🗂 Reject / manage in panel", url: `${SITE}/admin/reports` }],
     ],
   };
   return { text, reply_markup };
@@ -131,11 +130,10 @@ export async function performReportAction(
 
     const now = new Date();
 
-    // Gate 3 must pass before approval, not just before publish: design is
-    // signed off first, then the board may approve (and later publish).
-    if (action === "approved") {
-      const gate = validateDesignGate(report);
-      if (!gate.valid) return { ok: false, message: `Cannot approve: ${gate.reason} Design must be signed off first.` };
+    // Rejections need a written reason (re-approval loop). Telegram can't
+    // collect one inline, so reject from the admin panel instead.
+    if (action === "rejected") {
+      return { ok: false, message: "Reject with a reason from the admin panel." };
     }
 
     if (action === "published") {
