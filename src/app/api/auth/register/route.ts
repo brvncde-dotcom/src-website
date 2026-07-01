@@ -10,52 +10,31 @@ export async function POST(req: NextRequest) {
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
+    if (!password || password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    }
 
-    // Check if user already exists
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      // If they exist and are a member, tell them to sign in
-      if (existing.isMember) {
-        return NextResponse.json(
-          { error: "An account with this email already exists. Please sign in." },
-          { status: 409 }
-        );
-      }
-      // If trial expired, tell them to contact
-      if (existing.trialEnd && new Date(existing.trialEnd) < new Date()) {
-        return NextResponse.json(
-          { error: "Your trial has expired. Contact us for membership." },
-          { status: 403 }
-        );
-      }
-      // Otherwise, return success — they can use existing trial
-      return NextResponse.json({
-        message: "Welcome back",
-        user: { id: existing.id, email: existing.email, name: existing.name },
-      });
+      return NextResponse.json(
+        { error: "An account with this email already exists. Please sign in." },
+        { status: 409 }
+      );
     }
 
-    // Hash password if provided (for members who sign up with password)
-    let passwordHash: string | undefined;
-    if (password && password.length >= 6) {
-      passwordHash = await bcrypt.hash(password, 12);
-    }
-
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
         email,
-        name: name || email.split("@")[0],
+        name: name?.trim() || email.split("@")[0],
         passwordHash,
-        trialStart: new Date(),
-        trialEnd,
+        // No trial — permanent free account; observer tier applies as fallback
       },
     });
 
     return NextResponse.json({
-      message: "Trial activated",
+      message: "Account created",
       user: { id: user.id, email: user.email, name: user.name },
     });
   } catch (error) {

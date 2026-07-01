@@ -117,7 +117,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, designSignedOffBy, code } = body;
+    const { action, reviewNote, title, summary, content, section, type, author, language, minTierId, isFreeMonthlyPick, designSignedOffBy, code } = body;
 
     // Handle review actions
     if (action) {
@@ -261,6 +261,7 @@ export async function PATCH(
     if (language !== undefined) updateFields.language = language;
     // minTierId: set a tier slug-resolved id to gate the report, or "" / null to ungate.
     if (minTierId !== undefined) updateFields.minTierId = minTierId || null;
+    if (isFreeMonthlyPick !== undefined) updateFields.isFreeMonthlyPick = Boolean(isFreeMonthlyPick);
     if (code !== undefined) updateFields.code = code?.trim() || null;
     if (designSignedOffBy !== undefined) {
       updateFields.designSignedOffBy = designSignedOffBy || null;

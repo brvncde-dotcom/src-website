@@ -252,14 +252,20 @@ export type AccessResult = {
 
 /**
  * Determine whether a user can access a piece of content.
+ * - Free monthly pick + authenticated → full access regardless of tier.
  * - If the report has no minTierId → full access for everyone.
  * - Unauthenticated users get preview access for tier-gated content.
  * - Authenticated users are compared against the report's minTierId by sortOrder.
  */
 export async function canAccessContent(
   userId: string | null,
-  report: { minTierId?: string; publishedAt?: string }
+  report: { minTierId?: string | null; publishedAt?: Date | string | null; isFreeMonthlyPick?: boolean }
 ): Promise<AccessResult> {
+  // Free monthly pick — any signed-in user (including free tier) gets full access
+  if (report.isFreeMonthlyPick && userId) {
+    return { access: "full", reason: "Free monthly pick" };
+  }
+
   // No tier gate on the report → full access
   if (!report.minTierId) {
     return { access: "full", reason: "No tier restriction" };
