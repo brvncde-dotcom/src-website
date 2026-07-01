@@ -162,6 +162,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Daily Briefs auto-publish immediately — no board vote required
+    const isDailyBrief = reportType === "Daily Brief";
+    const initialStatus = isDailyBrief ? "published" : "pending";
+    const initialPublishedAt = isDailyBrief ? new Date() : null;
+
     // Use an interactive transaction so create and verify share the same
     // database connection. This eliminates connection-pooler or read-replica
     // lag as a source of silent write failures in serverless environments.
@@ -177,7 +182,8 @@ export async function POST(request: NextRequest) {
           language: reportLang,
           author: author?.trim() || null,
           code: code?.trim() || null,
-          status: "pending", // All ingested reports start as pending
+          status: initialStatus,
+          publishedAt: initialPublishedAt,
         },
       });
 
@@ -195,11 +201,17 @@ export async function POST(request: NextRequest) {
       return created;
     });
 
-    // Notify the Board head on Telegram with an inline approval card.
-    // Best-effort: never let a notification failure affect ingestion.
+    // Telegram notification — brief notice for Daily Brief (auto-published),
+    // full board approval card for everything else.
     try {
-      const card = reportCard(report);
-      await tgBroadcast(card.text, card.reply_markup);
+      if (isDailyBrief) {
+        await tgBroadcast(
+          `📋 *Daily Brief published*\n${report.title}\n\nAuto-published at ${new Date().toLocaleTimeString("en-CH", { timeZone: "Europe/Zurich", hour: "2-digit", minute: "2-digit" })} CET`
+        );
+      } else {
+        const card = reportCard(report);
+        await tgBroadcast(card.text, card.reply_markup);
+      }
     } catch (e) {
       console.error("[telegram] notify on ingest failed:", e);
     }
@@ -213,7 +225,9 @@ export async function POST(request: NextRequest) {
         language: report.language,
         status: report.status,
         createdAt: report.createdAt,
-        message: "Report ingested successfully and awaits review.",
+        message: isDailyBrief
+          ? "Daily Brief published automatically."
+          : "Report ingested successfully and awaits review.",
       },
       { status: 201 }
     );

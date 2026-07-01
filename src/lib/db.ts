@@ -49,6 +49,7 @@ export const VALID_TYPES = [
   "Brief",
   "Report",
   "Opinion",
+  "Daily Brief",
 ] as const;
 
 export const VALID_STATUSES = [
