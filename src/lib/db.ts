@@ -183,21 +183,13 @@ export function validateAdminKey(request: Request): boolean {
   return token === apiKey;
 }
 
-// Publish-only key for the Paperclip orchestrator (CTO agent).
-// Grants ONLY the ability to PATCH a report to status=published.
-// Cannot delete, manage users, approve/reject, or read admin data.
-// Set PAPERCLIP_PUBLISH_KEY in Vercel env (and Paperclip settings).
-// Do NOT share ADMIN_API_KEY with the Paperclip orchestrator.
-export function validatePublishKey(request: Request): boolean {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader) return false;
-
-  const key = process.env.PAPERCLIP_PUBLISH_KEY;
-  if (!key) return false; // fails closed — must be explicitly configured
-
-  const token = authHeader.replace("Bearer ", "");
-  return token === key;
-}
+// NOTE: Publishing is board-gated by design. There is intentionally NO
+// programmatic publish key. Reports are published only by an authenticated
+// admin (session or ADMIN_API_KEY) via the panel, or by an allow-listed
+// board member from the Telegram approval card (server-side). The Paperclip
+// orchestrator/CTO agent is NOT given any publish capability — its role ends
+// at ingestion (POST /api/reports with INGESTION_API_KEY → status=pending).
+// See PUBLISHING.md for the full workflow and rationale.
 
 // --- Tier helpers ---
 
