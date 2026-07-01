@@ -103,6 +103,8 @@ export default function AdminReportsPage() {
     report: Report | null;
   }>({ open: false, report: null });
   const [actionNote, setActionNote] = useState("");
+  // Gate 3: board must confirm design sign-off before a report can publish.
+  const [signOff, setSignOff] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
       return sessionStorage.getItem("src_admin_key") || "";
@@ -215,6 +217,21 @@ export default function AdminReportsPage() {
   const handleAction = async () => {
     if (!actionDialog.report || !actionDialog.action) return;
     try {
+      // Gate 3: record the Design Director / board sign-off before publishing,
+      // so the publish action passes validateDesignGate.
+      if (actionDialog.action === "published" && signOff) {
+        await fetch(`/api/reports/${actionDialog.report.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            designSignedOffBy:
+              session?.user?.name || session?.user?.email || "Board",
+          }),
+        });
+      }
       const res = await fetch(`/api/reports/${actionDialog.report.id}`, {
         method: "PATCH",
         headers: {
@@ -230,6 +247,7 @@ export default function AdminReportsPage() {
       if (res.ok) {
         setActionDialog({ open: false, report: null, action: "" });
         setActionNote("");
+        setSignOff(false);
         fetchReports();
       } else {
         alert(data.error || "Action failed");
@@ -655,6 +673,21 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             onChange={(e) => setActionNote(e.target.value)}
             rows={3}
           />
+          {actionDialog.action === "published" && (
+            <label className="flex items-start gap-2 mt-1 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-[#0A2540] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={signOff}
+                onChange={(e) => setSignOff(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[#0A2540]"
+              />
+              <span>
+                <span className="font-semibold">Gate 3 — Design sign-off.</span>{" "}
+                I confirm this report has passed design/editorial review and is
+                cleared for publication.
+              </span>
+            </label>
+          )}
           <DialogFooter>
             {actionDialog.report && (
               <Button
@@ -676,11 +709,12 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             </Button>
             <Button
               onClick={handleAction}
+              disabled={actionDialog.action === "published" && !signOff}
               className={
                 actionDialog.action === "rejected"
                   ? "bg-red-600 hover:bg-red-700 text-white"
                   : actionDialog.action === "published"
-                    ? "bg-green-700 hover:bg-green-800 text-white"
+                    ? "bg-green-700 hover:bg-green-800 text-white disabled:opacity-50"
                     : "bg-[#0A2540] hover:bg-[#0A2540]/90 text-white"
               }
             >
