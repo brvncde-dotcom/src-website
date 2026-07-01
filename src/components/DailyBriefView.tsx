@@ -279,7 +279,7 @@ export function DailyBriefView() {
       .then((d) => setBriefs(d.briefs ?? []))
       .catch(() => setBriefs([]))
       .finally(() => setLoading(false));
-  }, [session]);
+  }, []);
 
   const latest = briefs[0] ?? null;
   const archive = briefs.slice(1);
