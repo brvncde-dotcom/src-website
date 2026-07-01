@@ -68,10 +68,21 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = (token.userId as string) || (token.id as string);
+        const uid = (token.userId as string) || (token.id as string);
+        session.user.id = uid;
         (session.user as Record<string, unknown>).trialEnd = token.trialEnd;
         (session.user as Record<string, unknown>).isMember = token.isMember;
         (session.user as Record<string, unknown>).isAdmin = token.isAdmin;
+
+        // Profile picture is read here (not stored on the JWT) so a data-URL
+        // avatar never bloats the session cookie past its size limit.
+        if (uid) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: uid },
+            select: { image: true },
+          });
+          session.user.image = dbUser?.image ?? null;
+        }
       }
       return session;
     },

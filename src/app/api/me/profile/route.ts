@@ -26,6 +26,7 @@ export async function GET() {
         id: true,
         email: true,
         name: true,
+        image: true,
         phone: true,
         organization: true,
         country: true,
@@ -91,7 +92,28 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, organization, country, phone } = body;
+    const { name, organization, country, phone, image } = body;
+
+    // Profile picture: accept a small image data URL, or "" / null to remove.
+    // Guard against oversized payloads and non-image data (~300KB cap covers a
+    // 256px square JPEG comfortably; the client already downscales).
+    let imageUpdate: { image: string | null } | undefined;
+    if (image !== undefined) {
+      if (image === null || image === "") {
+        imageUpdate = { image: null };
+      } else if (
+        typeof image === "string" &&
+        image.startsWith("data:image/") &&
+        image.length <= 300_000
+      ) {
+        imageUpdate = { image };
+      } else {
+        return NextResponse.json(
+          { error: "Invalid image. Provide a small image (max ~200KB) or clear it." },
+          { status: 400 }
+        );
+      }
+    }
 
     const updated = await prisma.user.update({
       where: { id: user.id },
@@ -100,11 +122,13 @@ export async function PATCH(request: NextRequest) {
         ...(organization !== undefined && { organization: organization || null }),
         ...(country !== undefined && { country: country || null }),
         ...(phone !== undefined && { phone: phone || null }),
+        ...(imageUpdate ?? {}),
       },
       select: {
         id: true,
         email: true,
         name: true,
+        image: true,
         phone: true,
         organization: true,
         country: true,

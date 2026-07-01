@@ -34,6 +34,7 @@ interface ProfileData {
   id: string;
   email: string;
   name: string | null;
+  image: string | null;
   phone: string | null;
   organization: string | null;
   country: string | null;
@@ -87,13 +88,14 @@ interface SubItem {
 
 export function UserAccountView() {
   const { t: tr } = useLang();
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarBusy, setAvatarBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Editable profile fields
@@ -227,6 +229,76 @@ export function UserAccountView() {
       // silently fail
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Profile picture ──
+
+  // Downscale + center-crop the chosen file to a 256px square JPEG data URL in
+  // the browser, so we store a small avatar (no external storage needed).
+  const fileToAvatarDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.onload = () => {
+        const img = new window.Image();
+        img.onerror = () => reject(new Error("decode failed"));
+        img.onload = () => {
+          const SIZE = 256;
+          const canvas = document.createElement("canvas");
+          canvas.width = SIZE;
+          canvas.height = SIZE;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("no canvas"));
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          const sy = (img.height - side) / 2;
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const handleAvatarChange = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    setAvatarBusy(true);
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      const res = await fetch("/api/me/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataUrl }),
+      });
+      if (res.ok) {
+        await fetchProfile();
+        await updateSession(); // refresh nav avatar
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarBusy(true);
+    try {
+      const res = await fetch("/api/me/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: null }),
+      });
+      if (res.ok) {
+        await fetchProfile();
+        await updateSession();
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAvatarBusy(false);
     }
   };
 
@@ -365,6 +437,53 @@ export function UserAccountView() {
           {/* ── Profile Tab ── */}
           <TabsContent value="profile" className="mt-6">
             <div className="bg-white border border-[#D8DEE6] rounded-sm p-6 sm:p-8 max-w-2xl">
+              {/* Profile picture */}
+              <div className="flex items-center gap-5 mb-7 pb-7 border-b border-[#EDF0F4]">
+                {profile.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profile.image}
+                    alt={profile.name || "Profile"}
+                    className="h-20 w-20 rounded-full object-cover border border-[#D8DEE6]"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-[#0A2540] flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">
+                      {(profile.name || profile.email || "?")[0].toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label
+                      className={`inline-flex items-center h-9 px-3 rounded-sm border border-[#D8DEE6] text-sm font-medium cursor-pointer hover:bg-[#F4F6F9] transition-colors ${
+                        avatarBusy ? "opacity-60 pointer-events-none" : ""
+                      }`}
+                    >
+                      {avatarBusy ? "Uploading…" : profile.image ? "Change photo" : "Upload photo"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleAvatarChange(e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                    {profile.image && !avatarBusy && (
+                      <button
+                        type="button"
+                        onClick={handleAvatarRemove}
+                        className="h-9 px-3 rounded-sm text-sm font-medium text-[#E8272C] hover:bg-red-50 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#5A6B7F]">
+                    Square image works best. Auto-resized to 256px.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <Label className="text-xs font-semibold uppercase tracking-wider">
