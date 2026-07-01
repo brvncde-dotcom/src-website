@@ -16,6 +16,7 @@ import { LANG_LABELS, type Lang } from "@/lib/i18n";
 
 export type PageKey =
   | "home"
+  | "brief"
   | "reports"
   | "opinions"
   | "focus-areas"
@@ -28,6 +29,7 @@ export type PageKey =
   | "agb";
 
 const NAV_MAIN: { key: PageKey; labelKey: string }[] = [
+  { key: "brief", labelKey: "nav.brief" },
   { key: "opinions", labelKey: "nav.opinions" },
   { key: "reports", labelKey: "nav.reports" },
 ];
