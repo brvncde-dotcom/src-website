@@ -310,8 +310,8 @@ export default function HelpPage() {
             )}
           </div>
 
-          {/* Chat Widget - Desktop */}
-          <div className="hidden lg:block sticky top-8">
+          {/* Chat Widget - Desktop: fixed height so it never grows or scrolls the page */}
+          <div className="hidden lg:block sticky top-8 h-[480px]">
             <HelpChat />
           </div>
         </div>
