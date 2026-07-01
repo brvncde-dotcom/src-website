@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // Call Claude Haiku via Anthropic SDK
     const message = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [
@@ -107,11 +107,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ answer }, { status: 200 });
   } catch (error) {
-    console.error("Help chat API error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Help chat API error:", msg);
 
     return NextResponse.json(
       {
         error: "Failed to process your question. Please try again.",
+        _debug: process.env.NODE_ENV !== "production" ? msg : undefined,
       },
       { status: 500 }
     );
