@@ -210,11 +210,11 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                         <img
                           src={session.user.image}
                           alt={session?.user?.name || "Account"}
-                          className="h-11 w-11 rounded-full object-cover border border-border"
+                          className="h-[88px] w-[88px] rounded-full object-cover border border-border"
                         />
                       ) : (
-                        <div className="h-11 w-11 rounded-full bg-[#0A2540] flex items-center justify-center">
-                          <span className="text-white text-base font-bold">
+                        <div className="h-[88px] w-[88px] rounded-full bg-[#0A2540] flex items-center justify-center">
+                          <span className="text-white text-3xl font-bold">
                             {(session?.user?.name || session?.user?.email || "?")[0].toUpperCase()}
                           </span>
                         </div>
