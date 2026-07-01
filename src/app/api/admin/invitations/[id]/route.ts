@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, validateAdminKey } from "@/lib/db";
+import { prisma } from "@/lib/db";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 // DELETE /api/admin/invitations/[id] — revoke a pending invitation
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;

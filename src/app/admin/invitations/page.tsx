@@ -18,6 +18,7 @@ type Invitation = {
 
 export default function AdminInvitationsPage() {
   const { data: session } = useSession();
+  const isAdmin = !!(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
   const [apiKey, setApiKey] = useState(() =>
     typeof window !== "undefined" ? sessionStorage.getItem("src_admin_key") || "" : ""
   );
@@ -57,12 +58,12 @@ export default function AdminInvitationsPage() {
   }, []);
 
   const fetchInvitations = useCallback(() => {
-    if (!apiKey) return;
-    fetch("/api/admin/invitations", { headers: { Authorization: `Bearer ${apiKey}` } })
+    if (!isAdmin) return;
+    fetch("/api/admin/invitations")
       .then((r) => (r.ok ? r.json() : { invitations: [] }))
       .then((d) => setInvitations(d.invitations || []))
       .catch(() => {});
-  }, [apiKey]);
+  }, [isAdmin]);
 
   useEffect(() => {
     fetchInvitations();
@@ -123,7 +124,7 @@ export default function AdminInvitationsPage() {
         ? "bg-green-100 text-green-800 border-green-300"
         : "bg-gray-100 text-gray-500 border-gray-200";
 
-  if (!apiKey) {
+  if (!isAdmin) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-sm text-[#5A6B7F]">
         Sign in as an administrator to manage invitations.

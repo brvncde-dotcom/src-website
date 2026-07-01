@@ -184,19 +184,20 @@ export default function AdminUsersPage() {
     }
     return "";
   });
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { data: session } = useSession() ?? {};
+  const { data: session, status: sessionStatus } = useSession() ?? {};
+  // Admin access is decided by the session (email in ADMIN_EMAILS). No key entry.
+  const isAdmin = !!(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
-  // Auto-fetch API key if logged in via NextAuth
+  // Best-effort admin key for the Bearer header (legacy path). Admin APIs also
+  // accept the session cookie, so this is optional — never gated on.
   useEffect(() => {
     if (session?.user?.email && !apiKey) {
       fetch("/api/admin/auth-key")
-        .then(r => r.json())
-        .then(data => {
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((data: { key?: string }) => {
           if (data.key) {
             sessionStorage.setItem("src_admin_key", data.key);
             setApiKey(data.key);
-            setIsAuthenticated(true);
           }
         })
         .catch(() => {});
@@ -206,17 +207,13 @@ export default function AdminUsersPage() {
   // ── Fetch users ──
 
   const fetchUsers = useCallback(async () => {
-    if (!apiKey) return;
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set("search", search.trim());
 
-      const res = await fetch(`/api/admin/users?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
+      const res = await fetch(`/api/admin/users?${params.toString()}`);
 
       if (res.status === 401) {
-        setIsAuthenticated(false);
         return;
       }
 
@@ -237,16 +234,15 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [apiKey, search]);
+  }, [search]);
 
   useEffect(() => {
-    if (apiKey) {
-      setIsAuthenticated(true);
+    if (isAdmin) {
       fetchUsers();
-    } else {
+    } else if (sessionStatus !== "loading") {
       setLoading(false);
     }
-  }, [apiKey, fetchUsers]);
+  }, [isAdmin, sessionStatus, fetchUsers]);
 
   // ── Fetch user profile ──
 
@@ -411,46 +407,34 @@ export default function AdminUsersPage() {
     setGrantForm({ grantType: "", tierSlug: "", durationDays: "30", reason: "" });
   };
 
-  const handleLogin = () => {
-    sessionStorage.setItem("src_admin_key", apiKey);
-    setIsAuthenticated(true);
-    fetchUsers();
-  };
+  // ── Access gate (session-based; no API key entry) ──
 
-  // ── Login screen ──
-
-  if (!isAuthenticated || !apiKey) {
+  if (sessionStatus === "loading") {
+    return (
+      <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center text-sm text-[#5A6B7F]">
+        Loading…
+      </div>
+    );
+  }
+  if (!isAdmin) {
+    const signedIn = !!session?.user;
     return (
       <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center px-4">
-        <div className="bg-white border border-[#D8DEE6] rounded-sm p-8 w-full max-w-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 bg-[#0A2540] rounded-sm flex items-center justify-center">
-              <ShieldIcon className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="font-bold text-sm">SRC Admin</div>
-              <div className="text-[10px] uppercase tracking-wider text-[#5A6B7F]">
-                User Management
-              </div>
-            </div>
+        <div className="bg-white border border-[#D8DEE6] rounded-sm p-8 w-full max-w-sm text-center">
+          <div className="h-10 w-10 bg-[#0A2540] rounded-sm flex items-center justify-center mx-auto mb-4">
+            <ShieldIcon className="h-5 w-5 text-white" />
           </div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
-            Admin API Key
-          </label>
-          <Input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your admin key"
-            className="h-11 mb-4"
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          />
-          <Button
-            onClick={handleLogin}
-            className="w-full bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider h-11"
-          >
-            Access Dashboard
-          </Button>
+          <div className="font-bold text-sm mb-1">SRC Admin</div>
+          <p className="text-xs text-[#5A6B7F] mb-6">
+            {signedIn
+              ? "Your account doesn't have administrator access."
+              : "Please sign in with an administrator account to continue."}
+          </p>
+          <a href="/?tab=account">
+            <Button className="w-full bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider h-11">
+              {signedIn ? "Switch account" : "Sign in"}
+            </Button>
+          </a>
         </div>
       </div>
     );

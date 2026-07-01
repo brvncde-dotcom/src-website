@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, validateAdminKey } from "@/lib/db";
+import { prisma } from "@/lib/db";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 // GET /api/admin/users — List all users (paginated)
 // Query params: ?search=, ?tier=, ?role=, ?status=, ?limit=50, ?offset=0
 export async function GET(request: NextRequest) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
