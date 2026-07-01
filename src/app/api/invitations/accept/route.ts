@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         });
       } else {
         const trialEnd = new Date();
-        trialEnd.setDate(trialEnd.getDate() + 10);
+        trialEnd.setDate(trialEnd.getDate() + 14);
         const created = await tx.user.create({
           data: {
             email: invitation.email,
