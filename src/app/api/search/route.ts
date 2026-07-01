@@ -5,6 +5,65 @@ import { authOptions } from "@/lib/auth";
 import { prisma, getUserTier } from "@/lib/db";
 import { HL_START, HL_END, type SearchHit } from "@/lib/search";
 
+// sortOrder threshold for AI search access (Professional=2, Executive=3)
+const AI_SEARCH_MIN_SORT = 2;
+
+type VectorRow = {
+  id: string;
+  title: string;
+  summary: string | null;
+  section: string;
+  type: string;
+  language: string;
+  sourceRef: string | null;
+  publishedAt: Date | null;
+  minTierId: string | null;
+  minTierSort: number | null;
+  minTierName: string | null;
+  similarity: number;
+};
+
+async function getQueryEmbedding(q: string): Promise<number[] | null> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "text-embedding-3-small", input: q }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data: { embedding: number[] }[] };
+    return json.data[0].embedding;
+  } catch {
+    return null;
+  }
+}
+
+// Reciprocal Rank Fusion — merges two ranked lists into one.
+// k=60 is the standard constant (Cormack et al. 2009).
+function rrfMerge(
+  sqlHits: SearchHit[],
+  vectorHits: SearchHit[],
+): SearchHit[] {
+  const K = 60;
+  const scores = new Map<string, number>();
+  const byId = new Map<string, SearchHit>();
+
+  sqlHits.forEach((h, i) => {
+    scores.set(h.id, (scores.get(h.id) ?? 0) + 1 / (K + i + 1));
+    byId.set(h.id, h);
+  });
+  vectorHits.forEach((h, i) => {
+    scores.set(h.id, (scores.get(h.id) ?? 0) + 1 / (K + i + 1));
+    if (!byId.has(h.id)) byId.set(h.id, h);
+  });
+
+  return [...scores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([id, score]) => ({ ...byId.get(id)!, rank: score }));
+}
+
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -131,7 +190,7 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     `;
 
-    const results: SearchHit[] = rows.map((r) => {
+    const sqlResults: SearchHit[] = rows.map((r) => {
       const gated =
         r.minTierId != null &&
         r.minTierSort != null &&
@@ -152,7 +211,62 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ results, query: q, count: results.length });
+    // Vector search — Professional & Executive only (sortOrder >= 2)
+    let results = sqlResults;
+    let aiSearch = false;
+
+    if (userSort >= AI_SEARCH_MIN_SORT) {
+      const embedding = await getQueryEmbedding(q);
+      if (embedding) {
+        aiSearch = true;
+        const vecLiteral = `[${embedding.join(",")}]`;
+
+        const vectorRows = await prisma.$queryRaw<VectorRow[]>`
+          SELECT
+            r.id, r.title, r.summary, r.section, r.type, r.language,
+            r."sourceRef" AS "sourceRef", r."publishedAt" AS "publishedAt",
+            r."minTierId" AS "minTierId",
+            mt."sortOrder" AS "minTierSort",
+            mt.name AS "minTierName",
+            1 - (r.embedding <=> ${vecLiteral}::vector) AS similarity
+          FROM "Report" r
+          LEFT JOIN "Tier" mt ON mt.id = r."minTierId"
+          WHERE r.status = 'published'
+            AND r.embedding IS NOT NULL
+            ${langFrag}
+            ${sectionFrag}
+            ${typeFrag}
+            AND (1 - (r.embedding <=> ${vecLiteral}::vector)) > 0.3
+          ORDER BY r.embedding <=> ${vecLiteral}::vector
+          LIMIT ${limit}
+        `;
+
+        const vectorResults: SearchHit[] = vectorRows.map((r) => {
+          const gated =
+            r.minTierId != null &&
+            r.minTierSort != null &&
+            userSort < r.minTierSort;
+          return {
+            id: r.id,
+            title: r.title,
+            summary: r.summary,
+            section: r.section,
+            type: r.type,
+            language: r.language,
+            sourceRef: r.sourceRef,
+            publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
+            snippet: null, // vector hits use title+summary in the UI, no ts_headline
+            rank: r.similarity,
+            gated,
+            requiredTier: gated ? r.minTierName : null,
+          };
+        });
+
+        results = rrfMerge(sqlResults, vectorResults).slice(0, limit);
+      }
+    }
+
+    return NextResponse.json({ results, query: q, count: results.length, aiSearch });
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json({ error: "Search failed" }, { status: 500 });

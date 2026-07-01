@@ -6,6 +6,7 @@ import {
   canAccessContent,
   validateDesignGate,
   logAdminAction,
+  embedReport,
 } from "@/lib/db";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { getServerSession } from "next-auth";
@@ -106,6 +107,9 @@ export async function PATCH(
             detail: `Published report ${updated.id} (sourceRef: ${updated.sourceRef}) with ${siblings.count} siblings`,
           });
 
+          // Embed all published translations (fire-and-forget, never blocks response)
+          void embedReport(updated.id);
+
           return NextResponse.json({
             id: updated.id,
             title: updated.title,
@@ -130,6 +134,8 @@ export async function PATCH(
           targetId: updated.id,
           detail: `Published report ${updated.id}`,
         });
+
+        void embedReport(updated.id);
 
         return NextResponse.json({
           id: updated.id,

@@ -294,6 +294,62 @@ export async function canAccessContent(
     reason: `Requires ${reportMinTier.name} tier or higher`,
   };
 }
+// --- AI Embeddings ---
+
+function buildEmbedText(report: {
+  title: string;
+  summary: string | null;
+  content: string | null;
+  author: string | null;
+  section: string;
+  type: string;
+}): string {
+  return [
+    report.title,
+    report.summary,
+    report.author ? `Author: ${report.author}` : null,
+    `Section: ${report.section}  Type: ${report.type}`,
+    report.content,
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+    .slice(0, 8000);
+}
+
+// Generate and store an embedding for a single report. Fire-and-forget safe —
+// failures are logged but never bubble up to the publish flow.
+export async function embedReport(reportId: string): Promise<void> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return; // no key = skip silently (dev / staging without key)
+
+  try {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      select: { title: true, summary: true, content: true, author: true, section: true, type: true },
+    });
+    if (!report) return;
+
+    const text = buildEmbedText(report);
+    const res = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
+    });
+    if (!res.ok) {
+      console.error(`[embed] OpenAI error ${res.status} for report ${reportId}`);
+      return;
+    }
+    const json = (await res.json()) as { data: { embedding: number[] }[] };
+    const vec = json.data[0].embedding;
+    const vecLiteral = `[${vec.join(",")}]`;
+    await prisma.$executeRaw`
+      UPDATE "Report" SET embedding = ${vecLiteral}::vector WHERE id = ${reportId}
+    `;
+  } catch (e) {
+    console.error(`[embed] failed for report ${reportId}:`, e);
+  }
+}
+
 // --- Admin audit log ---
 export async function logAdminAction(entry: {
   actor: string;
