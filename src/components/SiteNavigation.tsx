@@ -114,7 +114,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         <div className="h-[3px] bg-[#E8272C]" />
 
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-24 gap-4">
+          <div className="flex items-center h-28 gap-4">
             {/* Logo — bigger, acts as HOME */}
             <button
               onClick={() => handleNav("home")}
@@ -123,19 +123,19 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
               <Image
                 src="/src-logo-full.svg"
                 alt="SRC — Security & Resilience Counsel"
-                width={360}
-                height={72}
-                className="h-[72px] w-auto"
+                width={440}
+                height={88}
+                className="h-[88px] w-auto"
               />
             </button>
 
             {/* Desktop nav — left-aligned after logo */}
-            <div className="hidden lg:flex items-center gap-0.5">
+            <div className="hidden lg:flex items-center gap-1">
               {NAV_MAIN.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
-                  className={`px-3 py-2 text-xs tracking-wide uppercase font-medium transition-colors rounded-sm ${
+                  className={`px-4 py-2.5 text-base tracking-wide uppercase font-medium transition-colors rounded-sm ${
                     currentPage === item.key
                       ? "text-primary bg-secondary"
                       : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
@@ -145,36 +145,26 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                 </button>
               ))}
 
-              {/* Search — inline nav button */}
-              <button
-                onClick={openSearch}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs tracking-wide uppercase font-medium rounded-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors"
-                aria-label={tr("search.title")}
-              >
-                <Search className="h-3.5 w-3.5" />
-                {tr("search.title")}
-              </button>
-
               {/* About SRC dropdown */}
               <Popover open={aboutOpen} onOpenChange={setAboutOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className={`flex items-center gap-1 px-3 py-2 text-xs tracking-wide uppercase font-medium rounded-sm transition-colors ${
+                    className={`flex items-center gap-1 px-4 py-2.5 text-base tracking-wide uppercase font-medium rounded-sm transition-colors ${
                       isAboutActive
                         ? "text-primary bg-secondary"
                         : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                     }`}
                   >
                     {tr("nav.about")}
-                    <ChevronDown className="h-3 w-3" />
+                    <ChevronDown className="h-4 w-4" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-44 p-1">
+                <PopoverContent align="start" className="w-48 p-1">
                   {NAV_ABOUT.map((item) => (
                     <button
                       key={item.key}
                       onClick={() => handleNav(item.key)}
-                      className={`w-full text-left px-3 py-2 text-xs font-medium rounded-sm transition-colors ${
+                      className={`w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors ${
                         currentPage === item.key
                           ? "text-primary bg-secondary"
                           : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
@@ -190,8 +180,18 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Right cluster: lang + account + mobile toggle */}
+            {/* Right cluster: search + lang + account + mobile toggle */}
             <div className="flex items-center gap-2">
+              {/* Search — icon button, left of the language selector */}
+              <button
+                onClick={openSearch}
+                className="flex items-center justify-center h-9 w-9 rounded-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors"
+                aria-label={tr("search.title")}
+                title={tr("search.title")}
+              >
+                <Search className="h-5 w-5" />
+              </button>
+
               {/* Language switcher — compact dropdown, desktop only */}
               <div className="hidden lg:block">
                 <LangSwitcher />
@@ -202,14 +202,23 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className="flex items-center p-1 rounded-full hover:opacity-80 transition-opacity"
+                      className="flex items-center p-0.5 rounded-full hover:opacity-80 transition-opacity"
                       aria-label="Account"
                     >
-                      <div className="h-8 w-8 rounded-full bg-[#0A2540] flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">
-                          {(session?.user?.name || session?.user?.email || "?")[0].toUpperCase()}
-                        </span>
-                      </div>
+                      {session?.user?.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={session.user.image}
+                          alt={session?.user?.name || "Account"}
+                          className="h-11 w-11 rounded-full object-cover border border-border"
+                        />
+                      ) : (
+                        <div className="h-11 w-11 rounded-full bg-[#0A2540] flex items-center justify-center">
+                          <span className="text-white text-base font-bold">
+                            {(session?.user?.name || session?.user?.email || "?")[0].toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-52 p-2">
