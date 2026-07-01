@@ -15,6 +15,7 @@ import {
   Check,
   Lock,
   Search,
+  CheckCircle2,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
@@ -496,25 +497,50 @@ export default function ReportPage() {
             </div>
           </article>
         ) : report.access && report.access !== "full" ? (
-          <div className="mx-auto max-w-xl text-center border border-border rounded-lg bg-muted/30 px-6 py-12">
-            <Lock className="h-9 w-9 text-[#0A2540] mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-[#0A2540] mb-2">
-              {tr("reports.locked.title")}
+          <div className="mx-auto max-w-lg border border-[#D8DEE6] bg-[#F0F3F7] px-8 py-10">
+            {/* Tier badge + lock */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-11 h-11 rounded-full bg-[#0A2540] flex items-center justify-center flex-shrink-0">
+                <Lock className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#E8272C] mb-0.5">
+                  {tr("reports.locked.member-content")}
+                </p>
+                <p className="text-sm font-bold text-[#0A2540]">
+                  {report.requiredTier
+                    ? `${report.requiredTier} ${tr("reports.locked.and-above")}`
+                    : tr("reports.locked.title")}
+                </p>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-[#0A2540] mb-1">
+              {tr("reports.locked.headline")}
             </h3>
-            <p className="text-sm text-muted-foreground mb-1">
+            <p className="text-sm text-muted-foreground mb-5">
               {tr("reports.locked.desc")}
             </p>
-            {report.requiredTier && (
-              <p className="text-sm font-semibold text-[#0A2540] mb-5">
-                {tr("reports.locked.required")} {report.requiredTier}
-              </p>
-            )}
+
+            {/* Benefits list */}
+            <ul className="space-y-2 mb-7">
+              {(["reports.locked.benefit1", "reports.locked.benefit2", "reports.locked.benefit3", "reports.locked.benefit4"] as const).map((key) => (
+                <li key={key} className="flex items-start gap-2.5 text-sm text-[#0A2540]">
+                  <CheckCircle2 className="h-4 w-4 text-[#0A2540] flex-shrink-0 mt-0.5" />
+                  {tr(key)}
+                </li>
+              ))}
+            </ul>
+
             <Link
               href="/?tab=membership"
-              className="inline-block bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider px-5 py-2.5 rounded-md"
+              className="block w-full text-center bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider px-5 py-3 transition-colors"
             >
               {tr("reports.locked.cta")}
             </Link>
+            <p className="text-xs text-center text-muted-foreground mt-3">
+              {tr("reports.locked.no-card")}
+            </p>
           </div>
         ) : (
           <div className="text-center py-16">

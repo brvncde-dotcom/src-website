@@ -366,6 +366,26 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
+        {/* Upgrade nudge — shown when gated results exist */}
+        {searched && results.some((r) => r.gated) && (
+          <div className="border-t border-border bg-[#F0F3F7] px-4 py-2.5 flex items-center justify-between gap-3">
+            <span className="text-xs text-[#0A2540]">
+              <Lock className="inline h-3 w-3 mr-1 text-[#E8272C]" />
+              {t("search.gated-nudge").replace(
+                "{n}",
+                String(results.filter((r) => r.gated).length)
+              )}
+            </span>
+            <a
+              href="/?tab=membership"
+              className="text-[10px] font-bold uppercase tracking-wider text-[#0A2540] hover:text-[#E8272C] transition-colors whitespace-nowrap"
+              onClick={onClose}
+            >
+              {t("search.upgrade-link")} →
+            </a>
+          </div>
+        )}
+
         {/* Footer hints */}
         <div className="flex items-center gap-4 px-4 py-2 border-t border-border bg-secondary/30 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">

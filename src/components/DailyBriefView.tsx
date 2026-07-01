@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock, Lock, ArrowRight, Newspaper } from "lucide-react";
+import { Calendar, Clock, Lock, ArrowRight, Newspaper, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
+import { useNavigation } from "@/components/NavigationProvider";
 
 interface Brief {
   id: string;
@@ -27,9 +28,16 @@ function formatDate(iso: string, lang: string) {
   );
 }
 
+const ESSENTIAL_BULLETS = [
+  "brief.upgrade.bullet1",
+  "brief.upgrade.bullet2",
+  "brief.upgrade.bullet3",
+];
+
 function BriefCard({ brief, isLatest, onSignIn }: { brief: Brief; isLatest: boolean; onSignIn: () => void }) {
   const { t: tr, lang } = useLang();
   const { status } = useSession();
+  const { navigate } = useNavigation();
   const hasFull = brief.accessLevel === "full";
   const [expanded, setExpanded] = useState(isLatest);
 
@@ -109,31 +117,46 @@ function BriefCard({ brief, isLatest, onSignIn }: { brief: Brief; isLatest: bool
         </div>
       )}
 
-      {/* Upgrade CTA — for authenticated free users or unauthenticated */}
+      {/* Upgrade CTA — for unauthenticated or free-tier users */}
       {!hasFull && (
-        <div className="border-t border-border bg-[#F8F9FB] px-5 sm:px-6 py-4">
+        <div className="border-t border-[#0E4D30]/20">
           {status === "unauthenticated" ? (
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-xs text-muted-foreground">{tr("brief.free.cta")}</p>
+            <div className="bg-[#F2F7F4] px-5 sm:px-6 py-4 flex items-center justify-between gap-4">
+              <p className="text-xs text-[#0E4D30] font-medium">{tr("brief.free.cta")}</p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={onSignIn}
-                className="flex-shrink-0 text-xs h-8 border-[#0A2540] text-[#0A2540] hover:bg-[#0A2540] hover:text-white"
+                className="flex-shrink-0 text-xs h-8 border-[#0E4D30] text-[#0E4D30] hover:bg-[#0E4D30] hover:text-white"
               >
-                Sign In
+                {tr("brief.upgrade.signin")}
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-xs text-muted-foreground">{tr("brief.essential.cta")}</p>
-              <Button
-                size="sm"
-                className="flex-shrink-0 text-xs h-8 bg-[#0A2540] hover:bg-[#0A2540]/90"
-                onClick={() => {/* navigate to membership */}}
-              >
-                Upgrade <ArrowRight className="w-3 h-3 ml-1" />
-              </Button>
+            <div className="bg-[#F2F7F4] px-5 sm:px-6 py-5">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#0E4D30] mb-0.5">
+                    {tr("brief.upgrade.tier")}
+                  </p>
+                  <p className="text-sm font-semibold text-[#071F10]">{tr("brief.upgrade.price")}</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="flex-shrink-0 text-xs h-8 bg-[#0E4D30] hover:bg-[#071F10]"
+                  onClick={() => navigate("membership")}
+                >
+                  {tr("brief.upgrade.cta")} <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+              <ul className="space-y-1">
+                {ESSENTIAL_BULLETS.map((key) => (
+                  <li key={key} className="flex items-center gap-2 text-xs text-[#1A4D2E]">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2ECC7A] flex-shrink-0" />
+                    {tr(key)}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
