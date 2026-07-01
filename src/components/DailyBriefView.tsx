@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
+import { useNavigation } from "@/components/NavigationProvider";
 
 interface Brief {
   id: string;
@@ -265,6 +266,7 @@ function ArchiveRow({
 export function DailyBriefView() {
   const { t: tr, lang } = useLang();
   const { status, data: session } = useSession();
+  const { navigate } = useNavigation();
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
@@ -570,6 +572,7 @@ export function DailyBriefView() {
                   size="sm"
                   className="flex-shrink-0 text-xs h-9 px-4"
                   style={{ backgroundColor: "#0E4D30" }}
+                  onClick={() => navigate("membership")}
                 >
                   Upgrade <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
