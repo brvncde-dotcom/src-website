@@ -244,13 +244,13 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                         {tr("account.admin")}
                       </a>
                     )}
-                    <button
-                      onClick={() => handleNav("help")}
+                    <a
+                      href="/help"
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
                     >
                       <HelpCircle className="h-3.5 w-3.5" />
                       {tr("nav.help")}
-                    </button>
+                    </a>
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-red-50 text-[#E8272C] flex items-center gap-2"
