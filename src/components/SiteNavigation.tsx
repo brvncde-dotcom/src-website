@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, User, LogIn, Shield, Search, ChevronDown, Globe } from "lucide-react";
+import { X, Menu, User, LogIn, Shield, Search, ChevronDown, Globe, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -23,6 +23,7 @@ export type PageKey =
   | "approach"
   | "membership"
   | "contact"
+  | "help"
   | "account"
   | "impressum"
   | "datenschutz"
@@ -243,6 +244,13 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                         {tr("account.admin")}
                       </a>
                     )}
+                    <button
+                      onClick={() => handleNav("help")}
+                      className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
+                    >
+                      <HelpCircle className="h-3.5 w-3.5" />
+                      {tr("nav.help")}
+                    </button>
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-red-50 text-[#E8272C] flex items-center gap-2"
