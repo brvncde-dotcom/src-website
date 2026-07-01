@@ -9,6 +9,7 @@ import { SearchProvider } from "@/components/SearchCommand";
 import { prisma, VALID_LANGUAGES } from "@/lib/db";
 import type { Lang } from "@/lib/i18n";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { SessionProvider } from "@/components/SessionProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -113,11 +114,13 @@ export default async function RootLayout({
       <body
         className={`${inter.variable} ${spectral.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <LangProvider initialLang={htmlLang as Lang}>
-          <SearchProvider>
-            <SiteShell>{children}</SiteShell>
-          </SearchProvider>
-        </LangProvider>
+        <SessionProvider>
+          <LangProvider initialLang={htmlLang as Lang}>
+            <SearchProvider>
+              <SiteShell>{children}</SiteShell>
+            </SearchProvider>
+          </LangProvider>
+        </SessionProvider>
         <Toaster />
         <ServiceWorkerRegistrar />
       </body>

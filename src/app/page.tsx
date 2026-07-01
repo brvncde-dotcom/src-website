@@ -14,8 +14,6 @@ import { MembershipView } from "@/components/MembershipView";
 import { UserAccountView } from "@/components/UserAccountView";
 import { LegalView } from "@/components/LegalView";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SessionProvider } from "@/components/SessionProvider";
-import { LangProvider } from "@/components/LangProvider";
 
 function getInitialPage(): PageKey {
   if (typeof window !== "undefined") {
@@ -67,16 +65,12 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState<PageKey>(getInitialPage);
 
   return (
-    <LangProvider>
-      <SessionProvider>
-        <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
-          <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
-          <main className="flex-1">
-            <PageRouter page={currentPage} />
-          </main>
-          <SiteFooter />
-        </NavigationProvider>
-      </SessionProvider>
-    </LangProvider>
+    <NavigationProvider currentPage={currentPage} onNavigate={setCurrentPage}>
+      <SiteNavigation currentPage={currentPage} onNavigate={setCurrentPage} />
+      <main className="flex-1">
+        <PageRouter page={currentPage} />
+      </main>
+      <SiteFooter />
+    </NavigationProvider>
   );
 }
