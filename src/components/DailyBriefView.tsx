@@ -284,6 +284,14 @@ export function DailyBriefView() {
   const latest = briefs[0] ?? null;
   const archive = briefs.slice(1);
 
+  // Parse analysis blocks from full content.
+  // NOTE: this hook MUST run on every render (before any conditional return)
+  // or React throws "Rendered more hooks than during the previous render".
+  const analysisBlocks = useMemo(() => {
+    if (!latest?.content) return [];
+    return parseAnalysisBlocks(latest.content);
+  }, [latest?.content]);
+
   const handleShare = useCallback(async (brief: Brief) => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     if (navigator.share) {
@@ -347,12 +355,6 @@ export function DailyBriefView() {
   const domain = inferDomain(latest.section);
   const urgency = inferUrgency(latest.section);
   const stories = storyCount(latest);
-
-  // Parse analysis blocks from full content
-  const analysisBlocks = useMemo(() => {
-    if (!latest.content) return [];
-    return parseAnalysisBlocks(latest.content);
-  }, [latest.content]);
 
   return (
     <div className="min-h-[70vh]" style={{ backgroundColor: "#F2F7F4" }}>
