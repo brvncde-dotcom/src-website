@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Smoke-test gate: runs before every push to main or dev.
+#
+# On push to main  → tests run against PROD (www.src-advisory.ch)
+# On push to dev   → tests run against the current PROD as a baseline
+#                    (set PLAYWRIGHT_BASE_URL to override with a preview URL)
+#
+# Override the target for a one-off push:
+#   PLAYWRIGHT_BASE_URL=https://src-website-xyz.vercel.app git push origin main
+
+set -euo pipefail
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "$BRANCH" != "main" && "$BRANCH" != "dev" ]]; then
+  exit 0
+fi
+
+BASE_URL="${PLAYWRIGHT_BASE_URL:-https://www.src-advisory.ch}"
+
+echo ""
+echo "🧪  Running smoke tests against $BASE_URL before push to $BRANCH …"
+echo ""
+
+if PLAYWRIGHT_BASE_URL="$BASE_URL" npx playwright test --reporter=list; then
+  echo ""
+  echo "✅  All smoke tests passed — push proceeding."
+  echo ""
+else
+  echo ""
+  echo "❌  Smoke tests FAILED — push to '$BRANCH' blocked."
+  echo ""
+  echo "    Fix the failing tests, then re-push."
+  echo "    To skip once (emergencies only): git push --no-verify"
+  echo ""
+  exit 1
+fi
