@@ -15,6 +15,7 @@ import {
   Check,
   Lock,
   Search,
+  ArrowRight,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
@@ -113,6 +114,90 @@ const FIGURE_LABELS: Record<string, string> = {
   fr: "Figure ",
   it: "Figura ",
 };
+
+const SECTION_LABELS: Record<string, string> = {
+  "digital-power-ai": "Digital Power & AI",
+  "geopolitics-hard-security": "Geopolitics & Hard Security",
+  "energy-resources": "Energy & Resources",
+  "climate-environment-food": "Climate, Environment & Food",
+  "economy-competitiveness": "Economy & Competitiveness",
+  "society-migration-institutions": "Society, Migration & Institutions",
+};
+
+interface RelatedReport {
+  id: string;
+  title: string;
+  summary: string | null;
+  type: string;
+  section: string;
+  language: string;
+  publishedAt: string | null;
+}
+
+function RelatedReports({ reportId }: { reportId: string }) {
+  const [related, setRelated] = useState<RelatedReport[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/reports/related?id=${reportId}&limit=4`)
+      .then((r) => r.json())
+      .then((d) => setRelated(d.related ?? []))
+      .catch(() => {});
+  }, [reportId]);
+
+  if (related.length === 0) return null;
+
+  return (
+    <div className="border-t border-[#D8DEE6] bg-[#F8F9FB]">
+      <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-px flex-1 bg-[#D8DEE6]" />
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground">
+            Related Reports
+          </span>
+          <div className="h-px flex-1 bg-[#D8DEE6]" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {related.map((r) => (
+            <Link
+              key={r.id}
+              href={`/reports/${r.id}`}
+              className="group flex flex-col gap-2 p-4 border border-[#D8DEE6] bg-white hover:border-[#0A2540]/40 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold tracking-wider uppercase bg-[#0A2540] text-white px-2 py-0.5 rounded-sm flex-shrink-0">
+                  {r.type}
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate">
+                  {SECTION_LABELS[r.section] ?? r.section}
+                </span>
+              </div>
+              <h4 className="text-sm font-semibold text-[#0A2540] group-hover:text-[#E8272C] leading-snug line-clamp-2 transition-colors">
+                {r.title}
+              </h4>
+              {r.summary && (
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {r.summary}
+                </p>
+              )}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-auto pt-1">
+                {r.publishedAt && (
+                  <span>
+                    {new Date(r.publishedAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                )}
+                <ArrowRight className="w-3 h-3 ml-auto text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ReportPage() {
   const { t: tr, setLang } = useLang();
@@ -525,6 +610,9 @@ export default function ReportPage() {
           </div>
         )}
       </div>
+
+      {/* Related reports — pgvector nearest-neighbour recommendations */}
+      {report.id && <RelatedReports reportId={report.id} />}
 
       {/* Bottom nav */}
       <div className="border-t border-[#D8DEE6]">
