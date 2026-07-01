@@ -8,6 +8,7 @@ import { LangProvider } from "@/components/LangProvider";
 import { SearchProvider } from "@/components/SearchCommand";
 import { prisma, VALID_LANGUAGES } from "@/lib/db";
 import type { Lang } from "@/lib/i18n";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -118,6 +119,7 @@ export default async function RootLayout({
           </SearchProvider>
         </LangProvider>
         <Toaster />
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
