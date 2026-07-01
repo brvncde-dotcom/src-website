@@ -104,6 +104,8 @@ export default function AdminReportsPage() {
     open: boolean;
     report: Report | null;
   }>({ open: false, report: null });
+  const [purgeDialog, setPurgeDialog] = useState(false);
+  const [purging, setPurging] = useState(false);
   const [actionNote, setActionNote] = useState("");
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
@@ -260,6 +262,26 @@ export default function AdminReportsPage() {
     }
   };
 
+  const handlePurgeBriefs = async () => {
+    setPurging(true);
+    try {
+      const res = await fetch("/api/admin/purge-briefs", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setPurgeDialog(false);
+        alert(data.message);
+        fetchReports();
+      } else {
+        alert(data.error || "Purge failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Purge failed");
+    } finally {
+      setPurging(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteDialog.report) return;
     try {
@@ -335,16 +357,27 @@ export default function AdminReportsPage() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchReports}
-            disabled={loading}
-            className="gap-1.5 text-xs"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchReports}
+              disabled={loading}
+              className="gap-1.5 text-xs"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPurgeDialog(true)}
+              className="gap-1.5 text-xs border-red-300 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Purge All Briefs
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -810,6 +843,36 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purge All Daily Briefs Dialog */}
+      <Dialog open={purgeDialog} onOpenChange={(open) => !open && setPurgeDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Purge All Daily Briefs
+            </DialogTitle>
+            <DialogDescription>
+              This permanently deletes <strong>every</strong> Daily Brief row from the database.
+              Use this to clear bad ingestion batches before asking Paperclip to re-push.
+              This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPurgeDialog(false)} disabled={purging}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handlePurgeBriefs}
+              disabled={purging}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {purging ? "Deleting…" : "Delete All Daily Briefs"}
             </Button>
           </DialogFooter>
         </DialogContent>
