@@ -89,6 +89,7 @@ model Report {
   code              String?
   previewToken      String?   @unique
   embedding         Unsupported("vector(1536)")?
+  isFreeMonthlyPick Boolean   @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

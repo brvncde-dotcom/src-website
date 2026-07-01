@@ -295,6 +295,12 @@ export async function GET(request: NextRequest) {
       designSignedOffBy: true,
       publishedAt: true,
       createdAt: true,
+      // Admin-only fields — needed by the review dashboard
+      ...(isAdmin ? {
+        minTierId: true,
+        reviewNote: true,
+        isFreeMonthlyPick: true,
+      } : {}),
     };
 
     // Group by sourceRef: return reports grouped by their source reference

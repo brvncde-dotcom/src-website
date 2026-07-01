@@ -83,6 +83,7 @@ interface Report {
   minTierId: string | null;
   previewToken?: string | null;
   designSignedOffBy?: string | null;
+  isFreeMonthlyPick?: boolean;
 }
 
 export default function AdminReportsPage() {
@@ -190,6 +191,23 @@ export default function AdminReportsPage() {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({ minTierId }),
+      });
+      if (res.ok) fetchReports();
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Toggle the free monthly pick flag on a report.
+  const handleToggleFreeMonthlyPick = async (reportId: string, current: boolean) => {
+    try {
+      const res = await fetch(`/api/reports/${reportId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ isFreeMonthlyPick: !current }),
       });
       if (res.ok) fetchReports();
     } catch {
@@ -592,6 +610,28 @@ export default function AdminReportsPage() {
                         </select>
                         {report.minTierId && (
                           <span className="text-[10px] text-[#0A2540] font-semibold">🔒 gated</span>
+                        )}
+                      </div>
+
+                      {/* Free monthly pick: grants free-tier users full access to this one report */}
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-[#5A6B7F]">
+                          Free monthly pick
+                        </span>
+                        <button
+                          onClick={() => handleToggleFreeMonthlyPick(report.id, !!report.isFreeMonthlyPick)}
+                          className={`text-xs px-2.5 py-1 rounded-sm border font-semibold transition-colors ${
+                            report.isFreeMonthlyPick
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-50"
+                              : "bg-white text-[#5A6B7F] border-[#D8DEE6] hover:border-[#0A2540]"
+                          }`}
+                        >
+                          {report.isFreeMonthlyPick ? "✓ Active — click to remove" : "Set as free pick"}
+                        </button>
+                        {report.isFreeMonthlyPick && (
+                          <span className="text-[10px] text-emerald-700 font-semibold">
+                            Free users can read this report in full
+                          </span>
                         )}
                       </div>
                       {report.reviewNote && (
