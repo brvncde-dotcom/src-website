@@ -17,6 +17,7 @@ import {
   Search,
   CheckCircle2,
   ArrowRight,
+  Download,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
@@ -217,6 +218,9 @@ export default function ReportPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [sharedConfirmation, setSharedConfirmation] = useState<string | null>(null);
 
+  // PDF download state
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
   // Check auth status and saved state on mount
   useEffect(() => {
     fetch("/api/auth/status")
@@ -403,6 +407,27 @@ export default function ReportPage() {
               </TooltipContent>
             </Tooltip>
 
+            {/* PDF download button — shown when user has full access */}
+            {report?.access === "full" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={`/api/reports/${params.id}/pdf`}
+                    download
+                    onClick={() => setPdfError(null)}
+                    onError={() => setPdfError(tr("reports.detail.pdf-professional"))}
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-[#0A2540] hover:bg-[#0A2540]/5 transition-colors"
+                    aria-label={tr("reports.detail.download-pdf")}
+                  >
+                    <Download className="h-4.5 w-4.5" />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {tr("reports.detail.download-pdf")}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {/* Share button */}
             <button
               onClick={() => setShareOpen(true)}
@@ -414,6 +439,19 @@ export default function ReportPage() {
           </div>
         </div>
       </div>
+
+      {/* PDF error alert */}
+      {pdfError && (
+        <div className="bg-[#E8272C]/10 border-b border-[#E8272C]/20 px-6 py-2 text-sm text-[#E8272C] text-center">
+          {pdfError}
+          <button
+            onClick={() => setPdfError(null)}
+            className="ml-3 underline text-xs opacity-70 hover:opacity-100"
+          >
+            {tr("search.close")}
+          </button>
+        </div>
+      )}
 
       {/* Share Dialog */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
