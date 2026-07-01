@@ -175,7 +175,52 @@ export function MembershipView() {
 
       {/* ═══════ PRICING CARDS ═══════ */}
       <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 overflow-visible">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-0 overflow-visible">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 overflow-visible">
+
+          {/* ── FREE ── */}
+          <div className="border border-border bg-[#F4F6F9] p-6 lg:p-8 flex flex-col">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-xs font-bold tracking-[0.15em] uppercase text-muted-foreground">
+                  Free
+                </h3>
+                <span className="text-[9px] font-bold tracking-wider uppercase bg-[#0A2540]/10 text-[#0A2540] px-2 py-0.5 rounded-sm">
+                  Forever
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed md:min-h-[4.5rem]">
+                For readers who want to stay informed. No credit card, no commitment.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <span className="heading-serif text-3xl sm:text-4xl font-bold text-primary">
+                CHF 0
+              </span>
+              <span className="text-sm text-muted-foreground ml-1">/ month</span>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full mb-8 text-sm border-[#0A2540] text-[#0A2540] hover:bg-[#0A2540] hover:text-white"
+              onClick={() => setAuthOpen(true)}
+            >
+              Sign Up Free
+            </Button>
+
+            <ul className="space-y-3 flex-1">
+              {[
+                "Browse all report titles & summaries",
+                "1 full report per month — editorial pick",
+                "Keyword search",
+              ].map((feat) => (
+                <li key={feat} className="flex items-start gap-2.5 text-sm">
+                  <Check className="w-4 h-4 text-[#0A2540]/40 mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* ── ESSENTIAL ── */}
           <div className="border border-border p-6 lg:p-8 flex flex-col">
@@ -210,7 +255,7 @@ export function MembershipView() {
               onClick={() => startCheckout("essential")}
               disabled={loadingTier === "essential"}
             >
-              {loadingTier === "essential" ? "…" : tr("membership.v3.start-trial")}
+              {loadingTier === "essential" ? "…" : tr("membership.v3.get-started")}
             </Button>
 
             <ul className="space-y-3 flex-1">
