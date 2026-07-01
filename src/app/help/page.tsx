@@ -3,10 +3,12 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/components/LangProvider";
-import { HelpChat } from "@/components/HelpChat";
+
+const HelpChat = dynamic(() => import("@/components/HelpChat").then(m => ({ default: m.HelpChat })), { ssr: false });
 import {
   Accordion,
   AccordionContent,
