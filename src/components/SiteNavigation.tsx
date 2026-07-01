@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, Menu, ArrowRight, User, LogIn, Shield, Search } from "lucide-react";
+import { X, Menu, User, LogIn, Shield, Search, ChevronDown, Globe } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -28,36 +27,52 @@ export type PageKey =
   | "datenschutz"
   | "agb";
 
-const NAV: { key: PageKey; labelKey: string }[] = [
-  { key: "home", labelKey: "nav.home" },
-  { key: "reports", labelKey: "nav.reports" },
+const NAV_MAIN: { key: PageKey; labelKey: string }[] = [
   { key: "opinions", labelKey: "nav.opinions" },
+  { key: "reports", labelKey: "nav.reports" },
+];
+
+const NAV_ABOUT: { key: PageKey; labelKey: string }[] = [
   { key: "focus-areas", labelKey: "nav.focus-areas" },
-  { key: "approach", labelKey: "nav.approach" },
   { key: "membership", labelKey: "nav.membership" },
-  { key: "contact", labelKey: "nav.contact" },
 ];
 
 const ALL_LANGS: Lang[] = ["en", "de", "fr", "it"];
 
 function LangSwitcher() {
   const { lang, setLang } = useLang();
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="flex items-center gap-0.5 border border-border rounded-sm overflow-hidden">
-      {ALL_LANGS.map((l) => (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
-          key={l}
-          onClick={() => setLang(l)}
-          className={`px-1.5 py-1 text-[10px] font-bold tracking-wide transition-colors ${
-            lang === l
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
-          }`}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-sm border border-border text-[11px] font-bold tracking-wide text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+          aria-label="Select language"
         >
-          {LANG_LABELS[l]}
+          <Globe className="h-3 w-3" />
+          {lang.toUpperCase()}
+          <ChevronDown className="h-2.5 w-2.5" />
         </button>
-      ))}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-20 p-1">
+        <div className="flex flex-col gap-0.5">
+          {ALL_LANGS.map((l) => (
+            <button
+              key={l}
+              onClick={() => { setLang(l); setOpen(false); }}
+              className={`w-full text-left px-2.5 py-1.5 text-xs font-bold tracking-wide rounded-sm transition-colors ${
+                lang === l
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+              }`}
+            >
+              {LANG_LABELS[l]}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -68,16 +83,16 @@ interface Props {
 
 export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const { data: session, status } = useSession();
   const { t: tr } = useLang();
   const { open: openSearch } = useSearch();
   const [authOpen, setAuthOpen] = useState(false);
-  const isMac =
-    typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
   const handleNav = (key: PageKey) => {
     onNavigate(key);
     setMobileOpen(false);
+    setAboutOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -90,6 +105,8 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
     setMobileOpen(false);
   };
 
+  const isAboutActive = currentPage === "focus-areas" || currentPage === "membership";
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-border">
@@ -97,18 +114,24 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         <div className="h-[3px] bg-[#E8272C]" />
 
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+          <div className="flex items-center h-16 gap-4">
+            {/* Logo — bigger, acts as HOME */}
             <button
               onClick={() => handleNav("home")}
-              className="flex items-center hover:opacity-80 transition-opacity"
+              className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0"
             >
-              <Image src="/src-logo-full.svg" alt="SRC — Security & Resilience Counsel" width={140} height={28} className="h-7 w-auto" />
+              <Image
+                src="/src-logo-full.svg"
+                alt="SRC — Security & Resilience Counsel"
+                width={180}
+                height={36}
+                className="h-9 w-auto"
+              />
             </button>
 
-            {/* Desktop nav */}
-            <div className="hidden lg:flex items-center gap-1">
-              {NAV.map((item) => (
+            {/* Desktop nav — left-aligned after logo */}
+            <div className="hidden lg:flex items-center gap-0.5">
+              {NAV_MAIN.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -121,55 +144,78 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                   {tr(item.labelKey)}
                 </button>
               ))}
-            </div>
 
-            {/* Lang switcher + Account + CTA + Mobile toggle */}
-            <div className="flex items-center gap-2">
-              {/* Search — desktop: a button styled as a search field (opens ⌘K palette) */}
+              {/* Search — inline nav button */}
               <button
                 onClick={openSearch}
-                className="hidden md:flex items-center gap-2 h-8 pl-2.5 pr-1.5 rounded-sm border border-border text-muted-foreground hover:border-[#0A2540]/40 hover:text-[#0A2540] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs tracking-wide uppercase font-medium rounded-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors"
                 aria-label={tr("search.title")}
               >
                 <Search className="h-3.5 w-3.5" />
-                <span className="text-xs">{tr("search.placeholder")}</span>
-                <kbd className="ml-2 inline-flex items-center h-5 px-1.5 bg-secondary rounded-[3px] text-[10px] font-medium">
-                  {isMac ? "⌘K" : "Ctrl K"}
-                </kbd>
+                {tr("search.title")}
               </button>
 
-              {/* Search — mobile/compact: icon only */}
-              <button
-                onClick={openSearch}
-                className="md:hidden p-2 hover:bg-secondary rounded-sm transition-colors text-[#0A2540]"
-                aria-label={tr("search.title")}
-              >
-                <Search className="w-5 h-5" />
-              </button>
+              {/* About SRC dropdown */}
+              <Popover open={aboutOpen} onOpenChange={setAboutOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`flex items-center gap-1 px-3 py-2 text-xs tracking-wide uppercase font-medium rounded-sm transition-colors ${
+                      isAboutActive
+                        ? "text-primary bg-secondary"
+                        : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                    }`}
+                  >
+                    {tr("nav.about")}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-44 p-1">
+                  {NAV_ABOUT.map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => handleNav(item.key)}
+                      className={`w-full text-left px-3 py-2 text-xs font-medium rounded-sm transition-colors ${
+                        currentPage === item.key
+                          ? "text-primary bg-secondary"
+                          : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                      }`}
+                    >
+                      {tr(item.labelKey)}
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
+            </div>
 
-              {/* Language switcher — desktop */}
-              <div className="hidden md:block">
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Right cluster: lang + account + mobile toggle */}
+            <div className="flex items-center gap-2">
+              {/* Language switcher — compact dropdown, desktop only */}
+              <div className="hidden lg:block">
                 <LangSwitcher />
               </div>
 
-              {/* Account / Login button */}
+              {/* Account / Login */}
               {status === "authenticated" ? (
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-sm hover:bg-secondary/50 transition-colors"
+                      className="flex items-center p-1 rounded-full hover:opacity-80 transition-opacity"
+                      aria-label="Account"
                     >
-                      <div className="h-7 w-7 rounded-full bg-[#0A2540] flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full bg-[#0A2540] flex items-center justify-center">
                         <span className="text-white text-xs font-bold">
                           {(session?.user?.name || session?.user?.email || "?")[0].toUpperCase()}
                         </span>
                       </div>
-                      <span className="hidden sm:block text-xs font-medium text-[#0A2540] max-w-[120px] truncate">
-                        {session?.user?.name || session?.user?.email}
-                      </span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent align="end" className="w-48 p-2">
+                  <PopoverContent align="end" className="w-52 p-2">
+                    <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border mb-1 truncate">
+                      {session?.user?.name || session?.user?.email}
+                    </div>
                     <button
                       onClick={handleAccountClick}
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
@@ -180,7 +226,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                     {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin && (
                       <a
                         href="/admin"
-                        className="w-full text-left px-3 py-2 text-xs font-semibold rounded-sm hover:bg-secondary/50 flex items-center gap-2 text-[#0A2540]"
+                        className="block w-full text-left px-3 py-2 text-xs font-semibold rounded-sm hover:bg-secondary/50 flex items-center gap-2 text-[#0A2540]"
                       >
                         <Shield className="h-3.5 w-3.5" />
                         {tr("account.admin")}
@@ -190,32 +236,23 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-red-50 text-[#E8272C] flex items-center gap-2"
                     >
-                      <LogIn className="h-3.5 w-3.5" />
+                      <LogIn className="h-3.5 w-3.5 rotate-180" />
                       {tr("account.signout")}
                     </button>
                   </PopoverContent>
                 </Popover>
               ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="hidden sm:flex items-center gap-2 text-xs font-medium"
+                <button
                   onClick={() => setAuthOpen(true)}
+                  className="p-2 rounded-sm hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-primary"
+                  aria-label={tr("auth.login")}
+                  title={tr("auth.login")}
                 >
-                  <LogIn className="h-3.5 w-3.5" />
-                  {tr("auth.login")}
-                </Button>
+                  <User className="h-5 w-5" />
+                </button>
               )}
 
-              <Button
-                size="sm"
-                variant="outline"
-                className="hidden sm:flex items-center gap-2 text-xs tracking-wide"
-                onClick={() => handleNav("reports")}
-              >
-                {tr("nav.member-access")}
-                <ArrowRight className="w-3 h-3" />
-              </Button>
+              {/* Mobile hamburger */}
               <button
                 className="lg:hidden p-2 hover:bg-secondary rounded-sm transition-colors"
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -231,7 +268,16 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
         {mobileOpen && (
           <div className="lg:hidden border-t border-border bg-white">
             <div className="px-4 py-3 space-y-1">
-              {NAV.map((item) => (
+              {/* Search first on mobile */}
+              <button
+                onClick={() => { openSearch(); setMobileOpen(false); }}
+                className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors"
+              >
+                <Search className="h-4 w-4" />
+                {tr("search.title")}
+              </button>
+
+              {NAV_MAIN.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => handleNav(item.key)}
@@ -245,10 +291,33 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                 </button>
               ))}
 
-              {/* Account / Login in mobile menu */}
+              {/* About SRC group */}
+              <div className="pt-1">
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">
+                  {tr("nav.about")}
+                </div>
+                {NAV_ABOUT.map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => handleNav(item.key)}
+                    className={`block w-full text-left px-5 py-2 text-sm font-medium rounded-sm transition-colors ${
+                      currentPage === item.key
+                        ? "text-primary bg-secondary"
+                        : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                    }`}
+                  >
+                    {tr(item.labelKey)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Account / Login */}
               <div className="pt-2 border-t border-border space-y-1">
                 {status === "authenticated" ? (
                   <>
+                    <div className="px-3 py-2 text-xs text-muted-foreground truncate">
+                      {session?.user?.name || session?.user?.email}
+                    </div>
                     <button
                       onClick={handleAccountClick}
                       className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-primary bg-secondary"
@@ -272,46 +341,28 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                   </>
                 ) : (
                   <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setAuthOpen(true);
-                    }}
-                    className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-primary bg-secondary"
+                    onClick={() => { setMobileOpen(false); setAuthOpen(true); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-primary bg-secondary"
                   >
+                    <User className="h-4 w-4" />
                     {tr("auth.login")}
                   </button>
                 )}
               </div>
 
-              {/* Language switcher + Member Access — mobile */}
-              <div className="pt-3 border-t border-border space-y-2">
+              {/* Language switcher — mobile */}
+              <div className="pt-3 border-t border-border">
                 <LangSwitcher />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2 text-xs"
-                  onClick={() => handleNav("reports")}
-                >
-                  {tr("nav.member-access")}
-                  <ArrowRight className="w-3 h-3" />
-                </Button>
               </div>
             </div>
           </div>
         )}
       </header>
 
-      {/* Auth Dialog */}
       <AuthDialog
         open={authOpen}
         onOpenChange={setAuthOpen}
-        onSuccess={() => {
-          // Login succeeded and the dialog already refreshed the session, so
-          // go straight to the account view. Avoid handleAccountClick here —
-          // its status check can still read "unauthenticated" this tick and
-          // reopen the dialog.
-          handleNav("account");
-        }}
+        onSuccess={() => { handleNav("account"); }}
       />
     </>
   );
