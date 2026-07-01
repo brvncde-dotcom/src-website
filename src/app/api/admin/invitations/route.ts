@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { prisma, validateAdminKey, logAdminAction } from "@/lib/db";
+import { prisma, logAdminAction } from "@/lib/db";
+import { isAdminRequest } from "@/lib/admin-auth";
 import { sendEmail, buildInvitationEmail } from "@/lib/email";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -18,7 +19,7 @@ function getBaseUrl(req: NextRequest): string {
 
 // GET /api/admin/invitations — list invitations (newest first)
 export async function GET(request: NextRequest) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const invitations = await prisma.invitation.findMany({
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/invitations — create an invitation and email it
 // Body: { email, grantType?, tierSlug?, durationDays?, reason?, lang? }
 export async function POST(request: NextRequest) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

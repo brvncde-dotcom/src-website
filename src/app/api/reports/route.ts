@@ -7,8 +7,8 @@ import {
   VALID_LANGUAGES,
   DEFAULT_LANGUAGE,
   validateIngestionKey,
-  validateAdminKey,
 } from "@/lib/db";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 // Heuristic guard: detect submissions that are internal Paperclip workflow
 // tickets (translation tasks, editorial-review gates, "adopt pillar scope",
@@ -251,7 +251,11 @@ export async function GET(request: NextRequest) {
   // so vnOrchestrator can verify a push it just made: a freshly-ingested
   // report is `pending`, and without read-back access the POST→GET verify
   // cycle returns only `published` and looks like a lost write (SRC-505).
-  const isAdmin = validateAdminKey(request);
+  // Admin list view (all statuses) is granted only when explicitly requested
+  // with view=admin AND the caller is an admin — so a logged-in admin browsing
+  // the PUBLIC reports list still sees published-only, not drafts.
+  const wantsAdminView = searchParams.get("view") === "admin";
+  const isAdmin = wantsAdminView && (await isAdminRequest(request));
   const isIngestion = validateIngestionKey(request);
   const privileged = isAdmin || isIngestion;
 

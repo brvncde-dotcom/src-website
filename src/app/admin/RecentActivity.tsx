@@ -24,34 +24,18 @@ const ACTION_LABELS: Record<string, string> = {
 
 export function RecentActivity() {
   const { data: session } = useSession();
-  const [apiKey, setApiKey] = useState(() =>
-    typeof window !== "undefined" ? sessionStorage.getItem("src_admin_key") || "" : ""
-  );
+  const isAdmin = !!(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
   const [logs, setLogs] = useState<Log[]>([]);
 
   useEffect(() => {
-    if (session?.user?.email && !apiKey) {
-      fetch("/api/admin/auth-key")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => {
-          if (d?.key) {
-            setApiKey(d.key);
-            sessionStorage.setItem("src_admin_key", d.key);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [session, apiKey]);
-
-  useEffect(() => {
-    if (!apiKey) return;
-    fetch("/api/admin/audit", { headers: { Authorization: `Bearer ${apiKey}` } })
+    if (!isAdmin) return;
+    fetch("/api/admin/audit")
       .then((r) => (r.ok ? r.json() : { logs: [] }))
       .then((d) => setLogs(d.logs || []))
       .catch(() => {});
-  }, [apiKey]);
+  }, [isAdmin]);
 
-  if (!apiKey || logs.length === 0) return null;
+  if (!isAdmin || logs.length === 0) return null;
 
   return (
     <div className="mt-10 max-w-3xl">

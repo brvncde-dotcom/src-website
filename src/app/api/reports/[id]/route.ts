@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   prisma,
-  validateAdminKey,
   validateIngestionKey,
   VALID_STATUSES,
   canAccessContent,
   validateDesignGate,
   logAdminAction,
 } from "@/lib/db";
+import { isAdminRequest } from "@/lib/admin-auth";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -21,7 +21,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -211,7 +211,7 @@ export async function GET(
   const { id } = await params;
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang");
-  const isAdmin = validateAdminKey(request);
+  const isAdmin = await isAdminRequest(request);
   const isIngestion = validateIngestionKey(request);
   const privileged = isAdmin || isIngestion;
 
@@ -310,7 +310,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdminKey(request)) {
+  if (!(await isAdminRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
