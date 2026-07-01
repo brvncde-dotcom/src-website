@@ -15,6 +15,8 @@ import {
   Check,
   Lock,
   Search,
+  CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
@@ -113,6 +115,90 @@ const FIGURE_LABELS: Record<string, string> = {
   fr: "Figure ",
   it: "Figura ",
 };
+
+const SECTION_LABELS: Record<string, string> = {
+  "digital-power-ai": "Digital Power & AI",
+  "geopolitics-hard-security": "Geopolitics & Hard Security",
+  "energy-resources": "Energy & Resources",
+  "climate-environment-food": "Climate, Environment & Food",
+  "economy-competitiveness": "Economy & Competitiveness",
+  "society-migration-institutions": "Society, Migration & Institutions",
+};
+
+interface RelatedReport {
+  id: string;
+  title: string;
+  summary: string | null;
+  type: string;
+  section: string;
+  language: string;
+  publishedAt: string | null;
+}
+
+function RelatedReports({ reportId }: { reportId: string }) {
+  const [related, setRelated] = useState<RelatedReport[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/reports/related?id=${reportId}&limit=4`)
+      .then((r) => r.json())
+      .then((d) => setRelated(d.related ?? []))
+      .catch(() => {});
+  }, [reportId]);
+
+  if (related.length === 0) return null;
+
+  return (
+    <div className="border-t border-[#D8DEE6] bg-[#F8F9FB]">
+      <div className="mx-auto max-w-4xl px-6 lg:px-10 py-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-px flex-1 bg-[#D8DEE6]" />
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground">
+            Related Reports
+          </span>
+          <div className="h-px flex-1 bg-[#D8DEE6]" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {related.map((r) => (
+            <Link
+              key={r.id}
+              href={`/reports/${r.id}`}
+              className="group flex flex-col gap-2 p-4 border border-[#D8DEE6] bg-white hover:border-[#0A2540]/40 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold tracking-wider uppercase bg-[#0A2540] text-white px-2 py-0.5 rounded-sm flex-shrink-0">
+                  {r.type}
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate">
+                  {SECTION_LABELS[r.section] ?? r.section}
+                </span>
+              </div>
+              <h4 className="text-sm font-semibold text-[#0A2540] group-hover:text-[#E8272C] leading-snug line-clamp-2 transition-colors">
+                {r.title}
+              </h4>
+              {r.summary && (
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {r.summary}
+                </p>
+              )}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-auto pt-1">
+                {r.publishedAt && (
+                  <span>
+                    {new Date(r.publishedAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                )}
+                <ArrowRight className="w-3 h-3 ml-auto text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ReportPage() {
   const { t: tr, setLang } = useLang();
@@ -496,25 +582,50 @@ export default function ReportPage() {
             </div>
           </article>
         ) : report.access && report.access !== "full" ? (
-          <div className="mx-auto max-w-xl text-center border border-border rounded-lg bg-muted/30 px-6 py-12">
-            <Lock className="h-9 w-9 text-[#0A2540] mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-[#0A2540] mb-2">
-              {tr("reports.locked.title")}
+          <div className="mx-auto max-w-lg border border-[#D8DEE6] bg-[#F0F3F7] px-8 py-10">
+            {/* Tier badge + lock */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-11 h-11 rounded-full bg-[#0A2540] flex items-center justify-center flex-shrink-0">
+                <Lock className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#E8272C] mb-0.5">
+                  {tr("reports.locked.member-content")}
+                </p>
+                <p className="text-sm font-bold text-[#0A2540]">
+                  {report.requiredTier
+                    ? `${report.requiredTier} ${tr("reports.locked.and-above")}`
+                    : tr("reports.locked.title")}
+                </p>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-[#0A2540] mb-1">
+              {tr("reports.locked.headline")}
             </h3>
-            <p className="text-sm text-muted-foreground mb-1">
+            <p className="text-sm text-muted-foreground mb-5">
               {tr("reports.locked.desc")}
             </p>
-            {report.requiredTier && (
-              <p className="text-sm font-semibold text-[#0A2540] mb-5">
-                {tr("reports.locked.required")} {report.requiredTier}
-              </p>
-            )}
+
+            {/* Benefits list */}
+            <ul className="space-y-2 mb-7">
+              {(["reports.locked.benefit1", "reports.locked.benefit2", "reports.locked.benefit3", "reports.locked.benefit4"] as const).map((key) => (
+                <li key={key} className="flex items-start gap-2.5 text-sm text-[#0A2540]">
+                  <CheckCircle2 className="h-4 w-4 text-[#0A2540] flex-shrink-0 mt-0.5" />
+                  {tr(key)}
+                </li>
+              ))}
+            </ul>
+
             <Link
               href="/?tab=membership"
-              className="inline-block bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider px-5 py-2.5 rounded-md"
+              className="block w-full text-center bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-semibold text-sm uppercase tracking-wider px-5 py-3 transition-colors"
             >
               {tr("reports.locked.cta")}
             </Link>
+            <p className="text-xs text-center text-muted-foreground mt-3">
+              {tr("reports.locked.no-card")}
+            </p>
           </div>
         ) : (
           <div className="text-center py-16">
@@ -525,6 +636,9 @@ export default function ReportPage() {
           </div>
         )}
       </div>
+
+      {/* Related reports — pgvector nearest-neighbour recommendations */}
+      {report.id && <RelatedReports reportId={report.id} />}
 
       {/* Bottom nav */}
       <div className="border-t border-[#D8DEE6]">

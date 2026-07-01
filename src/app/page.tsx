@@ -24,6 +24,10 @@ function getInitialPage(): PageKey {
       window.history.replaceState({}, "", "/");
       return "account";
     }
+    if (params.get("tab") === "membership") {
+      window.history.replaceState({}, "", "/");
+      return "membership";
+    }
   }
   return "home";
 }
