@@ -164,8 +164,8 @@ function parseAnalysisBlocks(content: string): Array<{ title: string; body: stri
 function normalizeBriefContent(raw: string): string {
   let text = raw.trim();
 
-  // 1. Strip the internal "Dear Board Member … full version available here: <link>"
-  //    preamble. It is workflow boilerplate, not editorial content.
+  // 1. Strip "Dear Board Member … paperclip.ing link" preamble and the
+  //    "---" separator that follows it.
   const lines = text.split("\n");
   const linkIdx = lines.findIndex((l) => /paperclip\.ing/i.test(l));
   if (linkIdx !== -1 && linkIdx < 8) {
@@ -173,16 +173,23 @@ function normalizeBriefContent(raw: string): string {
   } else {
     text = text.replace(/^\s*Dear\b[^\n]*\n(?:[^\n]*\n)?/i, "").trim();
   }
+  // Strip leading HR divider left behind after preamble removal
+  text = text.replace(/^\s*---+\s*\n*/m, "").trim();
 
-  // 2. If there are no blank-line paragraph breaks, promote single newlines so
-  //    MarkdownRenderer doesn't collapse everything into one wall of text.
-  if (!text.includes("\n\n")) {
-    text = text
-      .split(/\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .join("\n\n");
-  }
+  // 2. Convert Paperclip's numbered-item format ("1. Title\n") to Markdown
+  //    headings so parseAnalysisBlocks() produces one section per story
+  //    instead of one giant "Analysis" blob.
+  //    This is a no-op when Paperclip sends proper ## headings.
+  text = text.replace(/^(\d+)\.\s+(.+)$/gm, "## $2");
+
+  // 3. Promote lone newlines to paragraph breaks so Markdown doesn't collapse
+  //    sub-lines (body, D-A-CH relevance, source, confidence) into one wall
+  //    of text. The previous guard `if (!text.includes("\n\n"))` was wrong:
+  //    \n\n already exists *between* numbered items, so the guard fired false
+  //    even though single \n still existed *within* each item's sub-lines.
+  text = text.replace(/\n(?!\n)/g, "\n\n");
+  // Collapse any 3+ newlines back to exactly 2
+  text = text.replace(/\n{3,}/g, "\n\n");
 
   return text;
 }
