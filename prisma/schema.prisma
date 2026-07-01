@@ -86,6 +86,7 @@ model Report {
   designSignedOffBy String?
   designSignedOffAt DateTime?
   code              String?
+  previewToken      String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

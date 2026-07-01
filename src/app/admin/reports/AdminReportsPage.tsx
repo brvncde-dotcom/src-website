@@ -82,6 +82,7 @@ interface Report {
   reviewedBy: string | null;
   reviewNote: string | null;
   minTierId: string | null;
+  previewToken?: string | null;
 }
 
 export default function AdminReportsPage() {
@@ -198,6 +199,23 @@ export default function AdminReportsPage() {
         body: JSON.stringify({ minTierId }),
       });
       if (res.ok) fetchReports();
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Mint (or reuse) a draft preview token for the report and open it in a new
+  // tab. Lets the board review the full draft before approval/publish.
+  const openPreview = async (reportId: string) => {
+    if (!apiKey) return;
+    try {
+      const res = await fetch(`/api/reports/${reportId}/preview-token`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
     } catch {
       /* ignore */
     }
@@ -493,6 +511,16 @@ export default function AdminReportsPage() {
                       )}
                       <Button
                         size="sm"
+                        variant="outline"
+                        className="h-8 gap-1 text-xs text-amber-700 border-amber-300 hover:bg-amber-50"
+                        onClick={() => openPreview(report.id)}
+                        title="Open draft preview"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Preview</span>
+                      </Button>
+                      <Button
+                        size="sm"
                         variant="ghost"
                         className="h-8"
                         onClick={() =>
@@ -643,6 +671,16 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
             rows={3}
           />
           <DialogFooter>
+            {actionDialog.report && (
+              <Button
+                variant="outline"
+                className="mr-auto gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                onClick={() => actionDialog.report && openPreview(actionDialog.report.id)}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Open Preview →
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() =>
