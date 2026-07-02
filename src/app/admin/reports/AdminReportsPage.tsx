@@ -32,6 +32,7 @@ import {
   ChevronUp,
   AlertTriangle,
   Layers,
+  Search,
 } from "lucide-react";
 
 const SECTION_LABELS: Record<string, string> = {
@@ -94,6 +95,9 @@ export default function AdminReportsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterLang, setFilterLang] = useState<string>("all");
   const [groupBySource, setGroupBySource] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
@@ -349,6 +353,38 @@ export default function AdminReportsPage() {
     });
   };
 
+  const filteredReports = searchQuery.trim()
+    ? reports.filter((r) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          r.title.toLowerCase().includes(q) ||
+          (r.author ?? "").toLowerCase().includes(q) ||
+          (r.sourceRef ?? "").toLowerCase().includes(q) ||
+          r.type.toLowerCase().includes(q) ||
+          (r.summary ?? "").toLowerCase().includes(q)
+        );
+      })
+    : reports;
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    let deleted = 0;
+    for (const report of filteredReports) {
+      try {
+        const res = await fetch(`/api/reports/${report.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (res.ok) deleted++;
+      } catch { /* ignore individual failures */ }
+    }
+    setBulkDeleting(false);
+    setBulkDeleteDialog(false);
+    setSearchQuery("");
+    fetchReports();
+    alert(`Deleted ${deleted} of ${filteredReports.length} matching reports.`);
+  };
+
   // Access is session-based. No API key entry: sign in as an admin.
   if (sessionStatus === "loading") {
     return (
@@ -480,9 +516,33 @@ export default function AdminReportsPage() {
             <Layers className="h-3.5 w-3.5" />
             Group by Source
           </Button>
-          <div className="ml-auto text-xs text-[#5A6B7F]">
-            {reports.length} report{reports.length !== 1 ? "s" : ""}
+          {/* Search */}
+          <div className="relative sm:ml-auto">
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#5A6B7F]" />
+            <input
+              type="text"
+              placeholder="Search title, author, type…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 pl-8 pr-3 text-xs border border-[#D8DEE6] rounded-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#0A2540] w-full sm:w-56"
+            />
           </div>
+          <div className="text-xs text-[#5A6B7F] whitespace-nowrap">
+            {searchQuery.trim()
+              ? `${filteredReports.length} / ${reports.length}`
+              : `${reports.length} report${reports.length !== 1 ? "s" : ""}`}
+          </div>
+          {searchQuery.trim() && filteredReports.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs gap-1.5 border-red-300 text-red-600 hover:bg-red-50 whitespace-nowrap"
+              onClick={() => setBulkDeleteDialog(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete all {filteredReports.length} matching
+            </Button>
+          )}
         </div>
 
         {/* Report List */}
@@ -490,18 +550,20 @@ export default function AdminReportsPage() {
           <div className="text-center py-20 text-sm text-[#5A6B7F]">
             Loading reports...
           </div>
-        ) : reports.length === 0 ? (
+        ) : filteredReports.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-[#5A6B7F] text-sm mb-2">No reports found</div>
             <div className="text-xs text-[#5A6B7F]/60">
-              {filterSection !== "all" || filterStatus !== "all"
+              {searchQuery.trim()
+                ? `No results for "${searchQuery}" — try a different search`
+                : filterSection !== "all" || filterStatus !== "all"
                 ? "Try adjusting your filters"
                 : "Reports ingested from vnOrchestrator will appear here for review"}
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            {reports.map((report) => (
+            {filteredReports.map((report) => (
               <div
                 key={report.id}
                 className="bg-white border border-[#D8DEE6] rounded-sm overflow-hidden"
@@ -933,6 +995,43 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
               className="bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
             >
               {deduping ? "Removing…" : `Remove ${dedupPreview?.wouldDelete ?? "…"} Duplicate(s)`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Matching Dialog */}
+      <Dialog open={bulkDeleteDialog} onOpenChange={(open) => !open && setBulkDeleteDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Delete {filteredReports.length} Matching Reports
+            </DialogTitle>
+            <DialogDescription>
+              Permanently deletes all {filteredReports.length} report{filteredReports.length !== 1 ? "s" : ""} matching{" "}
+              <strong>&ldquo;{searchQuery}&rdquo;</strong>. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2 text-sm text-[#5A6B7F] max-h-48 overflow-y-auto space-y-1">
+            {filteredReports.slice(0, 10).map((r) => (
+              <div key={r.id} className="text-xs truncate">• {r.title}</div>
+            ))}
+            {filteredReports.length > 10 && (
+              <div className="text-xs text-[#5A6B7F]/60">…and {filteredReports.length - 10} more</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteDialog(false)} disabled={bulkDeleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {bulkDeleting ? "Deleting…" : `Delete ${filteredReports.length} Reports`}
             </Button>
           </DialogFooter>
         </DialogContent>
