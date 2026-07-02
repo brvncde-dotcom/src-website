@@ -148,6 +148,9 @@ function internalTicketReason(body: {
     [/^\s*editorial review\s*:/i, "editorial-review ticket"],
     [/^\s*report draft\s*:/i, "report-draft ticket"],
     [/^\s*research brief\s*:/i, "research-brief intake ticket"],
+    // Raw monitor/RSS captures ("Intake: https://x.com/…") — 16 of these
+    // polluted the board queue on 2026-07-02. Source material, not editorial.
+    [/^\s*intake\s*:/i, "raw source-intake capture"],
     [/^\s*investigate\b[\s\S]*\b(fix|build|failure|bug|error|deploy)\b/i, "engineering task"],
     [/^\s*test\b[\s\S]*\b(report|delete me|ingest)\b/i, "test submission"],
     [/\bdelete me\b/i, "test submission"],
