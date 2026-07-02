@@ -37,10 +37,12 @@ The CTO's correct scope going forward: engineering/ops advisory only. It has
 
 ---
 
-## 3. Rescope Paperclip to ingestion only
+## 3. Rescope Paperclip to ingestion (with a request-to-publish flag)
 
-Paperclip's editorial agents are responsible for producing finished content and
-delivering it to the review queue. That is the end of their authority.
+Paperclip's editorial agents produce finished content and deliver it to the
+website. For **news-grade** content they may **request** auto-publishing; the
+website decides via its own quality score. That is the extent of their
+authority — they never flip the switch themselves and never touch the score.
 
 **The only website call Paperclip makes:**
 
@@ -50,23 +52,48 @@ Authorization: Bearer <INGESTION_API_KEY>
 Content-Type: application/json
 
 {
-  "title":    "...",
-  "summary":  "...",
-  "content":  "...(markdown)...",
-  "section":  "energy-resources",          // one of the 6 focus areas
-  "type":     "Analysis",
-  "language": "en",                          // en | de | fr | it
-  "sourceRef":"SRC-XXX",                     // shared across translations
-  "author":   "SRC ... Desk"
+  "title":       "...",
+  "summary":     "...",
+  "content":     "...(markdown)...",
+  "section":     "energy-resources",       // one of the 6 focus areas
+  "type":        "Analysis",
+  "language":    "en",                       // en | de | fr | it
+  "sourceRef":   "SRC-XXX",                  // shared across translations
+  "author":      "SRC ... Desk",
+  "autoPublish": true                        // optional — request auto-publish
 }
-→ 201 Created, status = "pending"
 ```
 
-Translations share the same `sourceRef` so they publish together later.
+**What `autoPublish: true` does (the website enforces all of this):**
 
-Paperclip does **not** approve, sign off, or publish. Those are board actions on
-the website (admin panel or Telegram). After a successful `POST`, Paperclip's
-job for that report is **done** — it waits for the board, it does not chase.
+| type | result |
+|---|---|
+| Daily Brief | published immediately |
+| Analysis / Report / Strategy Paper / Statement / Brief | website scores the text; **published if the CQR composite clears the floor** (default 8.0), otherwise `pending` for the board |
+| Opinion / Editorial | flag **ignored** — always `pending` for the board |
+
+Omit `autoPublish` (or send `false`) and everything sits at `pending` as before.
+
+**Paperclip does NOT supply a CQR score.** The website scores the words you
+sent, server-side, so there is nothing to game. The `201` response tells you
+what happened so you can learn:
+
+```
+{ "status": "published" | "pending",
+  "cqrComposite": 8.3,                         // the website's score (or null)
+  "message": "auto-published — CQR 8.3 (Publish immediately)" }
+```
+
+If a piece is queued because it scored below the floor, the `message` says so
+(e.g. `CQR 6.9 (Publish with review) below auto-publish floor 8.0 — queued`).
+Raise the quality — sharper sourcing, clearer analysis — and re-ingest.
+
+Translations share the same `sourceRef` so they publish together.
+
+Paperclip does **not** approve, sign off, publish Opinion/Editorial, or edit.
+Those are board actions on the website (admin panel or Telegram). After a
+successful `POST`, Paperclip's job for that report is **done** — it does not
+chase.
 
 ---
 
@@ -81,32 +108,41 @@ job for that report is **done** — it waits for the board, it does not chase.
 
 ---
 
-## 5. Workflow — one board decision, no separate sign-off
+## 5. Two flows: auto-publish and board review
 
+**Auto-publish (news-grade content).** Ingest with `autoPublish: true`. The
+website publishes Daily Briefs immediately and scores everything else; if it
+clears the floor it goes live with no human step. This is the constant-flow
+path — use it for your Analyses, Reports, and Briefs.
+
+**Board review (Opinion/Editorial, and anything that scored below the floor).**
 There is **no design sign-off step**. Board **approval = design + editorial
-approval** in one act. The board's decision on each report is one of three:
+approval** in one act. The board's decision is one of three:
 
 - **Approve** → ready to publish.
-- **Reject** → the board writes a **mandatory comment** (what must change). The
-  report goes to `status=rejected`. The desk reworks it; the board re-approves.
-  This is the re-approval loop.
+- **Reject** → mandatory comment (what must change) → `status=rejected`. The
+  desk reworks; the board re-approves. This is the re-approval loop.
 - **Delete** → the report is removed entirely.
 
-Flow: **Ingest (pending) → Board approves → Publish** (or Reject → rework →
-re-approve).
-
 What Paperclip agents must do:
-- Deliver **finished, publication-ready** content to the queue (correct byline,
-  clean title/summary — no internal markers). A publish-time hygiene check will
-  reject internal-marker junk, but that is a backstop, not your QA.
-- On **rejection**, read the board's comment and rework the report, then
-  re-ingest the updated version (same `sourceRef` + `language` updates the
-  existing row). Do not open tickets or argue — act on the comment.
-- Do NOT approve, reject, delete, or publish. Those are board actions on the
-  website. Paperclip stops at ingestion.
+- Deliver **finished, publication-ready** content (correct byline, clean
+  title/summary — no internal markers). The hygiene check and internal-ticket
+  filter are backstops, not your QA.
+- Use `autoPublish: true` for news-grade content you believe is ready. Read
+  `cqrComposite` in the response; if it was queued for scoring below the floor,
+  improve and re-ingest.
+- Never set `autoPublish` on Opinion/Editorial expecting it to work — it is
+  ignored by design. Those always go to the board.
+- On **rejection**, read the board's comment and rework, then re-ingest the
+  updated version (same `sourceRef` + `language` updates the existing row). Do
+  not open tickets or argue — act on the comment.
+- Do NOT approve, reject, delete, publish Opinion/Editorial, or edit. Those are
+  board actions on the website.
 
 ## 6. What "done" looks like
 
-- Content ingested → sits at `pending` → board publishes when ready.
+- News-grade content ingested with `autoPublish` → scored → live if it clears
+  the bar, else queued for the board. Constant flow, no human bottleneck.
+- Opinion/Editorial ingested → sits at `pending` → board publishes when ready.
 - No agent ever waits on a key, a token, or a deploy.
-- No publish ticket can ever be "blocked," because no agent owns publishing.
+- No publish ticket can ever be "blocked" — the agent never owns the switch.

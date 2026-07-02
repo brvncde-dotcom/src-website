@@ -11,6 +11,92 @@ import {
 } from "@/lib/db";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { normalizeEditorial, type EditorialInput } from "@/lib/editorial";
+import { getCurrentFramework } from "@/lib/cqr-framework";
+import { scoreReport, isScorerAvailable } from "@/lib/cqr-scorer";
+import { persistScore, validateEnvelope, type ScoreEnvelope } from "@/lib/cqr-persist";
+import { computeComposite, decideAction } from "@/lib/cqr-score";
+
+// Types that are NEVER auto-published, no matter what the caller requests.
+// These are value-laden and reputation-critical: the board signs them off.
+const BOARD_ONLY_TYPES = new Set(["Opinion", "Editorial"]);
+
+interface ReportForScoring {
+  title: string;
+  summary: string | null;
+  content: string | null;
+  type: string;
+  section: string;
+  author: string | null;
+}
+
+interface AutoPublishDecision {
+  publish: boolean;
+  envelope: ScoreEnvelope | null;
+  composite: number | null;
+  reason: string;
+}
+
+// Decide whether a score-gated report may auto-publish. The website scores the
+// SUBMITTED TEXT with its own CQR scorer — Paperclip never supplies the score,
+// so an agent cannot inflate its way onto the live site. Fails safe (queues for
+// board review) whenever the scorer is unavailable, returns junk, or the daily
+// ceiling is hit. Publish only when composite clears the floor (default: the
+// framework's "Publish immediately" threshold).
+async function scoreGatedDecision(report: ReportForScoring): Promise<AutoPublishDecision> {
+  if (!isScorerAvailable()) {
+    return {
+      publish: false, envelope: null, composite: null,
+      reason: "auto-publish requested but the CQR scorer is unavailable — queued for board review",
+    };
+  }
+
+  // Safety ceiling: cap score-gated auto-publishes in a rolling 24h window so a
+  // runaway ingestion loop cannot flood the live site. Excess is queued, not lost.
+  const cap = parseInt(process.env.CQR_AUTOPUBLISH_DAILY_CAP || "25", 10);
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recent = await prisma.report.count({
+    where: {
+      status: "published",
+      publishedAt: { gte: since },
+      type: { notIn: ["Daily Brief", "Opinion", "Editorial"] },
+    },
+  });
+  if (recent >= cap) {
+    return {
+      publish: false, envelope: null, composite: null,
+      reason: `auto-publish daily cap (${cap}) reached — queued for board review`,
+    };
+  }
+
+  try {
+    const framework = await getCurrentFramework();
+    const envelope = await scoreReport(report, framework);
+    const invalid = validateEnvelope(envelope);
+    if (invalid) {
+      return {
+        publish: false, envelope: null, composite: null,
+        reason: `CQR scorer returned invalid output (${invalid}) — queued for board review`,
+      };
+    }
+    const composite = computeComposite(envelope.scores, envelope.docType, framework.weights);
+    const envFloor = parseFloat(process.env.CQR_AUTOPUBLISH_MIN_COMPOSITE || "");
+    const floor = Number.isFinite(envFloor) && envFloor > 0 ? envFloor : framework.thresholds.publishNow;
+    const action = decideAction(composite, framework.thresholds);
+    const publish = composite >= floor;
+    return {
+      publish, envelope, composite,
+      reason: publish
+        ? `auto-published — CQR ${composite.toFixed(1)} (${action})`
+        : `CQR ${composite.toFixed(1)} (${action}) below auto-publish floor ${floor.toFixed(1)} — queued for board review`,
+    };
+  } catch (e) {
+    console.error("[autopublish] scoring failed:", e);
+    return {
+      publish: false, envelope: null, composite: null,
+      reason: "auto-publish scoring failed — queued for board review",
+    };
+  }
+}
 
 // Map a normalized editorial payload onto EditorialMeta columns. facts is
 // stored as JSON; everything else is a scalar column.
@@ -252,8 +338,46 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const initialStatus = isDailyBrief ? "published" : "pending";
-    const initialPublishedAt = isDailyBrief ? new Date() : null;
+    // --- Publishing decision -------------------------------------------------
+    // Governance model (server-enforced; Paperclip cannot override):
+    //   • Opinion / Editorial  → ALWAYS board-gated. Never auto-publish.
+    //   • Daily Brief          → auto-publish immediately (news-feed cadence).
+    //   • everything else      → auto-publish IFF the caller sets autoPublish:true
+    //     AND the website's own CQR scorer clears the floor. The website scores
+    //     the text itself, so an agent cannot inflate its way live.
+    // Omitting autoPublish keeps the historical behavior: queued as pending.
+    const wantsAutoPublish = body.autoPublish === true;
+
+    let initialStatus = "pending";
+    let initialPublishedAt: Date | null = null;
+    let scoreEnvelope: ScoreEnvelope | null = null;
+    let autoPublishComposite: number | null = null;
+    let publishNote = "Report ingested successfully and awaits review.";
+
+    if (isDailyBrief) {
+      initialStatus = "published";
+      initialPublishedAt = new Date();
+      publishNote = "Daily Brief published automatically.";
+    } else if (wantsAutoPublish && BOARD_ONLY_TYPES.has(reportType)) {
+      // Explicitly refuse auto-publish for Opinion/Editorial and say so.
+      publishNote = `${reportType} content is always board-gated — auto-publish ignored, queued for board review.`;
+    } else if (wantsAutoPublish) {
+      const decision = await scoreGatedDecision({
+        title: title.trim(),
+        summary: summary?.trim() || null,
+        content: content?.trim() || null,
+        type: reportType,
+        section,
+        author: author?.trim() || null,
+      });
+      scoreEnvelope = decision.envelope;
+      autoPublishComposite = decision.composite;
+      publishNote = decision.reason;
+      if (decision.publish) {
+        initialStatus = "published";
+        initialPublishedAt = new Date();
+      }
+    }
 
     // Use an interactive transaction so create and verify share the same
     // database connection. This eliminates connection-pooler or read-replica
@@ -296,12 +420,29 @@ export async function POST(request: NextRequest) {
       return created;
     });
 
-    // Telegram notification — brief notice for Daily Brief (auto-published),
-    // full board approval card for everything else.
+    // Persist the CQR score the website computed for the auto-publish decision.
+    // Stored whether the piece went live or was queued, so the board sees the
+    // score on the review card and the reader sees the scorecard once published.
+    if (scoreEnvelope) {
+      try {
+        await persistScore(report.id, scoreEnvelope, "in-website");
+      } catch (e) {
+        console.error("[autopublish] persistScore failed:", e);
+      }
+    }
+
+    // Telegram notification:
+    //   • Daily Brief          → brief auto-publish notice
+    //   • Score-gated publish  → auto-publish notice with the CQR verdict
+    //   • Anything queued      → full board approval card (needs a vote)
     try {
       if (isDailyBrief) {
         await tgBroadcast(
           `📋 *Daily Brief published*\n${report.title}\n\nAuto-published at ${new Date().toLocaleTimeString("en-CH", { timeZone: "Europe/Zurich", hour: "2-digit", minute: "2-digit" })} CET`
+        );
+      } else if (report.status === "published") {
+        await tgBroadcast(
+          `🤖 *Auto-published* (CQR-gated)\n${report.title}\n\n${publishNote}`
         );
       } else {
         const card = reportCard(report);
@@ -320,9 +461,11 @@ export async function POST(request: NextRequest) {
         language: report.language,
         status: report.status,
         createdAt: report.createdAt,
-        message: isDailyBrief
-          ? "Daily Brief published automatically."
-          : "Report ingested successfully and awaits review.",
+        // Feedback so Paperclip can learn what clears the bar: the CQR
+        // composite the website computed (null when not score-gated) and a
+        // human-readable outcome.
+        cqrComposite: autoPublishComposite,
+        message: publishNote,
       },
       { status: 201 }
     );
