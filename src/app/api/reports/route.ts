@@ -174,16 +174,70 @@ function internalTicketReason(body: {
   return null;
 }
 
+// Observability: every ingestion attempt writes one IngestionLog row —
+// accepted, rejected, errored, or unauthorized. When content "disappears"
+// between Paperclip and the review queue, this table is the answer to
+// "did it ever arrive, and why was it turned away?" Logging must never
+// break ingestion itself, so failures are swallowed (console only).
+async function logIngestion(entry: {
+  outcome: "accepted" | "rejected" | "error" | "unauthorized";
+  httpStatus: number;
+  reason?: string;
+  code?: string;
+  reportId?: string;
+  body?: { title?: unknown; sourceRef?: unknown; language?: unknown; type?: unknown; section?: unknown };
+}) {
+  try {
+    const s = (v: unknown, max = 300) =>
+      typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
+    await prisma.ingestionLog.create({
+      data: {
+        outcome: entry.outcome,
+        httpStatus: entry.httpStatus,
+        reason: entry.reason?.slice(0, 500) ?? null,
+        code: entry.code ?? null,
+        reportId: entry.reportId ?? null,
+        title: s(entry.body?.title),
+        sourceRef: s(entry.body?.sourceRef, 100),
+        language: s(entry.body?.language, 10),
+        type: s(entry.body?.type, 50),
+        section: s(entry.body?.section, 100),
+      },
+    });
+  } catch (e) {
+    console.error("[ingestion-log] write failed:", e);
+  }
+}
+
 // POST /api/reports — Ingest a new report from vnOrchestrator
 // Rebuild: SRC-505 2026-06-30 — force fresh bundle + transactional create-verify
 export async function POST(request: NextRequest) {
   // Auth check
   if (!validateIngestionKey(request)) {
+    // Log with whatever body context we can safely extract, so a Paperclip
+    // push with a wrong/rotated key is visible in the admin log, not silent.
+    let bodyCtx: Record<string, unknown> | undefined;
+    try {
+      bodyCtx = await request.json();
+    } catch {
+      /* unparseable body — log without context */
+    }
+    await logIngestion({
+      outcome: "unauthorized",
+      httpStatus: 401,
+      reason: "Ingestion key missing or invalid",
+      code: "UNAUTHORIZED",
+      body: bodyCtx,
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let body: Record<string, unknown> & {
+    title?: string; summary?: string; content?: string; type?: string;
+    section?: string; sourceRef?: string; author?: string; language?: string; code?: string;
+  } = {};
   try {
-    const body = await request.json();
+    body = await request.json();
 
     const { title, summary, content, type, section, sourceRef, author, language, code } = body;
 
@@ -193,6 +247,10 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!title || typeof title !== "string" || title.trim().length === 0) {
+      await logIngestion({
+        outcome: "rejected", httpStatus: 400, code: "VALIDATION_FAILED",
+        reason: "title is required and must be a non-empty string", body,
+      });
       return NextResponse.json(
         { error: "title is required and must be a non-empty string" },
         { status: 400 }
@@ -205,6 +263,10 @@ export async function POST(request: NextRequest) {
       console.warn(
         `Rejected internal-ticket ingestion (${ticketReason}): "${title.trim().slice(0, 80)}"`
       );
+      await logIngestion({
+        outcome: "rejected", httpStatus: 422, code: "INTERNAL_TICKET_REJECTED",
+        reason: `Looks like an internal workflow ticket: ${ticketReason}`, body,
+      });
       return NextResponse.json(
         {
           error: `This submission looks like an internal workflow ticket (${ticketReason}), not a publishable report. Only finished editorial content should be posted to /api/reports.`,
@@ -214,7 +276,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!section || !VALID_SECTIONS.includes(section)) {
+    if (!section || !(VALID_SECTIONS as readonly string[]).includes(section)) {
+      await logIngestion({
+        outcome: "rejected", httpStatus: 400, code: "VALIDATION_FAILED",
+        reason: `Invalid section "${String(section)}" — must be one of: ${VALID_SECTIONS.join(", ")}`, body,
+      });
       return NextResponse.json(
         {
           error: `section must be one of: ${VALID_SECTIONS.join(", ")}`,
@@ -224,7 +290,11 @@ export async function POST(request: NextRequest) {
     }
 
     const reportType = type || "Analysis";
-    if (!VALID_TYPES.includes(reportType)) {
+    if (!(VALID_TYPES as readonly string[]).includes(reportType)) {
+      await logIngestion({
+        outcome: "rejected", httpStatus: 400, code: "VALIDATION_FAILED",
+        reason: `Invalid type "${String(type)}" — must be one of: ${VALID_TYPES.join(", ")}`, body,
+      });
       return NextResponse.json(
         {
           error: `type must be one of: ${VALID_TYPES.join(", ")}`,
@@ -235,7 +305,9 @@ export async function POST(request: NextRequest) {
 
     // Validate language (default: en)
     const reportLang =
-      language && VALID_LANGUAGES.includes(language) ? language : DEFAULT_LANGUAGE;
+      language && (VALID_LANGUAGES as readonly string[]).includes(language)
+        ? language
+        : DEFAULT_LANGUAGE;
 
     // Check for duplicate (sourceRef, language) — if sourceRef is set
     if (sourceRef?.trim()) {
@@ -268,6 +340,11 @@ export async function POST(request: NextRequest) {
             update: editorialData(editorial),
           });
         }
+        await logIngestion({
+          outcome: "accepted", httpStatus: 200, code: "TRANSLATION_UPDATED",
+          reason: "Existing translation updated (same sourceRef + language)",
+          reportId: updated.id, body,
+        });
         return NextResponse.json(
           {
             id: updated.id,
@@ -321,6 +398,11 @@ export async function POST(request: NextRequest) {
             code: code?.trim() || null,
             sourceRef: sourceRef?.trim() || existingBrief.sourceRef,
           },
+        });
+        await logIngestion({
+          outcome: "accepted", httpStatus: 200, code: "BRIEF_DEDUPED",
+          reason: "Existing Daily Brief for today updated (deduped by section + day)",
+          reportId: updated.id, body,
         });
         return NextResponse.json(
           {
@@ -452,6 +534,12 @@ export async function POST(request: NextRequest) {
       console.error("[telegram] notify on ingest failed:", e);
     }
 
+    await logIngestion({
+      outcome: "accepted", httpStatus: 201, code: "CREATED",
+      reason: `${publishNote} (status: ${report.status})`,
+      reportId: report.id, body,
+    });
+
     return NextResponse.json(
       {
         id: report.id,
@@ -471,6 +559,11 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error ingesting report:", error);
+    await logIngestion({
+      outcome: "error", httpStatus: 500, code: "SERVER_ERROR",
+      reason: error instanceof Error ? error.message : String(error),
+      body,
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

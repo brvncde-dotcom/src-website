@@ -311,6 +311,29 @@ model MonitorMatch {
   @@index([createdAt])
 }
 
+// Every POST /api/reports attempt — accepted, rejected, or errored — writes
+// one row here. This is the observability layer between Paperclip and the
+// website: when content "disappears", this table says whether it ever arrived
+// and why it was turned away. Rows are never user-facing; admin dashboard only.
+model IngestionLog {
+  id         String   @id @default(cuid())
+  outcome    String // accepted | rejected | error | unauthorized
+  reason     String? // human-readable reason (e.g. heuristic name, validation error)
+  code       String? // machine code (e.g. INTERNAL_TICKET_REJECTED, VALIDATION_FAILED)
+  httpStatus Int
+  title      String? // title as submitted (first 300 chars)
+  sourceRef  String?
+  language   String?
+  type       String?
+  section    String?
+  reportId   String? // set when accepted — the created/updated Report row
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([outcome])
+  @@index([sourceRef])
+}
+
 model AdminAuditLog {
   id         String   @id @default(cuid())
   actor      String // admin email, or "admin"/"system"

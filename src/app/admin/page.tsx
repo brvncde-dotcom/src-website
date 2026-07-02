@@ -10,6 +10,11 @@ export default function AdminHome() {
       desc: "Review, approve, publish, delete — and gate reports to a members-only tier.",
     },
     {
+      href: "/admin/ingestion",
+      title: "Ingestion Log",
+      desc: "Every push Paperclip made — accepted, rejected, or errored, with the reason. First stop when content is missing.",
+    },
+    {
       href: "/admin/users",
       title: "Members",
       desc: "View members, assign tiers, and grant or revoke comp memberships (free access for a period).",
