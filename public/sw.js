@@ -1,4 +1,4 @@
-const CACHE = "src-advisory-v1";
+const CACHE = "src-advisory-v7";
 const OFFLINE = "/offline";
 const PRECACHE = [OFFLINE, "/icons/icon-192x192.png", "/icons/icon-512x512.png"];
 
