@@ -15,6 +15,7 @@ function AdminBar() {
     { href: "/admin/users", label: "Members" },
     { href: "/admin/invitations", label: "Invitations" },
     { href: "/admin/monitors", label: "Monitors" },
+    { href: "/admin/framework", label: "CQR Framework" },
   ];
   return (
     <div className="bg-[#0A2540] text-white">

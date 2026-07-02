@@ -24,6 +24,11 @@ export default function AdminHome() {
       title: "Monitors",
       desc: "View all member content monitors, match counts, and run the backfill scan.",
     },
+    {
+      href: "/admin/framework",
+      title: "CQR Framework",
+      desc: "Edit the Worldview Matrix and scoring weights, and score content on six intelligence dimensions.",
+    },
   ];
 
   return (
