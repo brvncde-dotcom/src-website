@@ -21,6 +21,7 @@ import {
 
 const HELP_SECTIONS = [
   "daily-brief",
+  "position",
   "reports",
   "search",
   "account",
@@ -57,6 +58,16 @@ export default function HelpPage() {
         { keyPrefix: "help.daily-brief.for-essential" },
         { keyPrefix: "help.daily-brief.unsubscribe" },
         { keyPrefix: "help.daily-brief.no-brief" },
+      ],
+    },
+    {
+      id: "position",
+      titleKey: "help.position.title",
+      items: [
+        { keyPrefix: "help.position.what" },
+        { keyPrefix: "help.position.scorecard" },
+        { keyPrefix: "help.position.subbrands" },
+        { keyPrefix: "help.position.access" },
       ],
     },
     {
@@ -240,6 +251,26 @@ export default function HelpPage() {
                                 {tr("help.daily-brief.no-brief")}
                               </p>
                             </div>
+                          )}
+                          {section.id === "position" && idx === 0 && (
+                            <div className="space-y-3">
+                              <p>{tr("help.position.what")}</p>
+                              <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-[#0A2540] p-3 rounded text-sm">
+                                <p className="font-semibold text-[#0A2540] dark:text-blue-400 mb-1">
+                                  Structure of a Position
+                                </p>
+                                <p>{tr("help.position.structure")}</p>
+                              </div>
+                            </div>
+                          )}
+                          {section.id === "position" && idx === 1 && (
+                            <p>{tr("help.position.scorecard")}</p>
+                          )}
+                          {section.id === "position" && idx === 2 && (
+                            <p>{tr("help.position.subbrands")}</p>
+                          )}
+                          {section.id === "position" && idx === 3 && (
+                            <p>{tr("help.position.access")}</p>
                           )}
                           {section.id === "reports" && idx === 0 && (
                             <div className="space-y-3">
