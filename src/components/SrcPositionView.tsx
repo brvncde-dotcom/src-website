@@ -126,13 +126,21 @@ export function SrcPositionView() {
   const formatDate = (s: string | null) =>
     s ? new Date(s).toLocaleDateString(lang === "en" ? "en-US" : lang, { year: "numeric", month: "short", day: "numeric" }) : "";
 
-  // Sub-brands present in the current result set, in canonical order.
+  // Legacy Opinions: type=Opinion with no Semaform editorialMeta.
+  const isLegacy = (i: Item) => i.type === "Opinion" && !i.editorialMeta;
+
+  // Sub-brands present among proper Editorial items only (in canonical order).
   const presentBrands = SUB_BRANDS.filter((b) =>
-    items.some((i) => (i.editorialMeta?.subBrand ?? "position-paper") === b.key),
+    items.some((i) => !isLegacy(i) && (i.editorialMeta?.subBrand ?? "position-paper") === b.key),
   );
-  const visible = filter === "all"
-    ? items
-    : items.filter((i) => (i.editorialMeta?.subBrand ?? "position-paper") === filter);
+  const hasLegacyOpinions = items.some(isLegacy);
+
+  const visible =
+    filter === "all"
+      ? items
+      : filter === "__opinion"
+      ? items.filter(isLegacy)
+      : items.filter((i) => !isLegacy(i) && (i.editorialMeta?.subBrand ?? "position-paper") === filter);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
@@ -154,6 +162,9 @@ export function SrcPositionView() {
           {presentBrands.map((b) => (
             <FilterChip key={b.key} active={filter === b.key} onClick={() => setFilter(b.key)} label={b.label} />
           ))}
+          {hasLegacyOpinions && (
+            <FilterChip active={filter === "__opinion"} onClick={() => setFilter("__opinion")} label="Opinion" />
+          )}
         </div>
       )}
 
@@ -171,7 +182,8 @@ export function SrcPositionView() {
       {!loading && visible.length > 0 && (
         <div className="space-y-4">
           {visible.map((item) => {
-            const brand = subBrandDef(item.editorialMeta?.subBrand);
+            const legacy = isLegacy(item);
+            const brand = legacy ? null : subBrandDef(item.editorialMeta?.subBrand);
             const thesis = item.editorialMeta?.thesis;
             const hasVideo = !!item.editorialMeta?.videoUrl;
             const isExpanded = expandedId === item.id;
@@ -179,9 +191,15 @@ export function SrcPositionView() {
               <article key={item.id} className="border border-border hover:border-primary/30 hover:shadow-sm transition-all">
                 <div className="p-4 sm:p-6">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="text-[10px] font-bold tracking-[0.08em] uppercase bg-[#0A2540] text-white px-2 py-0.5 rounded-sm">
-                      {brand.label}
-                    </span>
+                    {brand ? (
+                      <span className="text-[10px] font-bold tracking-[0.08em] uppercase bg-[#0A2540] text-white px-2 py-0.5 rounded-sm">
+                        {brand.label}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold tracking-[0.08em] uppercase bg-secondary text-muted-foreground px-2 py-0.5 rounded-sm">
+                        Opinion
+                      </span>
+                    )}
                     {hasVideo && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#E8272C]">
                         <Play className="h-2.5 w-2.5 fill-current" /> Video
