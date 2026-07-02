@@ -157,3 +157,54 @@ test("Daily Brief page renders Share / Save / PDF actions", async ({ page }) => 
   await page.waitForTimeout(3_000); // allow brief to fetch
   await expect(page.locator("text=Share")).toBeVisible({ timeout: 8_000 });
 });
+
+// ─── 10. /monitors page loads without crash ───────────────────────────────────
+// Unauthenticated visitors must see the upgrade wall (or a redirect),
+// never a Next.js client crash.
+
+test("/monitors page loads without crash for unauthenticated user", async ({ page }) => {
+  await page.goto("/monitors");
+  await page.waitForLoadState("networkidle");
+  await expectNoCrash(page);
+  // The page should render something — either an upgrade wall or a redirect to login.
+  // It must never be a blank page with just the crash banner.
+  await expect(page.locator("body")).not.toBeEmpty();
+});
+
+// ─── 11. Monitor API endpoints are auth-gated ─────────────────────────────────
+// GET /api/monitors, GET /api/monitors/matches must return 401/403 for
+// unauthenticated callers once the feature is deployed. 404 = not yet live
+// (pre-merge) → skip rather than fail.
+
+test("GET /api/monitors requires auth, not 500", async ({ request }) => {
+  const response = await request.get("/api/monitors");
+  if (response.status() === 404) {
+    test.skip(true, "Content monitoring not yet deployed — skip until branch is merged to main");
+    return;
+  }
+  expect(response.status(), "GET /api/monitors returned 500 — server error").not.toBe(500);
+  expect([401, 403], `Expected 401/403 for unauthenticated request, got ${response.status()}`).toContain(response.status());
+});
+
+test("GET /api/monitors/matches requires auth, not 500", async ({ request }) => {
+  const response = await request.get("/api/monitors/matches");
+  if (response.status() === 404) {
+    test.skip(true, "Content monitoring not yet deployed — skip until branch is merged to main");
+    return;
+  }
+  expect(response.status(), "GET /api/monitors/matches returned 500 — server error").not.toBe(500);
+  expect([401, 403], `Expected 401/403 for unauthenticated request, got ${response.status()}`).toContain(response.status());
+});
+
+// ─── 12. Admin run-monitor-scan is auth-gated ────────────────────────────────
+// POST /api/admin/run-monitor-scan must return 403 for unauthenticated callers.
+
+test("POST /api/admin/run-monitor-scan requires admin auth, not 500", async ({ request }) => {
+  const response = await request.post("/api/admin/run-monitor-scan");
+  if (response.status() === 404) {
+    test.skip(true, "Content monitoring not yet deployed — skip until branch is merged to main");
+    return;
+  }
+  expect(response.status(), "run-monitor-scan returned 500 — server error").not.toBe(500);
+  expect(response.status(), `Expected 403 for unauthenticated admin request, got ${response.status()}`).toBe(403);
+});
