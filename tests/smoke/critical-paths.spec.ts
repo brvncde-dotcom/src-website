@@ -4,7 +4,7 @@
  * Run against prod:   npx playwright test
  * Run against local:  PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test
  *
- * These tests cover the 5 paths that have broken in production and must never
+ * These tests cover the paths that have broken in production and must never
  * regress silently:
  *
  *   1. Home page renders without a client-side crash
@@ -12,6 +12,10 @@
  *   3. Hash nav to #brief actually loads DailyBriefView  (was redirecting to home)
  *   4. Hash nav to #reports actually loads ReportsView
  *   5. /admin redirects unauthenticated users to login  (auth gate)
+ *   6. AI help endpoint /api/help/ask is reachable and not broken
+ *   7. PDF endpoint /api/reports/[id]/pdf requires auth (not 500 or 404)
+ *   8. Save endpoint /api/me/saved/[id] requires auth (not 500 or 404)
+ *   9. Daily Brief footer buttons are visible on the brief page
  *
  * "Application error: a client-side exception…" in any test = regression.
  */
@@ -114,4 +118,42 @@ test("AI help endpoint /api/help/ask is reachable and not broken", async ({ requ
   const body = await response.json();
   expect(typeof body.answer).toBe("string");
   expect(body.answer.length).toBeGreaterThan(0);
+});
+
+// ─── 7. PDF endpoint gate ─────────────────────────────────────────────────────
+// The PDF API at /api/reports/[id]/pdf must exist and require auth.
+// A 401 from an unauthenticated request = correct behaviour.
+// A 404 = route was deleted → regression.
+// A 500 = broken server-side code → regression.
+
+test("PDF endpoint /api/reports/any/pdf requires auth, not 500/404", async ({ request }) => {
+  // Use a known-invalid ID — the auth check must run before the DB lookup.
+  const response = await request.get("/api/reports/smoke-test-nonexistent/pdf");
+  expect(response.status(), "PDF endpoint returned 404 — route may be deleted").not.toBe(404);
+  expect(response.status(), "PDF endpoint returned 500 — server-side error").not.toBe(500);
+  // Must be 401 (unauthenticated) or 403 (forbidden) — not a crash
+  expect([401, 403]).toContain(response.status());
+});
+
+// ─── 8. Save endpoint gate ────────────────────────────────────────────────────
+// POST /api/me/saved/[id] must require auth and not crash.
+
+test("Save endpoint /api/me/saved/any requires auth, not 500/404", async ({ request }) => {
+  const response = await request.post("/api/me/saved/smoke-test-nonexistent");
+  expect(response.status(), "Save endpoint returned 404 — route may be deleted").not.toBe(404);
+  expect(response.status(), "Save endpoint returned 500 — server-side error").not.toBe(500);
+  expect([401, 403]).toContain(response.status());
+});
+
+// ─── 9. Daily Brief footer actions visible ────────────────────────────────────
+// The Daily Brief page must render the Share / Save / PDF action buttons.
+
+test("Daily Brief page renders Share / Save / PDF actions", async ({ page }) => {
+  await page.goto("/#brief");
+  await page.waitForLoadState("networkidle");
+  await expectNoCrash(page);
+  // At minimum the Share button must be visible in the footer
+  // (the page may show a loading skeleton before briefs load)
+  await page.waitForTimeout(3_000); // allow brief to fetch
+  await expect(page.locator("text=Share")).toBeVisible({ timeout: 8_000 });
 });

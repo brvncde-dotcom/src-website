@@ -313,6 +313,9 @@ export function DailyBriefView() {
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -353,14 +356,61 @@ export function DailyBriefView() {
         setAuthOpen(true);
         return;
       }
+      setSaveError(null);
       try {
         const res = await fetch(`/api/me/saved/${brief.id}`, { method: "POST" });
-        if (res.ok) setSavedId(brief.id);
+        if (res.ok) {
+          setSavedId(brief.id);
+        } else {
+          setSaveError("Could not save — please try again.");
+          setTimeout(() => setSaveError(null), 3000);
+        }
       } catch {
-        // ignore
+        setSaveError("Could not save — please try again.");
+        setTimeout(() => setSaveError(null), 3000);
       }
     },
     [status]
+  );
+
+  const handlePdf = useCallback(
+    async (brief: Brief) => {
+      if (status !== "authenticated") {
+        setAuthOpen(true);
+        return;
+      }
+      if (pdfLoading) return;
+      setPdfError(null);
+      setPdfLoading(true);
+      try {
+        const res = await fetch(`/api/reports/${brief.id}/pdf`);
+        if (res.status === 403) {
+          setPdfError("PDF download requires a Professional membership.");
+          setTimeout(() => setPdfError(null), 4000);
+          return;
+        }
+        if (!res.ok) {
+          setPdfError("PDF generation failed — please try again.");
+          setTimeout(() => setPdfError(null), 4000);
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `SRC-Daily-Brief-${brief.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {
+        setPdfError("PDF download failed — please try again.");
+        setTimeout(() => setPdfError(null), 4000);
+      } finally {
+        setPdfLoading(false);
+      }
+    },
+    [status, pdfLoading]
   );
 
   if (loading) {
@@ -664,28 +714,34 @@ export function DailyBriefView() {
                 </span>
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleShare(latest)}
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                Share
-              </button>
-              <button
-                onClick={() => handleSave(latest)}
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-                {savedId === latest.id ? "Saved" : "Save"}
-              </button>
-              <button
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
-                onClick={() => {/* PDF download not yet implemented */}}
-              >
-                <FileDown className="w-3.5 h-3.5" />
-                PDF
-              </button>
+            <div className="flex flex-col items-end gap-1">
+              {(saveError || pdfError) && (
+                <span className="text-[10px] text-red-400">{saveError || pdfError}</span>
+              )}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleShare(latest)}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share
+                </button>
+                <button
+                  onClick={() => handleSave(latest)}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
+                >
+                  <Bookmark className="w-3.5 h-3.5" />
+                  {savedId === latest.id ? "Saved ✓" : "Save"}
+                </button>
+                <button
+                  onClick={() => handlePdf(latest)}
+                  disabled={pdfLoading}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1 disabled:opacity-50"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  {pdfLoading ? "…" : "PDF"}
+                </button>
+              </div>
             </div>
           </div>
         </footer>

@@ -106,6 +106,8 @@ export default function AdminReportsPage() {
   }>({ open: false, report: null });
   const [purgeDialog, setPurgeDialog] = useState(false);
   const [purging, setPurging] = useState(false);
+  const [dedupDialog, setDedupDialog] = useState(false);
+  const [deduping, setDeduping] = useState(false);
   const [actionNote, setActionNote] = useState("");
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
@@ -262,6 +264,26 @@ export default function AdminReportsPage() {
     }
   };
 
+  const handleDedupBriefs = async () => {
+    setDeduping(true);
+    try {
+      const res = await fetch("/api/admin/purge-brief-duplicates", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setDedupDialog(false);
+        alert(data.message);
+        fetchReports();
+      } else {
+        alert(data.error || "Dedup failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Dedup failed");
+    } finally {
+      setDeduping(false);
+    }
+  };
+
   const handlePurgeBriefs = async () => {
     setPurging(true);
     try {
@@ -367,6 +389,15 @@ export default function AdminReportsPage() {
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDedupDialog(true)}
+              className="gap-1.5 text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Dedup Briefs
             </Button>
             <Button
               variant="outline"
@@ -843,6 +874,33 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dedup Daily Briefs Dialog */}
+      <Dialog open={dedupDialog} onOpenChange={(open) => !open && setDedupDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Remove Duplicate Daily Briefs
+            </DialogTitle>
+            <DialogDescription>
+              Keeps the most recently ingested Daily Brief per calendar day. All older duplicates for the same day are permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDedupDialog(false)} disabled={deduping}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDedupBriefs}
+              disabled={deduping}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              {deduping ? "Removing…" : "Remove Duplicates"}
             </Button>
           </DialogFooter>
         </DialogContent>
