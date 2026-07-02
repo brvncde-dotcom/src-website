@@ -25,6 +25,8 @@ import {
   Check,
   Trash2,
   ExternalLink,
+  Bell,
+  ArrowRight,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
@@ -116,6 +118,19 @@ export function UserAccountView() {
   const [subs, setSubs] = useState<SubItem[]>([]);
   const [subsLoading, setSubsLoading] = useState(false);
 
+  // Monitors
+  interface MonitorSummary {
+    id: string;
+    name: string;
+    isActive: boolean;
+    keywords: string[];
+    _count: { matches: number };
+    unread: number;
+  }
+  const [monitors, setMonitors] = useState<MonitorSummary[]>([]);
+  const [monitorsLoading, setMonitorsLoading] = useState(false);
+  const [isPro, setIsPro] = useState(true);
+
   // ── Fetch profile ──
 
   const fetchProfile = useCallback(async () => {
@@ -202,6 +217,17 @@ export function UserAccountView() {
     if (activeTab === "saved") fetchSaved();
     if (activeTab === "shares") fetchShares();
     if (activeTab === "subscription") fetchSubs();
+    if (activeTab === "monitors") {
+      setMonitorsLoading(true);
+      fetch("/api/monitors")
+        .then((r) => {
+          if (r.status === 403) { setIsPro(false); return null; }
+          return r.ok ? r.json() : null;
+        })
+        .then((d) => { if (d) setMonitors(d.monitors ?? []); })
+        .catch(() => {})
+        .finally(() => setMonitorsLoading(false));
+    }
   }, [activeTab, sessionStatus, fetchSaved, fetchShares, fetchSubs]);
 
   // ── Save profile ──
@@ -431,6 +457,13 @@ export function UserAccountView() {
             >
               <CreditCard className="h-3.5 w-3.5" />
               {tr("account.subscription")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="monitors"
+              className="text-xs font-semibold uppercase tracking-wider gap-1.5 data-[state=active]:bg-[#0A2540] data-[state=active]:text-white rounded-sm"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              {tr("nav.monitors")}
             </TabsTrigger>
           </TabsList>
 
@@ -779,6 +812,113 @@ export function UserAccountView() {
               )}
             </div>
           </TabsContent>
+          {/* ── Monitors Tab ── */}
+          <TabsContent value="monitors" className="mt-6">
+            {monitorsLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-5 w-5 text-[#5A6B7F] animate-spin" />
+              </div>
+            ) : !isPro ? (
+              <div className="bg-white border border-[#D8DEE6] rounded-sm p-10 max-w-2xl text-center">
+                <Bell className="h-10 w-10 text-[#5A6B7F]/20 mx-auto mb-4" />
+                <h3 className="text-base font-bold text-[#0A2540] mb-2">
+                  {tr("monitors.upgrade-title")}
+                </h3>
+                <p className="text-sm text-[#5A6B7F] mb-5">
+                  {tr("monitors.upgrade-body")}
+                </p>
+                <a
+                  href="/#membership"
+                  className="inline-flex items-center gap-2 bg-[#0A2540] text-white text-xs font-semibold uppercase tracking-wider px-5 py-2.5 rounded-sm hover:bg-[#0A2540]/90 transition-colors"
+                >
+                  {tr("monitors.upgrade-cta")}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            ) : (
+              <div className="bg-white border border-[#D8DEE6] rounded-sm max-w-2xl">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8DEE6]">
+                  <div>
+                    <p className="text-sm font-semibold text-[#0A2540]">
+                      {monitors.length} monitor{monitors.length !== 1 ? "s" : ""}
+                    </p>
+                    {monitors.some((m) => m.unread > 0) && (
+                      <p className="text-xs text-[#E8272C] font-medium">
+                        {monitors.reduce((s, m) => s + m.unread, 0)} unread matches
+                      </p>
+                    )}
+                  </div>
+                  <a
+                    href="/monitors"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0A2540] hover:underline"
+                  >
+                    {tr("monitors.manage")}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+                {monitors.length === 0 ? (
+                  <div className="text-center py-12 px-6">
+                    <Bell className="h-8 w-8 text-[#5A6B7F]/20 mx-auto mb-3" />
+                    <p className="text-sm text-[#5A6B7F] mb-4">{tr("monitors.empty")}</p>
+                    <a
+                      href="/monitors"
+                      className="inline-flex items-center gap-1.5 bg-[#0A2540] text-white text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-sm hover:bg-[#0A2540]/90 transition-colors"
+                    >
+                      <Bell className="h-3.5 w-3.5" />
+                      {tr("monitors.create-first")}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#D8DEE6]/60">
+                    {monitors.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between px-6 py-3.5 gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Bell className={`h-4 w-4 flex-shrink-0 ${m.isActive ? "text-[#0A2540]" : "text-[#5A6B7F]/40"}`} />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-[#0A2540] truncate">{m.name}</span>
+                              {!m.isActive && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 flex-shrink-0">paused</Badge>
+                              )}
+                            </div>
+                            {m.keywords.length > 0 && (
+                              <div className="flex gap-1 mt-0.5 flex-wrap">
+                                {m.keywords.slice(0, 4).map((k) => (
+                                  <span key={k} className="text-[10px] text-orange-700 bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5">
+                                    {k}
+                                  </span>
+                                ))}
+                                {m.keywords.length > 4 && (
+                                  <span className="text-[10px] text-[#5A6B7F]">+{m.keywords.length - 4}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-sm font-semibold text-[#0A2540]">{m._count.matches}</div>
+                          <div className="text-[10px] text-[#5A6B7F]">matches</div>
+                          {m.unread > 0 && (
+                            <div className="text-[10px] text-[#E8272C] font-semibold">{m.unread} unread</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="px-6 py-3 border-t border-[#D8DEE6]">
+                      <a
+                        href="/monitors"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0A2540] hover:underline"
+                      >
+                        {tr("monitors.open-inbox")}
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
         </Tabs>
       </div>
     </main>
