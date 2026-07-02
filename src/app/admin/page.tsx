@@ -19,6 +19,11 @@ export default function AdminHome() {
       title: "Invitations",
       desc: "Invite people by email and optionally grant them free access on signup.",
     },
+    {
+      href: "/admin/monitors",
+      title: "Monitors",
+      desc: "View all member content monitors, match counts, and run the backfill scan.",
+    },
   ];
 
   return (

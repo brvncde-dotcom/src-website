@@ -14,6 +14,7 @@ function AdminBar() {
     { href: "/admin/reports", label: "Reports" },
     { href: "/admin/users", label: "Members" },
     { href: "/admin/invitations", label: "Invitations" },
+    { href: "/admin/monitors", label: "Monitors" },
   ];
   return (
     <div className="bg-[#0A2540] text-white">
