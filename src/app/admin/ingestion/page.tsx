@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   ShieldOff,
   Inbox,
+  Search,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -66,6 +68,7 @@ export default function AdminIngestionLogPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const isAdmin = (session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
@@ -115,6 +118,15 @@ export default function AdminIngestionLogPage() {
 
   const totalAll = Object.values(counts).reduce((a, b) => a + b, 0);
 
+  // Text search over the loaded entries — title, sourceRef, reason, code, type.
+  const q = query.trim().toLowerCase();
+  const visibleEntries = q
+    ? entries.filter((e) =>
+        [e.title, e.sourceRef, e.reason, e.code, e.type]
+          .some((f) => (f ?? "").toLowerCase().includes(q))
+      )
+    : entries;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-1">
@@ -161,6 +173,20 @@ export default function AdminIngestionLogPage() {
             {meta.label} ({counts[key] ?? 0})
           </button>
         ))}
+        <div className="relative flex-1 min-w-[200px] max-w-xs ml-auto">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#5A6B7F]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search title, source ref, reason…"
+            className="w-full border border-[#D8DEE6] rounded-md pl-8 pr-7 py-1.5 text-xs focus:outline-none focus:border-[#0A2540]"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5A6B7F] hover:text-[#0A2540]" aria-label="Clear search">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Log table */}
@@ -168,13 +194,16 @@ export default function AdminIngestionLogPage() {
         <div className="flex items-center justify-center h-40">
           <Loader2 className="h-6 w-6 animate-spin text-[#5A6B7F]" />
         </div>
-      ) : entries.length === 0 ? (
+      ) : visibleEntries.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-[#D8DEE6] rounded-lg">
           <Inbox className="h-8 w-8 text-[#5A6B7F]/40 mx-auto mb-3" />
-          <div className="text-sm text-[#5A6B7F] mb-1">No ingestion attempts logged yet</div>
+          <div className="text-sm text-[#5A6B7F] mb-1">
+            {q ? <>No log entries match &ldquo;{query.trim()}&rdquo;</> : "No ingestion attempts logged yet"}
+          </div>
           <div className="text-xs text-[#5A6B7F]/60 max-w-md mx-auto">
-            Logging started with this deploy — the next push from Paperclip will appear
-            here, whether it is accepted or rejected.
+            {q
+              ? "Try a different term, or clear the search to see the full log."
+              : "Logging started with this deploy — the next push from Paperclip will appear here, whether it is accepted or rejected."}
           </div>
         </div>
       ) : (
@@ -192,7 +221,7 @@ export default function AdminIngestionLogPage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map((e) => {
+              {visibleEntries.map((e) => {
                 const meta = OUTCOME_META[e.outcome] ?? OUTCOME_META.error;
                 const Icon = meta.icon;
                 return (

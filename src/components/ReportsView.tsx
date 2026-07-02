@@ -202,6 +202,7 @@ export function ReportsView() {
   const [gate, setGate] = useState<GateState>("access");
   const [member, setMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [apiReports, setApiReports] = useState<ApiReport[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
 
@@ -278,9 +279,12 @@ export function ReportsView() {
       }))
     : MOCK_REPORTS;
 
-  const filtered = activeFilter
-    ? reports.filter((r) => FOCUS_KEYS.find((fa) => fa.slug === activeFilter)?.labelKey === r.sectionKey)
-    : reports;
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = reports.filter((r) => {
+    if (activeFilter && FOCUS_KEYS.find((fa) => fa.slug === activeFilter)?.labelKey !== r.sectionKey) return false;
+    if (q && !r.title.toLowerCase().includes(q) && !r.type.toLowerCase().includes(q)) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
@@ -293,7 +297,12 @@ export function ReportsView() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder={tr("reports.search")} className="pl-9 h-9 w-48 sm:w-64 text-sm" />
+            <Input
+              placeholder={tr("reports.search")}
+              className="pl-9 h-9 w-48 sm:w-64 text-base sm:text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs"><Filter className="w-3.5 h-3.5" />{tr("reports.filters")}</Button>
         </div>

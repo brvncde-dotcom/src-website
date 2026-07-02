@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Bell, RefreshCw, Loader2, Play, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, RefreshCw, Loader2, Play, ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -36,6 +36,7 @@ export default function AdminMonitorsPage() {
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ scanned: number; matched: number } | null>(null);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const isAdmin = (session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
@@ -87,8 +88,17 @@ export default function AdminMonitorsPage() {
     );
   }
 
+  // Text search — member name/email, monitor name, keywords.
+  const q = query.trim().toLowerCase();
+  const visibleMonitors = q
+    ? monitors.filter((m) =>
+        [m.name, m.user.name ?? "", m.user.email ?? "", ...m.keywords]
+          .some((f) => f.toLowerCase().includes(q))
+      )
+    : monitors;
+
   // Group monitors by user
-  const byUser = monitors.reduce<Record<string, MonitorRow[]>>((acc, m) => {
+  const byUser = visibleMonitors.reduce<Record<string, MonitorRow[]>>((acc, m) => {
     const uid = m.user.id;
     if (!acc[uid]) acc[uid] = [];
     acc[uid].push(m);
@@ -145,11 +155,27 @@ export default function AdminMonitorsPage() {
         </div>
       )}
 
+      {/* Monitor search */}
+      <div className="relative w-full sm:w-72 mb-4">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#5A6B7F]" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search member, monitor, keyword…"
+          className="w-full border border-[#D8DEE6] rounded-md pl-8 pr-7 py-1.5 text-xs focus:outline-none focus:border-[#0A2540]"
+        />
+        {query && (
+          <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5A6B7F] hover:text-[#0A2540]" aria-label="Clear search">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
       {/* Per-user accordion */}
       {Object.keys(byUser).length === 0 ? (
         <div className="text-center py-16 text-[#5A6B7F]">
           <Bell className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No monitors created yet.</p>
+          <p className="text-sm">{q ? `No monitors match "${query.trim()}".` : "No monitors created yet."}</p>
         </div>
       ) : (
         <div className="space-y-2">

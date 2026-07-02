@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, Play, ChevronDown, ChevronUp, Flag, RefreshCw } from "lucide-react";
+import { Loader2, Play, ChevronDown, ChevronUp, Flag, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -62,6 +62,7 @@ export function ScoresReview() {
   const [filter, setFilter] = useState<"all" | "only" | "unscored" | "flagged">("all");
   const [scoringId, setScoringId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -93,6 +94,15 @@ export function ScoresReview() {
     }
   };
 
+  // Text search over the loaded rows — title, type, status, flags, action.
+  const q = query.trim().toLowerCase();
+  const visibleRows = q
+    ? rows.filter((r) =>
+        [r.title, r.type, r.status, r.score?.recommendedAction ?? "", ...(r.score?.flags ?? [])]
+          .some((f) => f.toLowerCase().includes(q))
+      )
+    : rows;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
@@ -107,18 +117,34 @@ export function ScoresReview() {
             {f === "all" ? "All" : f === "only" ? "Scored" : f === "unscored" ? "Unscored" : "Flagged"}
           </button>
         ))}
-        <Button size="sm" variant="outline" onClick={load} disabled={loading} className="ml-auto">
+        <div className="relative flex-1 min-w-[180px] max-w-xs ml-auto">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#5A6B7F]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search title, type, flag…"
+            className="w-full border border-[#D8DEE6] rounded-md pl-8 pr-7 py-1.5 text-xs focus:outline-none focus:border-[#0A2540]"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5A6B7F] hover:text-[#0A2540]" aria-label="Clear search">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <Button size="sm" variant="outline" onClick={load} disabled={loading}>
           <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
         </Button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-[#5A6B7F]" /></div>
-      ) : rows.length === 0 ? (
-        <div className="text-center py-12 text-sm text-[#5A6B7F]">No reports match this filter.</div>
+      ) : visibleRows.length === 0 ? (
+        <div className="text-center py-12 text-sm text-[#5A6B7F]">
+          {q ? <>No reports match &ldquo;{query.trim()}&rdquo;.</> : "No reports match this filter."}
+        </div>
       ) : (
         <div className="border border-[#D8DEE6] rounded-lg divide-y divide-[#D8DEE6]/60 bg-white">
-          {rows.map((r) => {
+          {visibleRows.map((r) => {
             const open = expanded === r.id;
             return (
               <div key={r.id}>

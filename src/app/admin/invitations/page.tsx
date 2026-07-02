@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Send, Copy, Check, X } from "lucide-react";
+import { Loader2, Send, Copy, Check, X, Search } from "lucide-react";
 
 type Tier = { id: string; slug: string; name: string };
 type Invitation = {
@@ -26,6 +26,7 @@ export default function AdminInvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [query, setQuery] = useState("");
   const [lastResult, setLastResult] = useState<{ url: string; emailSent: boolean } | null>(null);
 
   // Form
@@ -132,6 +133,15 @@ export default function AdminInvitationsPage() {
     );
   }
 
+  // Text search over the list — email, status, grant type, tier.
+  const q = query.trim().toLowerCase();
+  const visibleInvitations = q
+    ? invitations.filter((inv) =>
+        [inv.email, inv.status, inv.grantType, inv.tierSlug]
+          .some((f) => (f ?? "").toLowerCase().includes(q))
+      )
+    : invitations;
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold text-[#0A2540] mb-1">Invitations</h1>
@@ -204,12 +214,32 @@ export default function AdminInvitationsPage() {
       )}
 
       {/* Invitations list */}
-      <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F] mb-3">Invitations ({invitations.length})</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="text-[10px] uppercase tracking-wider font-bold text-[#5A6B7F]">
+          Invitations ({visibleInvitations.length}{q ? ` of ${invitations.length}` : ""})
+        </div>
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#5A6B7F]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search email, status, tier…"
+            className="w-full border border-[#D8DEE6] rounded-md pl-8 pr-7 py-1.5 text-xs focus:outline-none focus:border-[#0A2540]"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5A6B7F] hover:text-[#0A2540]" aria-label="Clear search">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
       <div className="space-y-2">
-        {invitations.length === 0 ? (
-          <div className="text-sm text-[#5A6B7F]/60 italic">No invitations yet.</div>
+        {visibleInvitations.length === 0 ? (
+          <div className="text-sm text-[#5A6B7F]/60 italic">
+            {q ? `No invitations match "${query.trim()}".` : "No invitations yet."}
+          </div>
         ) : (
-          invitations.map((inv) => (
+          visibleInvitations.map((inv) => (
             <div key={inv.id} className="flex items-center justify-between border border-[#D8DEE6] rounded-sm px-4 py-3 bg-white">
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-[#0A2540] truncate">{inv.email}</div>
