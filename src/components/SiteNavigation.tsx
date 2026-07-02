@@ -18,7 +18,7 @@ export type PageKey =
   | "home"
   | "brief"
   | "reports"
-  | "opinions"
+  | "position"
   | "focus-areas"
   | "approach"
   | "membership"
@@ -30,8 +30,8 @@ export type PageKey =
   | "agb";
 
 const NAV_MAIN: { key: PageKey; labelKey: string }[] = [
+  { key: "position", labelKey: "nav.position" },
   { key: "brief", labelKey: "nav.brief" },
-  { key: "opinions", labelKey: "nav.opinions" },
   { key: "reports", labelKey: "nav.reports" },
 ];
 

@@ -20,7 +20,7 @@ export function SiteFooter() {
   const orgLinks: { key: PageKey; labelKey: string }[] = [
     { key: "home", labelKey: "footer.about" },
     { key: "approach", labelKey: "footer.our-approach" },
-    { key: "opinions", labelKey: "footer.opinions" },
+    { key: "position", labelKey: "footer.position" },
     { key: "contact", labelKey: "footer.contact" },
   ];
 

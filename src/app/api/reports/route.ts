@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { tgBroadcast, reportCard } from "@/lib/telegram";
 import {
   prisma,
@@ -9,6 +10,30 @@ import {
   validateIngestionKey,
 } from "@/lib/db";
 import { isAdminRequest } from "@/lib/admin-auth";
+import { normalizeEditorial, type EditorialInput } from "@/lib/editorial";
+
+// Map a normalized editorial payload onto EditorialMeta columns. facts is
+// stored as JSON; everything else is a scalar column.
+function editorialData(e: EditorialInput) {
+  return {
+    subBrand: e.subBrand,
+    thesis: e.thesis,
+    facts: (e.facts ?? undefined) as Prisma.InputJsonValue | undefined,
+    analysis: e.analysis,
+    roomForDisagreement: e.roomForDisagreement,
+    theAsk: e.theAsk,
+    authorTitle: e.authorTitle,
+    authorCreds: e.authorCreds,
+    authorLinkedin: e.authorLinkedin,
+    authorTwitter: e.authorTwitter,
+    methodology: e.methodology,
+    sourcesCount: e.sourcesCount,
+    conflicts: e.conflicts,
+    videoUrl: e.videoUrl,
+    videoDuration: e.videoDuration,
+    audioUrl: e.audioUrl,
+  };
+}
 
 // Heuristic guard: detect submissions that are internal Paperclip workflow
 // tickets (translation tasks, editorial-review gates, "adopt pillar scope",
@@ -75,6 +100,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const { title, summary, content, type, section, sourceRef, author, language, code } = body;
+
+    // Optional structured editorial payload authored by Paperclip's "Editor".
+    // Only meaningful for editorial content (type Editorial / legacy Opinion).
+    const editorial = normalizeEditorial(body.editorial);
 
     // Validate required fields
     if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -146,6 +175,13 @@ export async function POST(request: NextRequest) {
             code: code?.trim() || null,
           },
         });
+        if (editorial) {
+          await prisma.editorialMeta.upsert({
+            where: { reportId: updated.id },
+            create: { reportId: updated.id, ...editorialData(editorial) },
+            update: editorialData(editorial),
+          });
+        }
         return NextResponse.json(
           {
             id: updated.id,
@@ -250,6 +286,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Attach the structured editorial payload in the same transaction.
+      if (editorial) {
+        await tx.editorialMeta.create({
+          data: { reportId: created.id, ...editorialData(editorial) },
+        });
+      }
+
       return created;
     });
 
@@ -338,8 +381,11 @@ export async function GET(request: NextRequest) {
     where.section = section;
   }
 
+  // type accepts a single value or a comma-separated list (e.g. the editorial
+  // hub queries "Editorial,Opinion" to show both new and legacy editorial content).
   if (type) {
-    where.type = type;
+    const types = type.split(",").map((t) => t.trim()).filter(Boolean);
+    where.type = types.length > 1 ? { in: types } : types[0];
   }
 
   if (lang && VALID_LANGUAGES.includes(lang as typeof VALID_LANGUAGES[number])) {
@@ -361,6 +407,10 @@ export async function GET(request: NextRequest) {
       designSignedOffBy: true,
       publishedAt: true,
       createdAt: true,
+      // Sub-brand + video/thesis for "The SRC Position" hub cards.
+      editorialMeta: {
+        select: { subBrand: true, thesis: true, videoUrl: true, videoDuration: true },
+      },
       // Admin-only fields — needed by the review dashboard
       ...(isAdmin ? {
         minTierId: true,
