@@ -99,6 +99,7 @@ model Report {
   savedContents  SavedContent[]
   accessGrants   AccessGrant[]
   monitorMatches MonitorMatch[]
+  contentScores  ContentScore[]
 
   @@unique([sourceRef, language])
   @@index([section])
@@ -320,4 +321,85 @@ model AdminAuditLog {
 
   @@index([createdAt])
   @@index([action])
+}
+
+// ── SRC-CQR: Content Classification, Qualification & Rating ──
+// Framework spec: SRC_Content_Classification_Rating_Framework.docx (v1.0)
+// See SRC-CQR-IMPLEMENTATION.md for architecture and the Paperclip contract.
+
+// One editorial domain of the Worldview Matrix (CEF, GEO, DPAI, ECO, SMI).
+model WorldviewDomain {
+  id        String           @id @default(cuid())
+  code      String           @unique // CEF | GEO | DPAI | ECO | SMI
+  name      String
+  sortOrder Int              @default(0)
+  entries   WorldviewEntry[]
+}
+
+// One topic position in the Matrix — the authoritative editorial stance
+// against which content Worldview Alignment is scored.
+model WorldviewEntry {
+  id         String   @id @default(cuid())
+  domainId   String
+  topic      String // "CO2 as primary climate driver"
+  position   String // "Skeptical" | "2/10" | "Supportive" | ...
+  confidence String   @default("Medium") // Absolute | High | Medium | Evolving
+  rationale  String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  domain WorldviewDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  @@index([domainId])
+  @@index([isActive])
+}
+
+// Versioned tuning config. The current framework = the highest `version`
+// with published=true. Served to Paperclip via GET /api/framework/current.
+model FrameworkConfig {
+  id         String   @id @default(cuid())
+  version    Int      @unique // 1, 2, 3 ...
+  weights    Json // { RPT: {value,trustworthiness,sourceBias,worldviewAlignment,corruptionIndex,actionability}, STY:{...}, ... }
+  thresholds Json // { publishNow, reviewPublish, conditional, referenceOnly }
+  flagRules  Json // declarative flag conditions
+  published  Boolean  @default(false)
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([published])
+}
+
+// Six-dimension CQR score for one report. A report may be re-scored; keep the
+// latest per (reportId, frameworkVersion). Composite is recomputed server-side.
+model ContentScore {
+  id                 String   @id @default(cuid())
+  reportId           String
+  frameworkVersion   Int
+  matrixVersionLabel String? // audit: Matrix state used
+  scoredBy           String   @default("in-website") // in-website | paperclip | editorial
+
+  value              Int
+  trustworthiness    Int
+  sourceBias         Int
+  worldviewAlignment Int
+  corruptionIndex    Int
+  actionability      Int
+  rationale          Json // { value, trustworthiness, sourceBias, worldviewAlignment, corruptionIndex, actionability }
+
+  composite         Float // recomputed server-side from raw dims + weights
+  flags             String[] // WORLDVIEW_CLASH | CORRUPTION_ALERT | CONTRARIAN_GOLD | SOURCE_RISK | BREAKING
+  recommendedTier   String? // mapped onto Free | Essential | Professional | Executive
+  recommendedAction String // Publish immediately | Publish with review | Conditional publish | Reference only | Reject
+  contrarianFlag    Boolean  @default(false)
+  editorialOverride Json? // final scores set by an editor → calibration input
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, frameworkVersion])
+  @@index([reportId])
+  @@index([composite])
 }
