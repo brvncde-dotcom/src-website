@@ -564,10 +564,11 @@ export async function GET(request: NextRequest) {
 
     // Group by sourceRef: return reports grouped by their source reference
     if (groupBy === "sourceRef") {
+      const cap = isAdmin ? 2000 : 100;
       const reports = await prisma.report.findMany({
         where,
         orderBy: { publishedAt: "desc" },
-        take: Math.min(limit, 100),
+        take: Math.min(limit, cap),
         skip: offset,
         select,
       });
@@ -602,11 +603,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Admins need the full list for search + bulk-delete to work correctly.
+    // Public API is still capped at 100 to prevent scraping.
+    const cap = isAdmin ? 2000 : 100;
     const [reports, total] = await Promise.all([
       prisma.report.findMany({
         where,
         orderBy: { publishedAt: "desc" },
-        take: Math.min(limit, 100),
+        take: Math.min(limit, cap),
         skip: offset,
         select,
       }),

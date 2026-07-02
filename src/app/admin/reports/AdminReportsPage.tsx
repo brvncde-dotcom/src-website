@@ -89,6 +89,7 @@ interface Report {
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [totalInDb, setTotalInDb] = useState<number>(0);
   const [tiers, setTiers] = useState<{ id: string; name: string; sortOrder: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterSection, setFilterSection] = useState<string>("all");
@@ -145,6 +146,7 @@ export default function AdminReportsPage() {
     try {
       const params = new URLSearchParams();
       params.set("view", "admin");
+      params.set("limit", "2000");
       if (filterSection !== "all") params.set("section", filterSection);
       if (filterStatus !== "all") params.set("status", filterStatus);
       if (filterLang !== "all") params.set("lang", filterLang);
@@ -158,15 +160,16 @@ export default function AdminReportsPage() {
       }
       const data = await res.json();
       if (data.grouped) {
-        // Flatten grouped reports for display, but track grouping
         const flat: Report[] = [];
         for (const group of data.grouped) {
           flat.push(...group.versions);
         }
         flat.push(...(data.ungrouped || []));
         setReports(flat);
+        setTotalInDb(flat.length);
       } else {
         setReports(data.reports || []);
+        setTotalInDb(data.total ?? data.reports?.length ?? 0);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -530,7 +533,9 @@ export default function AdminReportsPage() {
           <div className="text-xs text-[#5A6B7F] whitespace-nowrap">
             {searchQuery.trim()
               ? `${filteredReports.length} / ${reports.length}`
-              : `${reports.length} report${reports.length !== 1 ? "s" : ""}`}
+              : totalInDb > reports.length
+                ? `${reports.length} loaded · ${totalInDb} total`
+                : `${reports.length} report${reports.length !== 1 ? "s" : ""}`}
           </div>
           {searchQuery.trim() && filteredReports.length > 0 && (
             <Button
