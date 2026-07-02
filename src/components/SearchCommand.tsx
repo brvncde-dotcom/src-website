@@ -223,7 +223,7 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh] pb-4"
+      className="fixed inset-0 z-[100] flex items-start justify-center px-3 pt-[3dvh] pb-3 sm:px-4 sm:pt-[12vh] sm:pb-4"
       role="dialog"
       aria-modal="true"
       aria-label={t("search.title")}
@@ -234,9 +234,10 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
         onClick={onClose}
       />
 
-      {/* Panel */}
+      {/* Panel — dvh so the mobile keyboard shrinks it instead of covering
+          the results; near-fullscreen on phones, centered card on desktop. */}
       <div
-        className="relative w-full max-w-2xl bg-white rounded-md shadow-2xl border border-border overflow-hidden flex flex-col max-h-[76vh]"
+        className="relative w-full max-w-2xl bg-white rounded-md shadow-2xl border border-border overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[76vh]"
         onKeyDown={onKeyDown}
       >
         {/* Swiss red accent */}
@@ -250,7 +251,7 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search.placeholder")}
-            className="flex-1 bg-transparent outline-none text-sm text-[#0A2540] placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent outline-none text-base sm:text-sm text-[#0A2540] placeholder:text-muted-foreground"
             autoComplete="off"
             spellCheck={false}
           />
@@ -386,23 +387,24 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        {/* Footer hints */}
+        {/* Footer hints — keyboard shortcuts are desktop-only affordances */}
         <div className="flex items-center gap-4 px-4 py-2 border-t border-border bg-secondary/30 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1">
+          <span className="hidden sm:flex items-center gap-1">
             <Kbd>↑</Kbd>
             <Kbd>↓</Kbd>
             {t("search.navigate")}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="hidden sm:flex items-center gap-1">
             <Kbd>
               <CornerDownLeft className="h-2.5 w-2.5" />
             </Kbd>
             {t("search.open")}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="hidden sm:flex items-center gap-1">
             <Kbd>esc</Kbd>
             {t("search.close")}
           </span>
+          <span className="sm:hidden">{t("search.hint-mobile")}</span>
           {searched && (
             <span className="ml-auto flex items-center gap-1">
               <FileText className="h-3 w-3" />

@@ -373,8 +373,14 @@ export default function HelpPage() {
           the screen where it's visible even when the Android keyboard is open.
           h-[min(560px,80dvh)] shrinks with the dynamic viewport (keyboard-aware). */}
       {showChat && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[env(safe-area-inset-top,16px)] px-4 pb-4">
-          <div className="w-full max-w-md h-[min(560px,80dvh)]">
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[env(safe-area-inset-top,16px)] px-4 pb-4"
+          onClick={() => setShowChat(false)}
+        >
+          <div
+            className="w-full max-w-md h-[min(560px,80dvh)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <HelpChat isModal onClose={() => setShowChat(false)} />
           </div>
         </div>

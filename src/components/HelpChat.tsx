@@ -125,7 +125,7 @@ export function HelpChat({ isModal = false, onClose }: HelpChatProps) {
           onChange={(e) => setInput(e.target.value)}
           placeholder={tr("help.chat.placeholder")}
           disabled={isLoading}
-          className="flex-1 px-3 py-2 text-sm border border-[#D8DEE6] dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2540] dark:bg-slate-800 dark:text-white disabled:opacity-50"
+          className="flex-1 px-3 py-2 text-base sm:text-sm border border-[#D8DEE6] dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2540] dark:bg-slate-800 dark:text-white disabled:opacity-50"
         />
         <button
           type="submit"
