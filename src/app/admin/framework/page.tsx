@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Plus, Trash2, Save, ScrollText, SlidersHorizontal, Check } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, ScrollText, SlidersHorizontal, Check, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScoresReview } from "./ScoresReview";
 
 // ── Types ──
 interface Entry {
@@ -45,7 +46,7 @@ export default function AdminFrameworkPage() {
   const { data: session, status } = useSession();
   const isAdmin = (session?.user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
-  const [tab, setTab] = useState<"matrix" | "tuning">("matrix");
+  const [tab, setTab] = useState<"matrix" | "tuning" | "scores">("matrix");
   const [domains, setDomains] = useState<Domain[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,13 +88,12 @@ export default function AdminFrameworkPage() {
       <div className="flex gap-1 mb-6 border-b border-[#D8DEE6]">
         <TabBtn active={tab === "matrix"} onClick={() => setTab("matrix")} icon={<ScrollText className="h-4 w-4" />}>Worldview Matrix</TabBtn>
         <TabBtn active={tab === "tuning"} onClick={() => setTab("tuning")} icon={<SlidersHorizontal className="h-4 w-4" />}>Tuning</TabBtn>
+        <TabBtn active={tab === "scores"} onClick={() => setTab("scores")} icon={<Gauge className="h-4 w-4" />}>Content Scores</TabBtn>
       </div>
 
-      {tab === "matrix" ? (
-        <MatrixEditor domains={domains} reload={load} savingId={savingId} setSavingId={setSavingId} />
-      ) : (
-        <TuningEditor config={config} reload={load} />
-      )}
+      {tab === "matrix" && <MatrixEditor domains={domains} reload={load} savingId={savingId} setSavingId={setSavingId} />}
+      {tab === "tuning" && <TuningEditor config={config} reload={load} />}
+      {tab === "scores" && <ScoresReview />}
     </div>
   );
 }
