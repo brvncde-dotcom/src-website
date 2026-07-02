@@ -5,6 +5,7 @@ import { Play, ExternalLink } from "lucide-react";
 import { useLang } from "./LangProvider";
 import { useNavigation } from "./NavigationProvider";
 import MarkdownRenderer from "./MarkdownRenderer";
+import { ContentActions } from "./ContentActions";
 import { SUB_BRANDS, subBrandDef, type EditorialFact } from "@/lib/editorial";
 
 interface Item {
@@ -260,11 +261,34 @@ function EditorialReader({
   const meta = detail.editorialMeta;
   const gated = detail.access !== "full";
 
+  // Tool row: translations left, Save/Share/PDF right — one hairline under
+  // both. Rendered in the gated state too (save now, read after upgrading);
+  // only PDF respects the tier lock, at click time.
+  const toolRow = (
+    <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
+      {detail.translations && detail.translations.length > 1 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Translations:</span>
+          {detail.translations.map((t) => (
+            <button key={t.id} onClick={() => onOpenTranslation(t.id)}
+              className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                t.id === detail.id ? "bg-[#0A2540] text-white" : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              }`}>{t.language}</button>
+          ))}
+        </div>
+      ) : (
+        <span />
+      )}
+      <ContentActions reportId={detail.id} title={detail.title} className="-my-1" />
+    </div>
+  );
+
   // Tier gate: entice with summary, point to membership.
   if (gated) {
     return (
-      <div className="max-w-2xl">
-        {detail.summary && <p className="text-sm text-muted-foreground leading-relaxed mb-5">{detail.summary}</p>}
+      <div className="max-w-2xl space-y-5">
+        {toolRow}
+        {detail.summary && <p className="text-sm text-muted-foreground leading-relaxed">{detail.summary}</p>}
         <div className="border border-[#E8272C]/30 bg-[#E8272C]/5 rounded-sm p-5 text-center">
           <p className="text-sm font-medium text-primary mb-3">
             {tr("position.gated").replace("{tier}", detail.requiredTier || "member")}
@@ -279,18 +303,7 @@ function EditorialReader({
 
   return (
     <div className="max-w-3xl space-y-8">
-      {/* Translations switcher */}
-      {detail.translations && detail.translations.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Translations:</span>
-          {detail.translations.map((t) => (
-            <button key={t.id} onClick={() => onOpenTranslation(t.id)}
-              className={`inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
-                t.id === detail.id ? "bg-[#0A2540] text-white" : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
-              }`}>{t.language}</button>
-          ))}
-        </div>
-      )}
+      {toolRow}
 
       {/* Author card */}
       {(meta?.authorTitle || meta?.authorCreds || detail.author) && (

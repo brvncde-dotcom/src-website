@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { QuickSaveButton } from "@/components/ContentActions";
 import { useLang } from "./LangProvider";
 
 interface Member { id: string; name: string; }
@@ -332,6 +333,7 @@ export function ReportsView() {
                 <span className="text-[10px] text-muted-foreground mt-1 block">{tr(report.sectionKey)}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 sm:ml-auto">
+                {isApiReport && <QuickSaveButton reportId={report.id} />}
                 <span className="text-xs text-muted-foreground hidden sm:block">{tr("reports.read")}</span>
                 <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[#E8272C] transition-colors" />
               </div>

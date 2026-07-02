@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
   Clock,
   Lock,
   ArrowRight,
-  Share2,
-  Bookmark,
-  FileDown,
   ChevronDown,
   ChevronUp,
   Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
+import { ContentActions } from "@/components/ContentActions";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLang } from "@/components/LangProvider";
 import { useNavigation } from "@/components/NavigationProvider";
@@ -307,15 +305,11 @@ function ArchiveRow({
 
 export function DailyBriefView() {
   const { t: tr, lang } = useLang();
-  const { status, data: session } = useSession();
+  const { status } = useSession();
   const { navigate } = useNavigation();
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -336,82 +330,6 @@ export function DailyBriefView() {
     if (!latest?.content) return [];
     return parseAnalysisBlocks(normalizeBriefContent(latest.content));
   }, [latest?.content]);
-
-  const handleShare = useCallback(async (brief: Brief) => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: brief.title, url });
-      } catch {
-        // user cancelled
-      }
-    } else {
-      await navigator.clipboard.writeText(url);
-    }
-  }, []);
-
-  const handleSave = useCallback(
-    async (brief: Brief) => {
-      if (status !== "authenticated") {
-        setAuthOpen(true);
-        return;
-      }
-      setSaveError(null);
-      try {
-        const res = await fetch(`/api/me/saved/${brief.id}`, { method: "POST" });
-        if (res.ok) {
-          setSavedId(brief.id);
-        } else {
-          setSaveError("Could not save — please try again.");
-          setTimeout(() => setSaveError(null), 3000);
-        }
-      } catch {
-        setSaveError("Could not save — please try again.");
-        setTimeout(() => setSaveError(null), 3000);
-      }
-    },
-    [status]
-  );
-
-  const handlePdf = useCallback(
-    async (brief: Brief) => {
-      if (status !== "authenticated") {
-        setAuthOpen(true);
-        return;
-      }
-      if (pdfLoading) return;
-      setPdfError(null);
-      setPdfLoading(true);
-      try {
-        const res = await fetch(`/api/reports/${brief.id}/pdf`);
-        if (res.status === 403) {
-          setPdfError("PDF download requires a Professional membership.");
-          setTimeout(() => setPdfError(null), 4000);
-          return;
-        }
-        if (!res.ok) {
-          setPdfError("PDF generation failed — please try again.");
-          setTimeout(() => setPdfError(null), 4000);
-          return;
-        }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `SRC-Daily-Brief-${brief.id}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch {
-        setPdfError("PDF download failed — please try again.");
-        setTimeout(() => setPdfError(null), 4000);
-      } finally {
-        setPdfLoading(false);
-      }
-    },
-    [status, pdfLoading]
-  );
 
   if (loading) {
     return (
@@ -472,11 +390,15 @@ export function DailyBriefView() {
                 <span>{formatTime(latest.publishedAt)} CET</span>
               </div>
             </div>
-            {isLatestToday && (
-              <div className="flex-shrink-0">
-                <PulsingBadge>Today&apos;s Edition</PulsingBadge>
-              </div>
-            )}
+            <div className="flex-shrink-0 flex flex-col items-end gap-2.5">
+              {isLatestToday && <PulsingBadge>Today&apos;s Edition</PulsingBadge>}
+              <ContentActions
+                reportId={latest.id}
+                title={latest.title}
+                variant="dark"
+                className="-mr-2"
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -714,35 +636,12 @@ export function DailyBriefView() {
                 </span>
               </span>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              {(saveError || pdfError) && (
-                <span className="text-[10px] text-red-400">{saveError || pdfError}</span>
-              )}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleShare(latest)}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  Share
-                </button>
-                <button
-                  onClick={() => handleSave(latest)}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1"
-                >
-                  <Bookmark className="w-3.5 h-3.5" />
-                  {savedId === latest.id ? "Saved ✓" : "Save"}
-                </button>
-                <button
-                  onClick={() => handlePdf(latest)}
-                  disabled={pdfLoading}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase text-[#8BA89A] hover:text-[#2ECC7A] transition-colors px-2 py-1 disabled:opacity-50"
-                >
-                  <FileDown className="w-3.5 h-3.5" />
-                  {pdfLoading ? "…" : "PDF"}
-                </button>
-              </div>
-            </div>
+            <ContentActions
+              reportId={latest.id}
+              title={latest.title}
+              variant="dark"
+              className="flex-shrink-0"
+            />
           </div>
         </footer>
 
