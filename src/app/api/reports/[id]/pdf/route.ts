@@ -11,7 +11,6 @@ import {
   View,
   StyleSheet,
   renderToBuffer,
-  Font,
 } from "@react-pdf/renderer";
 
 // ── Brand colours ────────────────────────────────────────────────────────────
@@ -20,38 +19,49 @@ const RED = "#E8272C";
 const LIGHT_GREY = "#F0F3F7";
 const MID_GREY = "#6B7280";
 const DIVIDER = "#D8DEE6";
+const ACCENT_GREY = "#8B9BB0";
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   page: {
     backgroundColor: "#FFFFFF",
     paddingTop: 56,
-    paddingBottom: 64,
-    paddingHorizontal: 64,
+    paddingBottom: 72,
+    paddingHorizontal: 60,
     fontFamily: "Times-Roman",
     fontSize: 11,
     color: NAVY,
     lineHeight: 1.55,
   },
-  // Header
+  // ── Header (repeats on every page) ───────────────────────────────────────
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 28,
-    paddingBottom: 14,
+    marginBottom: 24,
+    paddingBottom: 12,
     borderBottomWidth: 2,
     borderBottomColor: NAVY,
   },
+  headerLeft: {
+    flexDirection: "column",
+  },
   headerLogo: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     color: NAVY,
+  },
+  headerTagline: {
+    fontSize: 7,
+    fontFamily: "Helvetica",
+    color: ACCENT_GREY,
+    letterSpacing: 0.4,
+    marginTop: 2,
   },
   headerRight: {
     alignItems: "flex-end",
-    gap: 4,
+    flexDirection: "column",
   },
   codeBadge: {
     fontSize: 8,
@@ -67,126 +77,182 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    marginTop: 3,
   },
-  // Title section
-  titleSection: {
-    marginBottom: 20,
+  // ── Title block ───────────────────────────────────────────────────────────
+  titleBlock: {
+    marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: "Times-Bold",
     color: NAVY,
-    lineHeight: 1.3,
-    marginBottom: 8,
+    lineHeight: 1.25,
+    marginBottom: 6,
   },
-  // Meta strip
+  // ── Meta strip ────────────────────────────────────────────────────────────
   metaStrip: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 18,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 12,
+    marginBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 10,
     backgroundColor: LIGHT_GREY,
+    borderLeftWidth: 3,
+    borderLeftColor: NAVY,
   },
   metaItem: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontFamily: "Helvetica",
     color: MID_GREY,
+    marginRight: 12,
   },
-  metaSep: {
-    fontSize: 9,
-    color: DIVIDER,
-  },
-  // Summary
+  // ── Summary ───────────────────────────────────────────────────────────────
   summary: {
     fontSize: 12,
     fontFamily: "Times-Italic",
     color: NAVY,
     lineHeight: 1.6,
-    marginBottom: 18,
-  },
-  // Divider
-  divider: {
+    marginBottom: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: DIVIDER,
-    marginBottom: 20,
   },
-  // Body
-  body: {
+  // ── Content blocks ────────────────────────────────────────────────────────
+  sectionHeading: {
+    marginTop: 16,
+    marginBottom: 6,
+    paddingLeft: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
+    backgroundColor: LIGHT_GREY,
+    borderLeftWidth: 3,
+    borderLeftColor: RED,
+  },
+  sectionHeadingText: {
     fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: NAVY,
+    lineHeight: 1.25,
+  },
+  subHeading: {
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  subHeadingText: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: NAVY,
+    lineHeight: 1.3,
+  },
+  body: {
+    fontSize: 10.5,
     fontFamily: "Times-Roman",
     color: "#1A1A2E",
     lineHeight: 1.65,
+    marginBottom: 6,
   },
-  // Confidentiality notice
-  confidential: {
+  dividerRule: {
+    borderBottomWidth: 1,
+    borderBottomColor: DIVIDER,
     marginTop: 10,
+    marginBottom: 10,
+  },
+  // ── Confidentiality bar ───────────────────────────────────────────────────
+  confidential: {
+    marginTop: 16,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: DIVIDER,
-    fontSize: 8,
+    fontSize: 7.5,
     fontFamily: "Helvetica",
     color: RED,
     textAlign: "center",
     letterSpacing: 0.5,
   },
-  // Footer
+  // ── Footer (repeats on every page) ───────────────────────────────────────
   footer: {
     position: "absolute",
-    bottom: 32,
-    left: 64,
-    right: 64,
+    bottom: 28,
+    left: 60,
+    right: 60,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
     borderTopColor: DIVIDER,
-    paddingTop: 8,
+    paddingTop: 6,
   },
   footerLeft: {
-    fontSize: 8,
+    fontSize: 7.5,
     fontFamily: "Helvetica",
     color: MID_GREY,
   },
   footerRight: {
-    fontSize: 8,
+    fontSize: 7.5,
     fontFamily: "Helvetica",
     color: MID_GREY,
   },
 });
 
-// ── Markdown stripper ────────────────────────────────────────────────────────
-function stripMarkdown(md: string): string {
-  return md
-    // Remove headings
-    .replace(/^#{1,6}\s+/gm, "")
-    // Remove bold/italic markers (**, *, __, _)
+// ── Markdown → PDF block parser ──────────────────────────────────────────────
+// Preserves headings and paragraphs so content is readable in the PDF.
+type Block =
+  | { kind: "h1"; text: string }
+  | { kind: "h2"; text: string }
+  | { kind: "h3"; text: string }
+  | { kind: "para"; text: string }
+  | { kind: "hr" };
+
+function stripInline(s: string): string {
+  return s
     .replace(/(\*\*|__)(.*?)\1/g, "$2")
     .replace(/(\*|_)(.*?)\1/g, "$2")
-    // Remove strikethrough
     .replace(/~~(.*?)~~/g, "$1")
-    // Remove inline code
     .replace(/`([^`]+)`/g, "$1")
-    // Remove code blocks
-    .replace(/```[\s\S]*?```/g, "")
-    // Remove blockquotes
-    .replace(/^>\s+/gm, "")
-    // Remove horizontal rules
-    .replace(/^(-{3,}|_{3,}|\*{3,})$/gm, "")
-    // Remove links, keep text
     .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
-    // Remove images
     .replace(/!\[[^\]]*\]\([^\)]+\)/g, "")
-    // Remove HTML tags
     .replace(/<[^>]+>/g, "")
-    // Collapse multiple blank lines into one
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-// ── PDF Document component ───────────────────────────────────────────────────
+function parseMarkdown(md: string): Block[] {
+  const blocks: Block[] = [];
+  const lines = md.trim().split("\n");
+  let paraLines: string[] = [];
+
+  const flushPara = () => {
+    const text = paraLines.join(" ").replace(/\s+/g, " ").trim();
+    if (text) blocks.push({ kind: "para", text: stripInline(text) });
+    paraLines = [];
+  };
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    const hMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (hMatch) {
+      flushPara();
+      const level = hMatch[1].length;
+      const text = stripInline(hMatch[2]);
+      if (level <= 2) blocks.push({ kind: "h1", text });
+      else if (level === 3) blocks.push({ kind: "h2", text });
+      else blocks.push({ kind: "h3", text });
+    } else if (/^(-{3,}|_{3,}|\*{3,})$/.test(line.trim())) {
+      flushPara();
+      blocks.push({ kind: "hr" });
+    } else if (line.trim() === "") {
+      flushPara();
+    } else {
+      paraLines.push(line.trim());
+    }
+  }
+  flushPara();
+  return blocks;
+}
+
+// ── PDF document component ────────────────────────────────────────────────────
 interface ReportPdfProps {
   title: string;
   code: string | null;
@@ -196,7 +262,7 @@ interface ReportPdfProps {
   section: string;
   language: string;
   summary: string | null;
-  body: string;
+  blocks: Block[];
 }
 
 function ReportPdf({
@@ -208,7 +274,7 @@ function ReportPdf({
   section,
   language,
   summary,
-  body,
+  blocks,
 }: ReportPdfProps) {
   const dateStr = publishedAt
     ? new Date(publishedAt).toLocaleDateString("en-GB", {
@@ -221,9 +287,42 @@ function ReportPdf({
   const metaItems: string[] = [
     author ? `Author: ${author}` : "",
     dateStr,
-    section,
+    section.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     language.toUpperCase(),
   ].filter(Boolean);
+
+  const contentNodes = blocks.map((block, i) => {
+    if (block.kind === "h1") {
+      return React.createElement(
+        View,
+        { key: i, style: styles.sectionHeading },
+        React.createElement(Text, { style: styles.sectionHeadingText }, block.text)
+      );
+    }
+    if (block.kind === "h2") {
+      return React.createElement(
+        View,
+        { key: i, style: styles.subHeading },
+        React.createElement(Text, { style: styles.subHeadingText }, block.text)
+      );
+    }
+    if (block.kind === "h3") {
+      return React.createElement(
+        View,
+        { key: i, style: styles.subHeading },
+        React.createElement(
+          Text,
+          { style: { ...styles.subHeadingText, fontSize: 9.5, color: MID_GREY } },
+          block.text
+        )
+      );
+    }
+    if (block.kind === "hr") {
+      return React.createElement(View, { key: i, style: styles.dividerRule });
+    }
+    // paragraph
+    return React.createElement(Text, { key: i, style: styles.body }, block.text);
+  });
 
   return React.createElement(
     Document,
@@ -232,14 +331,23 @@ function ReportPdf({
       Page,
       { size: "A4", style: styles.page },
 
-      // ── Header ────────────────────────────────────────────────────────
+      // Header (fixed on every page)
       React.createElement(
         View,
         { style: styles.header, fixed: true },
         React.createElement(
-          Text,
-          { style: styles.headerLogo },
-          "SRC — SECURITY & RESILIENCE COUNSEL"
+          View,
+          { style: styles.headerLeft },
+          React.createElement(
+            Text,
+            { style: styles.headerLogo },
+            "SRC — SECURITY & RESILIENCE COUNSEL"
+          ),
+          React.createElement(
+            Text,
+            { style: styles.headerTagline },
+            "src.guide · Global Security & Resilience Analysis"
+          )
         ),
         React.createElement(
           View,
@@ -251,49 +359,38 @@ function ReportPdf({
         )
       ),
 
-      // ── Title ─────────────────────────────────────────────────────────
+      // Title
       React.createElement(
         View,
-        { style: styles.titleSection },
+        { style: styles.titleBlock },
         React.createElement(Text, { style: styles.title }, title)
       ),
 
-      // ── Meta strip ────────────────────────────────────────────────────
+      // Meta strip
       React.createElement(
         View,
         { style: styles.metaStrip },
-        ...metaItems.flatMap((item, i) => {
-          const nodes = [
-            React.createElement(Text, { key: `m${i}`, style: styles.metaItem }, item),
-          ];
-          if (i < metaItems.length - 1) {
-            nodes.push(
-              React.createElement(Text, { key: `sep${i}`, style: styles.metaSep }, " · ")
-            );
-          }
-          return nodes;
-        })
+        ...metaItems.map((item, i) =>
+          React.createElement(Text, { key: i, style: styles.metaItem }, item)
+        )
       ),
 
-      // ── Summary ───────────────────────────────────────────────────────
+      // Summary
       summary
         ? React.createElement(Text, { style: styles.summary }, summary)
         : null,
 
-      // ── Divider ───────────────────────────────────────────────────────
-      React.createElement(View, { style: styles.divider }),
+      // Content blocks
+      ...contentNodes,
 
-      // ── Body ──────────────────────────────────────────────────────────
-      React.createElement(Text, { style: styles.body }, body),
-
-      // ── Confidential notice ───────────────────────────────────────────
+      // Confidential notice
       React.createElement(
         Text,
         { style: styles.confidential },
-        "© SRC Advisory · Confidential · Not for redistribution"
+        "© SRC Advisory · Confidential · Not for redistribution · src.guide"
       ),
 
-      // ── Footer (fixed, page number) ───────────────────────────────────
+      // Footer (fixed on every page)
       React.createElement(
         View,
         { style: styles.footer, fixed: true },
@@ -316,14 +413,14 @@ function ReportPdf({
   );
 }
 
-// ── Route handler ────────────────────────────────────────────────────────────
+// ── Route handler ─────────────────────────────────────────────────────────────
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
 
-  // 1. Auth check: admin bypass OR authenticated user with Professional+ tier
+  // 1. Auth: admin bypass OR Professional+ member
   const isAdmin = await isAdminRequest(request);
 
   if (!isAdmin) {
@@ -331,25 +428,16 @@ export async function GET(
     const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const tier = await getUserTier(userId);
-    const sortOrder = tier?.sortOrder ?? 0;
-
-    // Professional = sortOrder 2; anything below gets 403
-    if (sortOrder < 2) {
-      return NextResponse.json(
-        { error: "Professional membership required" },
-        { status: 403 }
-      );
+    if ((tier?.sortOrder ?? 0) < 2) {
+      return NextResponse.json({ error: "Professional membership required" }, { status: 403 });
     }
   }
 
-  // 2. Fetch report from DB
+  // 2. Fetch report
   let report;
   try {
     report = await prisma.report.findUnique({ where: { id } });
@@ -361,8 +449,8 @@ export async function GET(
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
-  // 3. Strip markdown from content
-  const body = report.content ? stripMarkdown(report.content) : "(No content available)";
+  // 3. Parse content into structured blocks (preserves headings)
+  const blocks = report.content ? parseMarkdown(report.content) : [];
 
   // 4. Generate PDF
   let pdfBuffer: Buffer;
@@ -376,7 +464,7 @@ export async function GET(
       section: report.section,
       language: report.language,
       summary: report.summary,
-      body,
+      blocks,
     });
 
     pdfBuffer = await renderToBuffer(element as Parameters<typeof renderToBuffer>[0]);
@@ -387,7 +475,7 @@ export async function GET(
 
   // 5. Return PDF
   const slug = report.code ?? id;
-  const filename = `SRC-${slug}-${id}.pdf`;
+  const filename = `SRC-${slug}.pdf`;
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     status: 200,

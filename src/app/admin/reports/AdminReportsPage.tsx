@@ -108,6 +108,8 @@ export default function AdminReportsPage() {
   const [purging, setPurging] = useState(false);
   const [dedupDialog, setDedupDialog] = useState(false);
   const [deduping, setDeduping] = useState(false);
+  const [dedupPreview, setDedupPreview] = useState<{ wouldDelete: number; wouldKeep: number } | null>(null);
+  const [dedupPreviewing, setDedupPreviewing] = useState(false);
   const [actionNote, setActionNote] = useState("");
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
@@ -264,6 +266,21 @@ export default function AdminReportsPage() {
     }
   };
 
+  const openDedupDialog = async () => {
+    setDedupPreview(null);
+    setDedupDialog(true);
+    setDedupPreviewing(true);
+    try {
+      const res = await fetch("/api/admin/purge-brief-duplicates");
+      const data = await res.json();
+      if (res.ok) setDedupPreview({ wouldDelete: data.wouldDelete, wouldKeep: data.wouldKeep });
+    } catch {
+      // preview failed — dialog still shows but no count
+    } finally {
+      setDedupPreviewing(false);
+    }
+  };
+
   const handleDedupBriefs = async () => {
     setDeduping(true);
     try {
@@ -271,6 +288,7 @@ export default function AdminReportsPage() {
       const data = await res.json();
       if (res.ok) {
         setDedupDialog(false);
+        setDedupPreview(null);
         alert(data.message);
         fetchReports();
       } else {
@@ -393,7 +411,7 @@ export default function AdminReportsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setDedupDialog(true)}
+              onClick={openDedupDialog}
               className="gap-1.5 text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -880,7 +898,7 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
       </Dialog>
 
       {/* Dedup Daily Briefs Dialog */}
-      <Dialog open={dedupDialog} onOpenChange={(open) => !open && setDedupDialog(false)}>
+      <Dialog open={dedupDialog} onOpenChange={(open) => { if (!open) { setDedupDialog(false); setDedupPreview(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -891,16 +909,30 @@ Publishing: all translations sharing a sourceRef publish simultaneously`}</pre>
               Keeps the most recently ingested Daily Brief per calendar day. All older duplicates for the same day are permanently deleted.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-2 text-sm">
+            {dedupPreviewing ? (
+              <span className="text-[#5A6B7F]">Checking for duplicates…</span>
+            ) : dedupPreview ? (
+              dedupPreview.wouldDelete === 0 ? (
+                <span className="text-green-700 font-semibold">No duplicates found — nothing to delete.</span>
+              ) : (
+                <span>
+                  Will delete <strong className="text-red-600">{dedupPreview.wouldDelete}</strong> duplicate(s),
+                  keeping <strong className="text-green-700">{dedupPreview.wouldKeep}</strong> brief(s) (one per day).
+                </span>
+              )
+            ) : null}
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDedupDialog(false)} disabled={deduping}>
+            <Button variant="outline" onClick={() => { setDedupDialog(false); setDedupPreview(null); }} disabled={deduping}>
               Cancel
             </Button>
             <Button
               onClick={handleDedupBriefs}
-              disabled={deduping}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
+              disabled={deduping || dedupPreviewing || dedupPreview?.wouldDelete === 0}
+              className="bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
             >
-              {deduping ? "Removing…" : "Remove Duplicates"}
+              {deduping ? "Removing…" : `Remove ${dedupPreview?.wouldDelete ?? "…"} Duplicate(s)`}
             </Button>
           </DialogFooter>
         </DialogContent>
