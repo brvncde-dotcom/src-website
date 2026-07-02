@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Plus, Trash2, Save, ScrollText, SlidersHorizontal, Check, Gauge } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, ScrollText, SlidersHorizontal, Check, Gauge, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScoresReview } from "./ScoresReview";
@@ -119,6 +119,25 @@ function MatrixEditor({ domains, reload, savingId, setSavingId }: {
   const [drafts, setDrafts] = useState<Record<string, Partial<Entry>>>({});
   const [adding, setAdding] = useState<string | null>(null);
   const [newEntry, setNewEntry] = useState({ topic: "", position: "", confidence: "Medium", rationale: "" });
+  const [query, setQuery] = useState("");
+
+  // Filter topics across every domain by topic / position / rationale /
+  // confidence. Domains with no matching topics are hidden while filtering.
+  const q = query.trim().toLowerCase();
+  const visibleDomains = q
+    ? domains
+        .map((d) => ({
+          ...d,
+          entries: d.entries.filter((e) =>
+            [e.topic, e.position, e.rationale, e.confidence].some((f) =>
+              (f ?? "").toLowerCase().includes(q)
+            )
+          ),
+        }))
+        .filter((d) => d.entries.length > 0)
+    : domains;
+  const totalTopics = domains.reduce((s, d) => s + d.entries.length, 0);
+  const matchingTopics = visibleDomains.reduce((s, d) => s + d.entries.length, 0);
 
   const setDraft = (id: string, patch: Partial<Entry>) =>
     setDrafts((d) => ({ ...d, [id]: { ...d[id], ...patch } }));
@@ -156,7 +175,41 @@ function MatrixEditor({ domains, reload, savingId, setSavingId }: {
 
   return (
     <div className="space-y-8">
-      {domains.map((d) => (
+      {/* Topic search — filters across every domain */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5A6B7F]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search topics, positions, rationale…"
+            className="w-full border border-[#D8DEE6] rounded-md pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-[#0A2540]"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5A6B7F] hover:text-[#0A2540]"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <span className="text-xs text-[#5A6B7F]">
+          {q ? `${matchingTopics} of ${totalTopics} topics match` : `${totalTopics} topics`}
+        </span>
+      </div>
+
+      {q && visibleDomains.length === 0 && (
+        <div className="border border-dashed border-[#D8DEE6] rounded-lg p-8 text-center text-sm text-[#5A6B7F]">
+          No topics match &ldquo;{query.trim()}&rdquo;.
+          <button onClick={() => setQuery("")} className="ml-2 text-[#E8272C] font-medium hover:underline">
+            Clear
+          </button>
+        </div>
+      )}
+
+      {visibleDomains.map((d) => (
         <div key={d.id}>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-[#0A2540] flex items-center gap-2">
