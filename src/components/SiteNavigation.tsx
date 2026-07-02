@@ -19,6 +19,7 @@ export type PageKey =
   | "brief"
   | "reports"
   | "position"
+  | "about"
   | "focus-areas"
   | "approach"
   | "membership"
@@ -36,6 +37,7 @@ const NAV_MAIN: { key: PageKey; labelKey: string }[] = [
 ];
 
 const NAV_ABOUT: { key: PageKey; labelKey: string }[] = [
+  { key: "about", labelKey: "nav.mission" },
   { key: "focus-areas", labelKey: "nav.focus-areas" },
   { key: "membership", labelKey: "nav.membership" },
 ];
@@ -117,7 +119,7 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
     setMobileOpen(false);
   };
 
-  const isAboutActive = currentPage === "focus-areas" || currentPage === "membership";
+  const isAboutActive = currentPage === "about" || currentPage === "focus-areas" || currentPage === "membership";
 
   return (
     <>

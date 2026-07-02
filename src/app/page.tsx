@@ -8,6 +8,7 @@ import { ReportsView } from "@/components/ReportsView";
 import { DailyBriefView } from "@/components/DailyBriefView";
 import { SrcPositionView } from "@/components/SrcPositionView";
 import { FocusAreasView } from "@/components/FocusAreasView";
+import { AboutView } from "@/components/AboutView";
 import { ApproachView } from "@/components/ApproachView";
 import { ContactView } from "@/components/ContactView";
 import { MembershipView } from "@/components/MembershipView";
@@ -46,6 +47,8 @@ function PageRouter({ page }: { page: PageKey }) {
       return <ReportsView />;
     case "position":
       return <SrcPositionView />;
+    case "about":
+      return <AboutView />;
     case "focus-areas":
       return <FocusAreasView />;
     case "approach":
