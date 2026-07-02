@@ -41,7 +41,7 @@ const LANGS: Lang[] = ["en", "de", "fr", "it"];
 const SECTIONS = Object.keys(SECTION_KEY_MAP);
 // Editorial content types. The API filters on any value; these are the ones
 // that exist today. New types stay searchable, just not in this chip set.
-const TYPES = ["Analysis", "Opinion"];
+const TYPES = ["Analysis", "Editorial", "Opinion"];
 const RECENT_KEY = "src_recent_searches";
 const MAX_RECENT = 5;
 

@@ -100,6 +100,7 @@ model Report {
   accessGrants   AccessGrant[]
   monitorMatches MonitorMatch[]
   contentScores  ContentScore[]
+  editorialMeta  EditorialMeta?
 
   @@unique([sourceRef, language])
   @@index([section])
@@ -402,4 +403,48 @@ model ContentScore {
   @@unique([reportId, frameworkVersion])
   @@index([reportId])
   @@index([composite])
+}
+
+// "The SRC Position" editorial payload — 1:1 with a Report. Present only for
+// editorial content (type "Editorial" / legacy "Opinion"). Holds the Semaform
+// structure (Facts / Analysis / Room for Disagreement / The Ask), the Editorial
+// Council author card, footer metadata, and nullable video/audio slots for the
+// vAvatar Daily Position and audio brief (populated in a later release).
+// Paperclip's "Editor" agent authors this; SRC website is the system of record.
+model EditorialMeta {
+  id       String @id @default(cuid())
+  reportId String @unique
+
+  // daily-position | position-paper | guest-position | debate | investigates | one-good-question | src-reads
+  subBrand String @default("position-paper")
+  thesis   String? // one-sentence editorial thesis shown in the header
+
+  // Semaform body. facts is [{ claim, source, trust }]; the rest are markdown.
+  facts               Json? // [{ claim: string, source?: string, trust?: number }]
+  analysis            String? // "The SRC Analysis" — the argument, grounded in the facts
+  roomForDisagreement String? // mandatory in every editorial: where SRC might be wrong
+  theAsk              String? // concrete recommendations for decision-makers
+
+  // Editorial Council author card
+  authorTitle    String? // e.g. "Focus Area Lead, Geopolitics"
+  authorCreds    String? // credentials / institutional affiliation
+  authorLinkedin String?
+  authorTwitter  String?
+
+  // Footer transparency block
+  methodology  String? // how this editorial was researched
+  sourcesCount Int? // number of primary sources consulted
+  conflicts    String? // "None" or declared conflicts of interest
+
+  // vAvatar Daily Position + audio brief — populated in a later phase
+  videoUrl      String?
+  videoDuration Int? // seconds
+  audioUrl      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([subBrand])
 }

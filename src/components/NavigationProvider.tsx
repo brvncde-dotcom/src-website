@@ -22,10 +22,13 @@ export { NavigationContext };
 // Map hash fragment to a valid PageKey
 function hashToPage(hash: string): PageKey {
   const validPages: PageKey[] = [
-    "home", "brief", "reports", "opinions", "focus-areas", "approach", "membership", "contact", "help",
+    "home", "brief", "reports", "position", "focus-areas", "approach", "membership", "contact", "help",
     "account", "impressum", "datenschutz", "agb",
   ];
   const page = hash.replace(/^#\/?/, "");
+  // Backward-compat: the editorial section was "opinions" before it became
+  // "The SRC Position". Redirect old bookmarks to the new key.
+  if (page === "opinions") return "position";
   if (validPages.includes(page as PageKey)) return page as PageKey;
   return "home";
 }

@@ -32,9 +32,9 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
       },
       {
-        name: "Opinions",
-        short_name: "Opinions",
-        url: "/?page=opinions",
+        name: "The SRC Position",
+        short_name: "Position",
+        url: "/#position",
         icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
       },
     ],

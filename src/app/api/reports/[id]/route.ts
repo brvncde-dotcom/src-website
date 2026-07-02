@@ -389,10 +389,39 @@ export async function GET(
 
     const gated = access.access !== "full";
 
+    // Editorial payload ("The SRC Position") + the latest CQR scorecard, if any.
+    // The Semaform body and scorecard are part of the full read, so they are
+    // withheld from non-entitled viewers alongside the body.
+    const editorialMeta = gated
+      ? null
+      : await prisma.editorialMeta.findUnique({ where: { reportId: resultReport.id } });
+    const cqrScore = gated
+      ? null
+      : await prisma.contentScore.findFirst({
+          where: { reportId: resultReport.id },
+          orderBy: { frameworkVersion: "desc" },
+          select: {
+            frameworkVersion: true,
+            value: true,
+            trustworthiness: true,
+            sourceBias: true,
+            worldviewAlignment: true,
+            corruptionIndex: true,
+            actionability: true,
+            composite: true,
+            flags: true,
+            recommendedAction: true,
+            recommendedTier: true,
+            contrarianFlag: true,
+          },
+        });
+
     return NextResponse.json({
       ...resultReport,
       // Withhold the full body for non-entitled viewers; summary stays visible.
       content: gated ? null : resultReport.content,
+      editorialMeta,
+      cqrScore,
       access: access.access,
       accessReason: access.reason,
       requiredTier,
