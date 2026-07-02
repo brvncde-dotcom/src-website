@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Menu, User, LogIn, Shield, Search, ChevronDown, Globe, HelpCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Menu, User, LogIn, Shield, Search, ChevronDown, Globe, HelpCircle, Bell } from "lucide-react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -91,6 +91,15 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
   const { t: tr } = useLang();
   const { open: openSearch } = useSearch();
   const [authOpen, setAuthOpen] = useState(false);
+  const [unreadMonitors, setUnreadMonitors] = useState(0);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/monitors/matches?countOnly=true")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d?.unread) setUnreadMonitors(d.unread); })
+      .catch(() => {});
+  }, [status]);
 
   const handleNav = (key: PageKey) => {
     onNavigate(key);
@@ -245,6 +254,18 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                       </a>
                     )}
                     <a
+                      href="/monitors"
+                      className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
+                    >
+                      <Bell className="h-3.5 w-3.5" />
+                      {tr("nav.monitors")}
+                      {unreadMonitors > 0 && (
+                        <span className="ml-auto bg-[#E8272C] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                          {unreadMonitors > 99 ? "99+" : unreadMonitors}
+                        </span>
+                      )}
+                    </a>
+                    <a
                       href="/help"
                       className="w-full text-left px-3 py-2 text-xs font-medium rounded-sm hover:bg-secondary/50 flex items-center gap-2"
                     >
@@ -351,6 +372,18 @@ export function SiteNavigation({ currentPage, onNavigate }: Props) {
                         {tr("account.admin")}
                       </a>
                     )}
+                    <a
+                      href="/monitors"
+                      className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                    >
+                      <Bell className="h-4 w-4" />
+                      {tr("nav.monitors")}
+                      {unreadMonitors > 0 && (
+                        <span className="ml-1 bg-[#E8272C] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                          {unreadMonitors > 99 ? "99+" : unreadMonitors}
+                        </span>
+                      )}
+                    </a>
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="block w-full text-left px-3 py-2.5 text-sm font-medium rounded-sm transition-colors text-[#E8272C] hover:bg-red-50"

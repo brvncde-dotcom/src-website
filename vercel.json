@@ -14,7 +14,8 @@
   },
   "crons": [
     { "path": "/api/cron/expire-grants", "schedule": "0 6 * * *" },
-    { "path": "/api/cron/daily-brief", "schedule": "5 5 * * *" }
+    { "path": "/api/cron/daily-brief", "schedule": "5 5 * * *" },
+    { "path": "/api/cron/monitor-scan", "schedule": "0 7 * * *" }
   ],
   "headers": [
     {

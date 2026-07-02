@@ -8,6 +8,7 @@ import {
   logAdminAction,
   embedReport,
 } from "@/lib/db";
+import { runMonitorScanForReport } from "@/lib/monitor-scan";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -98,6 +99,7 @@ export async function PATCH(
       });
 
       void embedReport(updated.id);
+      void runMonitorScanForReport(updated.id).catch(console.error);
 
       return NextResponse.json({
         id: updated.id,
@@ -193,8 +195,8 @@ export async function PATCH(
             detail: `Published report ${updated.id} (sourceRef: ${updated.sourceRef}) with ${siblings.count} siblings`,
           });
 
-          // Embed all published translations (fire-and-forget, never blocks response)
           void embedReport(updated.id);
+          void runMonitorScanForReport(updated.id).catch(console.error);
 
           return NextResponse.json({
             id: updated.id,
@@ -222,6 +224,7 @@ export async function PATCH(
         });
 
         void embedReport(updated.id);
+        void runMonitorScanForReport(updated.id).catch(console.error);
 
         return NextResponse.json({
           id: updated.id,
