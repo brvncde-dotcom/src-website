@@ -6,8 +6,11 @@
  *
  * Run:  set -a && . ./.env.local && set +a && npx tsx scripts/seed-cqr.ts
  */
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { DEFAULT_WEIGHTS, DEFAULT_THRESHOLDS } from "../src/lib/cqr-score";
+
+// Prisma Json fields accept InputJsonValue; our typed config objects need a cast.
+const asJson = (v: unknown) => v as Prisma.InputJsonValue;
 
 const prisma = new PrismaClient();
 
@@ -119,16 +122,16 @@ async function main() {
     where: { version: 1 },
     create: {
       version: 1,
-      weights: DEFAULT_WEIGHTS,
-      thresholds: DEFAULT_THRESHOLDS,
-      flagRules: FLAG_RULES,
+      weights: asJson(DEFAULT_WEIGHTS),
+      thresholds: asJson(DEFAULT_THRESHOLDS),
+      flagRules: asJson(FLAG_RULES),
       published: true,
       note: "Initial framework v1.0 seeded from SRC-CQR spec.",
     },
     update: {
-      weights: DEFAULT_WEIGHTS,
-      thresholds: DEFAULT_THRESHOLDS,
-      flagRules: FLAG_RULES,
+      weights: asJson(DEFAULT_WEIGHTS),
+      thresholds: asJson(DEFAULT_THRESHOLDS),
+      flagRules: asJson(FLAG_RULES),
       published: true,
     },
   });
