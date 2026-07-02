@@ -337,10 +337,13 @@ export default function HelpPage() {
         </svg>
       </button>
 
-      {/* Mobile Chat Modal */}
+      {/* Mobile Chat Modal
+          Uses items-start + pt-safe so the modal stays near the top of
+          the screen where it's visible even when the Android keyboard is open.
+          h-[min(560px,80dvh)] shrinks with the dynamic viewport (keyboard-aware). */}
       {showChat && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="w-full h-[80vh] sm:max-w-md sm:h-[600px]">
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[env(safe-area-inset-top,16px)] px-4 pb-4">
+          <div className="w-full max-w-md h-[min(560px,80dvh)]">
             <HelpChat isModal onClose={() => setShowChat(false)} />
           </div>
         </div>

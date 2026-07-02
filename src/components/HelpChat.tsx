@@ -39,6 +39,12 @@ export function HelpChat({ isModal = false, onClose }: HelpChatProps) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    // Dismiss the mobile keyboard so the response is visible (Android fix).
+    // The keyboard covers the messages area when input is focused.
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -59,7 +65,13 @@ export function HelpChat({ isModal = false, onClose }: HelpChatProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        const status = response.status;
+        if (status === 503) {
+          setError("AI chat is temporarily unavailable. Please try again later.");
+        } else {
+          setError(`Request failed (${status}). Please try again.`);
+        }
+        return;
       }
 
       const data = await response.json();
@@ -72,7 +84,7 @@ export function HelpChat({ isModal = false, onClose }: HelpChatProps) {
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      setError(tr("help.chat.error"));
+      setError("Network error — check your connection and try again.");
       console.error("Chat error:", err);
     } finally {
       setIsLoading(false);
