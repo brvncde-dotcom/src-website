@@ -655,6 +655,25 @@ export async function GET(request: NextRequest) {
         minTierId: true,
         reviewNote: true,
         isFreeMonthlyPick: true,
+        // Latest CQR score for the review card: the board sees WHY a piece
+        // was queued and what it needs to clear the auto-publish floor.
+        contentScores: {
+          orderBy: { frameworkVersion: "desc" as const },
+          take: 1,
+          select: {
+            composite: true,
+            value: true,
+            trustworthiness: true,
+            sourceBias: true,
+            worldviewAlignment: true,
+            corruptionIndex: true,
+            actionability: true,
+            flags: true,
+            recommendedAction: true,
+            scoredBy: true,
+            frameworkVersion: true,
+          },
+        },
       } : {}),
     };
 

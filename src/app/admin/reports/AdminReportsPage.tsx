@@ -65,6 +65,36 @@ const LANG_COLORS: Record<string, string> = {
   it: "bg-green-100 text-green-800 border-green-300",
 };
 
+interface CqrScore {
+  composite: number;
+  value: number;
+  trustworthiness: number;
+  sourceBias: number;
+  worldviewAlignment: number;
+  corruptionIndex: number;
+  actionability: number;
+  flags: string[];
+  recommendedAction: string;
+  scoredBy: string;
+  frameworkVersion: number;
+}
+
+// Composite → chip color: mirrors the auto-publish floor (8.0).
+function cqrChipClass(composite: number): string {
+  if (composite >= 8) return "bg-green-100 text-green-800 border-green-300";
+  if (composite >= 6) return "bg-amber-100 text-amber-800 border-amber-300";
+  return "bg-red-100 text-red-800 border-red-300";
+}
+
+const CQR_DIMENSIONS: { key: keyof CqrScore; label: string }[] = [
+  { key: "value", label: "Value" },
+  { key: "trustworthiness", label: "Trustworthiness" },
+  { key: "sourceBias", label: "Source Bias" },
+  { key: "worldviewAlignment", label: "Worldview Alignment" },
+  { key: "corruptionIndex", label: "Corruption Index" },
+  { key: "actionability", label: "Actionability" },
+];
+
 interface Report {
   id: string;
   title: string;
@@ -85,6 +115,7 @@ interface Report {
   previewToken?: string | null;
   designSignedOffBy?: string | null;
   isFreeMonthlyPick?: boolean;
+  contentScores?: CqrScore[];
 }
 
 export default function AdminReportsPage() {
@@ -594,6 +625,14 @@ export default function AdminReportsPage() {
                         <span className="text-[10px] uppercase tracking-wider text-[#5A6B7F] font-semibold">
                           {SECTION_LABELS[report.section] || report.section}
                         </span>
+                        {report.contentScores?.[0] && (
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-sm border ${cqrChipClass(report.contentScores[0].composite)}`}
+                            title={`${report.contentScores[0].recommendedAction} · scored by ${report.contentScores[0].scoredBy} · framework v${report.contentScores[0].frameworkVersion}`}
+                          >
+                            CQR {report.contentScores[0].composite.toFixed(1)}
+                          </span>
+                        )}
                       </div>
                       <h3 className="font-bold text-sm sm:text-base leading-snug mb-1">
                         {report.title}
@@ -740,6 +779,63 @@ export default function AdminReportsPage() {
                           No full content available
                         </div>
                       )}
+                      {/* CQR scorecard: why this piece was queued and what it needs
+                          to clear the auto-publish floor (composite ≥ 8.0) */}
+                      {report.contentScores?.[0] ? (
+                        <div className="mt-3 p-3 bg-[#F4F6F9] border border-[#D8DEE6] rounded-sm">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-[#5A6B7F]">
+                              CQR Scorecard
+                            </span>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-sm border ${cqrChipClass(report.contentScores[0].composite)}`}
+                            >
+                              {report.contentScores[0].composite.toFixed(1)} / 10
+                            </span>
+                            <span className="text-[10px] text-[#5A6B7F]">
+                              {report.contentScores[0].recommendedAction} · scored by{" "}
+                              {report.contentScores[0].scoredBy} · framework v
+                              {report.contentScores[0].frameworkVersion}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                            {CQR_DIMENSIONS.map(({ key, label }) => {
+                              const v = report.contentScores![0][key] as number;
+                              return (
+                                <div key={key} className="flex items-center gap-2">
+                                  <span className="text-[10px] text-[#5A6B7F] w-32 shrink-0">{label}</span>
+                                  <div className="flex-1 h-1.5 bg-[#D8DEE6] rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${v >= 8 ? "bg-green-600" : v >= 6 ? "bg-amber-500" : "bg-red-500"}`}
+                                      style={{ width: `${Math.min(v, 10) * 10}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] font-mono font-semibold text-[#0A2540] w-6 text-right">
+                                    {v}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {report.contentScores[0].flags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {report.contentScores[0].flags.map((f) => (
+                                <span
+                                  key={f}
+                                  className="text-[9px] uppercase tracking-wider font-bold bg-orange-100 text-orange-800 border border-orange-300 rounded-sm px-1.5 py-0.5"
+                                >
+                                  {f.replace(/_/g, " ")}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-3 text-[10px] text-[#5A6B7F]/60 italic">
+                          No CQR score yet — auto-publish requires a composite ≥ 8.0
+                        </div>
+                      )}
+
                       {/* Members-only gating: set the minimum tier required to read this report */}
                       <div className="mt-3 flex items-center gap-2 flex-wrap">
                         <span className="text-[10px] uppercase tracking-wider font-semibold text-[#5A6B7F]">
