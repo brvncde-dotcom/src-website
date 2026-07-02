@@ -121,20 +121,67 @@ export async function scoreReport(
   });
 
   const text = message.content[0].type === "text" ? message.content[0].text : "";
-  const parsed = extractJson(text) as {
-    scores: RawScores;
-    rationale: ScoreEnvelope["rationale"];
-    recommendedTier?: string;
-    contrarianFlag?: boolean;
-    timeHorizon?: string;
-  };
+  const parsed = extractJson(text) as Record<string, unknown>;
+
+  const rawScores = (parsed.scores ?? {}) as Record<string, unknown>;
+  const rawRationale = (parsed.rationale ?? {}) as Record<string, unknown>;
 
   return {
-    scores: parsed.scores,
-    rationale: parsed.rationale ?? {},
+    scores: normalizeScores(rawScores),
+    rationale: normalizeRationale(rawRationale),
     docType,
-    recommendedTier: parsed.recommendedTier ?? null,
-    contrarianFlag: parsed.contrarianFlag ?? false,
-    timeHorizon: parsed.timeHorizon,
+    recommendedTier: (parsed.recommendedTier ?? parsed.recommended_tier ?? null) as string | null,
+    contrarianFlag: Boolean(parsed.contrarianFlag ?? parsed.contrarian_flag ?? false),
+    timeHorizon: (parsed.timeHorizon ?? parsed.time_horizon) as string | undefined,
   };
+}
+
+// Dimension key aliases: models sometimes emit snake_case (matching the spec's
+// JSON examples) instead of the camelCase we ask for. Accept both, coerce
+// numeric strings/floats to a clamped integer 1-10.
+const DIM_ALIASES: Record<keyof RawScores, string[]> = {
+  value: ["value"],
+  trustworthiness: ["trustworthiness", "trust"],
+  sourceBias: ["sourceBias", "source_bias"],
+  worldviewAlignment: ["worldviewAlignment", "worldview_alignment"],
+  corruptionIndex: ["corruptionIndex", "corruption_index", "corruption"],
+  actionability: ["actionability"],
+};
+
+function coerceScore(raw: Record<string, unknown>, aliases: string[]): number {
+  for (const key of aliases) {
+    const v = raw[key];
+    if (v === undefined || v === null) continue;
+    // A dimension may arrive as { score: 8, ... } or a bare number/string.
+    const candidate = typeof v === "object" ? (v as Record<string, unknown>).score : v;
+    const n = typeof candidate === "number" ? candidate : parseFloat(String(candidate));
+    if (Number.isFinite(n)) return Math.min(10, Math.max(1, Math.round(n)));
+  }
+  throw new Error(`missing/invalid score for ${aliases[0]}`);
+}
+
+function normalizeScores(raw: Record<string, unknown>): RawScores {
+  return {
+    value: coerceScore(raw, DIM_ALIASES.value),
+    trustworthiness: coerceScore(raw, DIM_ALIASES.trustworthiness),
+    sourceBias: coerceScore(raw, DIM_ALIASES.sourceBias),
+    worldviewAlignment: coerceScore(raw, DIM_ALIASES.worldviewAlignment),
+    corruptionIndex: coerceScore(raw, DIM_ALIASES.corruptionIndex),
+    actionability: coerceScore(raw, DIM_ALIASES.actionability),
+  };
+}
+
+function normalizeRationale(raw: Record<string, unknown>): ScoreEnvelope["rationale"] {
+  const out: ScoreEnvelope["rationale"] = {};
+  for (const [dim, aliases] of Object.entries(DIM_ALIASES) as [keyof RawScores, string[]][]) {
+    for (const key of aliases) {
+      const v = raw[key];
+      if (typeof v === "string") { out[dim] = v; break; }
+      if (v && typeof v === "object" && typeof (v as Record<string, unknown>).rationale === "string") {
+        out[dim] = (v as Record<string, unknown>).rationale as string;
+        break;
+      }
+    }
+  }
+  return out;
 }
